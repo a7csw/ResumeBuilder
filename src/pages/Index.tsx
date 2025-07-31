@@ -46,8 +46,8 @@ const Index = () => {
           </div>
           <nav className="hidden md:flex items-center space-x-6 ml-8">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#templates" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Templates</a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+            <Link to="/templates" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Templates</Link>
+            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-4">
             <ThemeToggle />

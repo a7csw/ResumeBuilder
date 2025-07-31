@@ -50,7 +50,19 @@ const Auth = () => {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check for email confirmation error
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email not verified",
+            description: "Please check your email and click the verification link before signing in.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast({
         title: "Success!",
@@ -86,15 +98,15 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success!",
-        description: "Account created successfully. Please check your email for verification.",
+        title: "Check your email!",
+        description: "We've sent you a confirmation link. Please verify your email before signing in.",
       });
     } catch (error: any) {
       toast({
