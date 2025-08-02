@@ -1,72 +1,59 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, Sparkles, Download, Zap, Users, Shield, ArrowRight, CheckCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import ProfileDropdown from "@/components/ProfileDropdown";
+import { FileText, Sparkles, Download, Eye, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-    };
-    checkAuth();
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user || null);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleGetStarted = () => {
-    if (user) {
-      navigate("/builder");
-    } else {
-      navigate("/auth");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 animate-scale-in">
             <FileText className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">ResumeAI</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-6 ml-8">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <Link to="/templates" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Templates</Link>
-            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-          </nav>
           <div className="ml-auto flex items-center space-x-4">
+            <nav className="hidden md:flex space-x-6">
+              <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
+              <Link to="/templates" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Templates</Link>
+              <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+            </nav>
             <ThemeToggle />
-            {user ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Welcome back!</span>
-                <Button onClick={() => navigate("/builder")}>
-                  Go to Builder
-                </Button>
-              </div>
+            {loading ? (
+              <div className="w-8 h-8 bg-muted rounded animate-pulse" />
+            ) : user ? (
+              <ProfileDropdown user={user} />
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-                <Button onClick={handleGetStarted}>
-                  Get Started
-                </Button>
-              </div>
+              <Button asChild>
+                <Link to="/auth">Sign In</Link>
+              </Button>
             )}
           </div>
         </div>
@@ -74,29 +61,29 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="py-20 px-6">
-        <div className="container text-center">
-          <Badge className="mb-6" variant="secondary">
-            <Sparkles className="h-3 w-3 mr-1" />
-            AI-Powered Resume Builder
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 gradient-primary bg-clip-text text-transparent">
-            Build Professional Resumes
-            <br />
-            in Minutes, Not Hours
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Create stunning, ATS-friendly resumes with our AI-powered builder. 
-            Get personalized suggestions and export to PDF instantly.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={handleGetStarted} className="shadow-elegant">
-              Start Building for Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button size="lg" variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              View Demo
-            </Button>
+        <div className="container">
+          <div className="text-center space-y-6 max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-fade-in-up">
+              Create Your Perfect Resume in Minutes
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-200">
+              AI-powered resume builder with professional templates, smart suggestions, and one-click PDF export. 
+              Stand out from the competition with a resume that gets you hired.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
+              <Button size="lg" asChild className="transition-smooth hover:scale-105">
+                <Link to={user ? "/builder" : "/auth"}>
+                  {user ? "Go to Builder" : "Get Started Free"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild className="transition-smooth hover:scale-105">
+                <Link to="/templates">
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Templates
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -104,7 +91,7 @@ const Index = () => {
       {/* Features Section */}
       <section id="features" className="py-20 px-6 bg-muted/30">
         <div className="container">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Everything You Need to Succeed
             </h2>
@@ -113,63 +100,33 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="shadow-elegant">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-200">
               <CardHeader>
-                <Sparkles className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>AI-Powered Suggestions</CardTitle>
+                <Sparkles className="h-12 w-12 text-primary mb-4" />
+                <CardTitle>AI-Powered Content</CardTitle>
                 <CardDescription>
-                  Get intelligent recommendations for content, formatting, and improvements
+                  Get intelligent suggestions for bullet points, summaries, and skills based on your experience and target role.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="shadow-elegant">
+            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-300">
               <CardHeader>
-                <Download className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Instant PDF Export</CardTitle>
+                <FileText className="h-12 w-12 text-primary mb-4" />
+                <CardTitle>Professional Templates</CardTitle>
                 <CardDescription>
-                  Download your resume as a professional PDF with one click
+                  Choose from multiple ATS-friendly templates designed by HR professionals to maximize your interview chances.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="shadow-elegant">
+            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-400">
               <CardHeader>
-                <Zap className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Live Preview</CardTitle>
+                <Download className="h-12 w-12 text-primary mb-4" />
+                <CardTitle>One-Click Export</CardTitle>
                 <CardDescription>
-                  See your changes in real-time as you build your resume
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <Users className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Multiple Templates</CardTitle>
-                <CardDescription>
-                  Choose from professionally designed templates for any industry
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <Shield className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>ATS-Friendly</CardTitle>
-                <CardDescription>
-                  Optimized for Applicant Tracking Systems used by employers
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <FileText className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Easy Editing</CardTitle>
-                <CardDescription>
-                  Simple drag-and-drop interface with intelligent section ordering
+                  Export your resume to PDF format instantly, perfectly formatted and ready to send to potential employers.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -180,39 +137,18 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="container">
-          <Card className="p-8 text-center shadow-elegant gradient-primary">
-            <CardContent className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
-                Ready to Build Your Perfect Resume?
-              </h2>
-              <p className="text-xl text-white/90">
-                Join thousands of professionals who've landed their dream jobs
-              </p>
-              <div className="flex items-center justify-center space-x-6 text-white/90">
-                <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Free to start
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  No credit card required
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  AI-powered
-                </div>
-              </div>
-              <Button 
-                size="lg" 
-                variant="secondary" 
-                onClick={handleGetStarted}
-                className="bg-white text-primary hover:bg-white/90"
-              >
-                Get Started Now
+          <div className="text-center space-y-6 animate-fade-in-up">
+            <h2 className="text-3xl font-bold">Ready to build your dream resume?</h2>
+            <p className="text-xl text-muted-foreground">
+              Join thousands of professionals who've landed their dream jobs with ResumeAI
+            </p>
+            <Button size="lg" asChild className="transition-smooth hover:scale-105">
+              <Link to={user ? "/builder" : "/auth"}>
+                {user ? "Go to Builder" : "Start Building Now"}
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 

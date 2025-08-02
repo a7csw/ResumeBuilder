@@ -14,6 +14,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -99,6 +101,10 @@ const Auth = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
         },
       });
 
@@ -140,10 +146,10 @@ const Auth = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md shadow-elegant">
+        <Card className="w-full max-w-md shadow-elegant animate-scale-in">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Welcome</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-2xl font-bold text-center animate-fade-in-up">Welcome</CardTitle>
+            <CardDescription className="text-center animate-fade-in-up delay-200">
               Sign in to your account or create a new one to get started
             </CardDescription>
           </CardHeader>
@@ -186,6 +192,30 @@ const Auth = () => {
               
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="First name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <Input

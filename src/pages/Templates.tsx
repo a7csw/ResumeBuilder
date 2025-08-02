@@ -4,28 +4,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft, Eye, Download } from "lucide-react";
 
+// Import template images
+import templateModern from "@/assets/template-modern.jpg";
+import templateClassic from "@/assets/template-classic.jpg";
+import templateMinimal from "@/assets/template-minimal.jpg";
+import templateCreative from "@/assets/template-creative.jpg";
+import templateTechnical from "@/assets/template-technical.jpg";
+
 const Templates = () => {
   const templates = [
     {
       id: "modern",
       name: "Modern Professional",
       description: "Clean and contemporary design perfect for tech and creative industries",
-      image: "/placeholder.svg",
+      image: templateModern,
       features: ["Single column layout", "Modern typography", "Color accents", "ATS-friendly"]
     },
     {
       id: "classic",
       name: "Classic Executive",
       description: "Traditional format ideal for corporate and executive positions",
-      image: "/placeholder.svg",
+      image: templateClassic,
       features: ["Two column layout", "Professional styling", "Traditional format", "Executive focus"]
     },
     {
       id: "minimal",
       name: "Minimal Clean",
       description: "Minimalist design that highlights your content with elegant simplicity",
-      image: "/placeholder.svg",
+      image: templateMinimal,
       features: ["Ultra-clean design", "Minimal formatting", "Focus on content", "Versatile"]
+    },
+    {
+      id: "creative",
+      name: "Creative Professional",
+      description: "Unique design perfect for creative industries and portfolio presentation",
+      image: templateCreative,
+      features: ["Creative layout", "Visual elements", "Portfolio-friendly", "Industry-specific"]
+    },
+    {
+      id: "technical",
+      name: "Technical Specialist",
+      description: "Structured format optimized for tech and engineering professionals",
+      image: templateTechnical,
+      features: ["Tech-focused sections", "Skills emphasis", "Project highlights", "Engineering-optimized"]
     }
   ];
 
@@ -50,7 +71,7 @@ const Templates = () => {
 
       {/* Main Content */}
       <div className="container py-12">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 animate-fade-in-up">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
             Resume Templates
           </h1>
@@ -60,8 +81,11 @@ const Templates = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {templates.map((template) => (
-            <Card key={template.id} className="shadow-elegant hover:shadow-glow transition-all duration-300 group">
+          {templates.map((template, index) => (
+            <Card 
+              key={template.id} 
+              className={`shadow-elegant hover:shadow-glow transition-smooth hover:scale-105 group animate-fade-in-up delay-${(index + 2) * 100}`}
+            >
               <CardHeader className="pb-4">
                 <div className="aspect-[3/4] bg-muted rounded-lg mb-4 overflow-hidden">
                   <img 
@@ -86,11 +110,11 @@ const Templates = () => {
                   </ul>
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1 transition-smooth hover:scale-105">
                     <Eye className="w-4 h-4 mr-2" />
                     Preview
                   </Button>
-                  <Button asChild size="sm" className="flex-1">
+                  <Button asChild size="sm" className="flex-1 transition-smooth hover:scale-105">
                     <Link to="/builder">
                       Use Template
                     </Link>
@@ -101,11 +125,11 @@ const Templates = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 animate-fade-in-up delay-500">
           <p className="text-muted-foreground mb-6">
             Ready to create your professional resume?
           </p>
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="transition-smooth hover:scale-105">
             <Link to="/auth">
               Get Started Free
             </Link>

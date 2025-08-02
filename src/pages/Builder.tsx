@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, LogOut, Download, Sparkles } from "lucide-react";
+import { FileText, LogOut, Download, Sparkles, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const Builder = () => {
@@ -60,14 +61,21 @@ const Builder = () => {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-14 items-center">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-sm">Back to home</span>
+          </Link>
+          <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
             <span className="font-bold">ResumeAI</span>
           </div>
           <div className="ml-auto flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
-              Welcome, {user?.email}
-            </span>
+            <Button variant="outline" size="sm" className="transition-smooth hover:scale-105">
+              Save Draft
+            </Button>
+            <Button size="sm" className="transition-smooth hover:scale-105">
+              Export PDF
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
