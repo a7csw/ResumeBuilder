@@ -14,6 +14,7 @@ interface TemplateCardProps {
   isAI?: boolean;
   isPopular?: boolean;
   onSelect: (templateId: string) => void;
+  delay?: number;
 }
 
 const TemplateCard = ({ 
@@ -25,7 +26,8 @@ const TemplateCard = ({
   isPremium = false, 
   isAI = false,
   isPopular = false,
-  onSelect 
+  onSelect,
+  delay = 0
 }: TemplateCardProps) => {
   const { userPlan } = useUserPlan();
   

@@ -252,4 +252,49 @@ All colors MUST be HSL.
   .delay-600 { animation-delay: 600ms; }
   .delay-700 { animation-delay: 700ms; }
   .delay-800 { animation-delay: 800ms; }
+
+  /* Professional enhancements */
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .hover-scale {
+    transition: var(--transition-smooth);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Form enhancements */
+  .form-floating {
+    position: relative;
+  }
+  
+  .form-floating input:focus + label,
+  .form-floating input:not(:placeholder-shown) + label {
+    transform: translateY(-0.5rem) scale(0.85);
+    color: hsl(var(--primary));
+  }
+  
+  /* Status indicators */
+  .status-indicator {
+    position: relative;
+  }
+  
+  .status-indicator::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .status-free::before { background: hsl(var(--destructive)); }
+  .status-basic::before { background: hsl(var(--primary)); }
+  .status-pro::before { background: hsl(var(--primary-glow)); }
 }

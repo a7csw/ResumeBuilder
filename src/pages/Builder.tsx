@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import ResumeBuilder from "@/components/ResumeBuilder";
+import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
 import TemplatePreview from "@/components/TemplatePreview";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import { useUserPlan } from "@/hooks/useUserPlan";
@@ -220,7 +220,7 @@ const Builder = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Resume Builder */}
           <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-4">
-            <ResumeBuilder 
+            <EnhancedResumeBuilder 
               userType={userType}
               buildingMode={buildingMode}
               isStudent={isStudent}
@@ -228,6 +228,7 @@ const Builder = () => {
               canExportPDF={canExportPDF()}
               resumeData={resumeData}
               setResumeData={setResumeData}
+              userPlan={userPlan}
             />
           </div>
 

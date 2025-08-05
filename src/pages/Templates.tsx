@@ -21,8 +21,6 @@ import templateInternship from "@/assets/template-internship.jpg";
 const Templates = () => {
   const navigate = useNavigate();
   const { userPlan } = useUserPlan();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showAIOnly, setShowAIOnly] = useState(false);
 
   const templates = [
     // Free Templates
@@ -132,13 +130,6 @@ const Templates = () => {
     }
   ];
 
-  const categories = ["all", "Professional", "Modern", "Creative", "Technical", "Minimal", "Student", "AI-Generated"];
-  
-  const filteredTemplates = templates.filter(template => {
-    if (showAIOnly && !template.isAI) return false;
-    if (selectedCategory === "all") return true;
-    return template.category === selectedCategory;
-  });
 
   const handleTemplateSelect = (templateId: string) => {
     navigate(`/builder?template=${templateId}`);
@@ -174,46 +165,17 @@ const Templates = () => {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 justify-center mb-8">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filter by:</span>
-          </div>
-          
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category === "all" ? "All Templates" : category}
-            </Button>
-          ))}
-          
-          {userPlan.plan === 'pro' && userPlan.isActive && (
-            <Button
-              variant={showAIOnly ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowAIOnly(!showAIOnly)}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Templates Only
-            </Button>
-          )}
-        </div>
 
         {/* Most Popular Section */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Most Popular Templates</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {templates.filter(t => t.isPopular).map((template) => (
+            {templates.filter(t => t.isPopular).map((template, index) => (
               <TemplateCard
                 key={template.id}
                 {...template}
                 onSelect={handleTemplateSelect}
+                delay={index * 100}
               />
             ))}
           </div>
@@ -222,36 +184,20 @@ const Templates = () => {
         {/* All Templates */}
         <div>
           <h2 className="text-2xl font-bold mb-6 text-center">
-            {showAIOnly ? "AI-Generated Templates" : "All Templates"}
+            All Templates
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {filteredTemplates.map((template) => (
+            {templates.map((template, index) => (
               <TemplateCard
                 key={template.id}
                 {...template}
                 onSelect={handleTemplateSelect}
+                delay={index * 100}
               />
             ))}
           </div>
         </div>
 
-        {/* Upgrade CTA for non-Pro users viewing AI templates */}
-        {showAIOnly && userPlan.plan !== 'pro' && (
-          <div className="text-center mt-12">
-            <Card className="max-w-md mx-auto shadow-elegant">
-              <CardContent className="pt-6">
-                <Sparkles className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Unlock AI Templates</h3>
-                <p className="text-muted-foreground mb-4">
-                  Access exclusive AI-generated templates with Pro subscription
-                </p>
-                <Button asChild className="w-full">
-                  <Link to="/pricing">Upgrade to Pro</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );

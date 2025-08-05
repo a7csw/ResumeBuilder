@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft, User, Mail, Calendar } from "lucide-react";
+import { FileText, ArrowLeft } from "lucide-react";
+import EditableProfile from "@/components/EditableProfile";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -65,59 +64,8 @@ const Profile = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container py-8 max-w-2xl">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>
-                Your account details and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Member since</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(user?.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
-                Manage your account preferences and data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                Change Password
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Export My Data
-              </Button>
-              <Button variant="destructive" className="w-full justify-start">
-                Delete Account
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="container py-8 max-w-4xl">
+        <EditableProfile user={user} />
       </div>
     </div>
   );
