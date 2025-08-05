@@ -6,160 +6,185 @@ interface ResumePreviewProps {
 }
 
 const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
-  const isStudent = userType === "student";
-
   return (
-    <Card className="animate-fade-in-up delay-100 hover-lift">
+    <Card className="w-full max-w-4xl mx-auto animate-fade-in hover-scale" id="resume-preview">
       <CardHeader>
-        <CardTitle>Live Preview</CardTitle>
+        <CardTitle className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          Resume Preview
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="aspect-[8.5/11] bg-white border rounded-lg shadow-sm p-6 text-black overflow-y-auto">
-          {/* Header */}
-          <div className="text-center mb-6 border-b border-gray-300 pb-4">
-            <h1 className="text-2xl font-bold mb-2">
-              {resumeData?.personalInfo?.fullName || "Your Name"}
-            </h1>
-            <div className="text-gray-600 text-sm space-y-1">
-              <p>{resumeData?.personalInfo?.email || "your.email@example.com"}</p>
-              <p>{resumeData?.personalInfo?.phone || "(555) 123-4567"}</p>
-              <p>{resumeData?.personalInfo?.location || "Your Location"}</p>
-            </div>
+      <CardContent className="space-y-6">
+        {!resumeData.personalInfo.firstName ? (
+          <div className="text-center text-muted-foreground py-12 animate-fade-in">
+            <p className="text-lg font-medium mb-2">Your resume preview will appear here</p>
+            <p className="text-sm">Start filling out your resume details to see the live preview</p>
           </div>
-          
-          {/* Summary */}
-          {resumeData?.summary && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2 border-b border-gray-300 text-primary">
-                Professional Summary
-              </h2>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {resumeData.summary}
-              </p>
+        ) : (
+          <div className="animate-fade-in space-y-6">
+            {/* Personal Information */}
+            <div className="text-center border-b pb-6 animate-scale-in">
+              <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+              </h1>
+              {resumeData.personalInfo.title && (
+                <p className="text-xl text-muted-foreground mb-4">{resumeData.personalInfo.title}</p>
+              )}
+              <div className="flex justify-center gap-4 mt-4 text-sm text-muted-foreground flex-wrap">
+                {resumeData.personalInfo.email && <span>{resumeData.personalInfo.email}</span>}
+                {resumeData.personalInfo.phone && <span>{resumeData.personalInfo.phone}</span>}
+                {resumeData.personalInfo.location && <span>{resumeData.personalInfo.location}</span>}
+              </div>
+              {(resumeData.personalInfo.linkedin || resumeData.personalInfo.website) && (
+                <div className="flex justify-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
+                  {resumeData.personalInfo.linkedin && <span>LinkedIn: {resumeData.personalInfo.linkedin}</span>}
+                  {resumeData.personalInfo.website && <span>Website: {resumeData.personalInfo.website}</span>}
+                </div>
+              )}
             </div>
-          )}
-          
-          {/* Education - Prioritized for students */}
-          {resumeData?.education?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3 border-b border-gray-300 text-primary">
-                Education
-              </h2>
-              {resumeData.education.map((edu: any, index: number) => (
-                <div key={index} className="mb-3 last:mb-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-sm">{edu.degree}</p>
-                      <p className="text-gray-600 text-sm">{edu.school}</p>
-                      {isStudent && edu.gpa && (
-                        <p className="text-gray-600 text-sm">GPA: {edu.gpa}</p>
+
+            {/* Professional Summary */}
+            {resumeData.summary && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  Professional Summary
+                </h2>
+                <p className="text-foreground leading-relaxed">{resumeData.summary}</p>
+              </div>
+            )}
+
+            {/* Education - Prioritized for students */}
+            {resumeData.education.length > 0 && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  Education
+                </h2>
+                <div className="space-y-4">
+                  {resumeData.education.map((edu: any, index: number) => (
+                    <div key={index} className="hover-scale transition-smooth">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{edu.degree}</h3>
+                          <p className="text-muted-foreground">{edu.school}</p>
+                          {userType === "student" && edu.gpa && (
+                            <p className="text-muted-foreground text-sm">GPA: {edu.gpa}</p>
+                          )}
+                        </div>
+                        <span className="text-muted-foreground text-sm">{edu.graduationDate}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Experience */}
+            {resumeData.experience.length > 0 && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  {userType === "student" ? "Experience" : "Work Experience"}
+                </h2>
+                <div className="space-y-4">
+                  {resumeData.experience.map((exp: any, index: number) => (
+                    <div key={index} className="hover-scale transition-smooth">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{exp.title}</h3>
+                          <p className="text-muted-foreground">{exp.company}</p>
+                        </div>
+                        <span className="text-muted-foreground text-sm">
+                          {exp.startDate} - {exp.endDate || "Present"}
+                        </span>
+                      </div>
+                      {exp.description && (
+                        <p className="text-foreground leading-relaxed whitespace-pre-line text-sm mt-2">
+                          {exp.description}
+                        </p>
+                      )}
+                      {exp.achievements && exp.achievements.length > 0 && (
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          {exp.achievements.map((achievement: string, achIndex: number) => (
+                            <li key={achIndex} className="text-foreground text-sm">{achievement}</li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                    <p className="text-gray-600 text-sm">{edu.graduationYear}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Projects - Emphasized for students */}
-          {resumeData?.projects?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3 border-b border-gray-300 text-primary">
-                Projects
-              </h2>
-              {resumeData.projects.map((project: any, index: number) => (
-                <div key={index} className="mb-4 last:mb-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <p className="font-medium text-sm">{project.name}</p>
-                    {project.technologies && (
-                      <p className="text-gray-500 text-xs">{project.technologies}</p>
-                    )}
-                  </div>
-                  {project.description && (
-                    <p className="text-gray-700 text-sm leading-relaxed">{project.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Experience */}
-          {resumeData?.experience?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3 border-b border-gray-300 text-primary">
-                {isStudent ? "Experience" : "Work Experience"}
-              </h2>
-              {resumeData.experience.map((exp: any, index: number) => (
-                <div key={index} className="mb-4 last:mb-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-sm">{exp.jobTitle}</p>
-                      <p className="text-gray-600 text-sm">{exp.company}</p>
-                    </div>
-                    <p className="text-gray-600 text-sm">
-                      {exp.startDate} - {exp.endDate || "Present"}
-                    </p>
-                  </div>
-                  {exp.description && (
-                    <div className="mt-2">
-                      <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
-                        {exp.description}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Skills */}
-          {resumeData?.skills?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2 border-b border-gray-300 text-primary">
-                Skills
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {resumeData.skills.map((skill: string, index: number) => (
-                  <span 
-                    key={index} 
-                    className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
-                  >
-                    {skill}
-                  </span>
-                ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Certifications */}
-          {resumeData?.certifications?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3 border-b border-gray-300 text-primary">
-                Certifications
-              </h2>
-              {resumeData.certifications.map((cert: any, index: number) => (
-                <div key={index} className="mb-3 last:mb-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-sm">{cert.name}</p>
-                      <p className="text-gray-600 text-sm">{cert.issuer}</p>
+            {/* Projects - Emphasized for students */}
+            {resumeData.projects.length > 0 && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  Projects
+                </h2>
+                <div className="space-y-4">
+                  {resumeData.projects.map((project: any, index: number) => (
+                    <div key={index} className="hover-scale transition-smooth">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{project.name}</h3>
+                          {project.technologies && (
+                            <p className="text-muted-foreground text-sm">{project.technologies}</p>
+                          )}
+                        </div>
+                        {project.date && (
+                          <span className="text-muted-foreground text-sm">{project.date}</span>
+                        )}
+                      </div>
+                      {project.description && (
+                        <p className="text-foreground leading-relaxed text-sm mt-2">{project.description}</p>
+                      )}
+                      {project.link && (
+                        <p className="text-primary text-sm mt-1">Link: {project.link}</p>
+                      )}
                     </div>
-                    <p className="text-gray-600 text-sm">{cert.date}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Empty state */}
-          {!resumeData?.personalInfo?.fullName && !resumeData?.summary && (
-            <div className="text-center text-gray-500 py-8">
-              <p className="text-lg font-medium mb-2">Your resume preview will appear here</p>
-              <p className="text-sm">Start filling out your information to see the live preview</p>
-            </div>
-          )}
-        </div>
+            {/* Skills */}
+            {resumeData.skills.length > 0 && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  Skills
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {resumeData.skills.map((skill: string, index: number) => (
+                    <span 
+                      key={index} 
+                      className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm hover-scale transition-smooth"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {resumeData.certifications.length > 0 && (
+              <div className="animate-scale-in">
+                <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
+                  Certifications
+                </h2>
+                <div className="space-y-3">
+                  {resumeData.certifications.map((cert: any, index: number) => (
+                    <div key={index} className="flex justify-between items-start hover-scale transition-smooth">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{cert.name}</h3>
+                        <p className="text-muted-foreground text-sm">{cert.issuer}</p>
+                      </div>
+                      <span className="text-muted-foreground text-sm">{cert.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
