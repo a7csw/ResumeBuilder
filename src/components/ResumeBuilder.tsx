@@ -60,12 +60,14 @@ interface ResumeData {
 interface ResumeBuilderProps {
   userType: "student" | "professional" | "freelancer";
   buildingMode: "manual" | "ai";
-  hasPaidPlan: boolean;
+  isStudent: boolean;
+  canUseAI: boolean;
+  canExportPDF: boolean;
   resumeData: ResumeData;
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
 }
 
-const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan, resumeData, setResumeData }: ResumeBuilderProps) => {
+const ResumeBuilder = ({ userType, buildingMode, isStudent, canUseAI, canExportPDF, resumeData, setResumeData }: ResumeBuilderProps) => {
   const { toast } = useToast();
   const [newSkill, setNewSkill] = useState("");
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
@@ -236,7 +238,7 @@ const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan, resumeData, setRes
   };
 
   const handleExport = async () => {
-    if (!hasPaidPlan) {
+    if (!canExportPDF) {
       return; // This will be handled by the AlertDialog
     }
 
@@ -905,7 +907,7 @@ const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan, resumeData, setRes
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            {hasPaidPlan ? (
+            {canExportPDF ? (
               <Button 
                 onClick={handleExport} 
                 className="flex items-center gap-2 hover-scale bg-gradient-primary"
@@ -939,7 +941,7 @@ const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan, resumeData, setRes
               </AlertDialog>
             )}
             
-            {!hasPaidPlan && (
+            {!canExportPDF && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-2 hover-scale">

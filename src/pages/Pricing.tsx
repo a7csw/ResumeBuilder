@@ -4,55 +4,104 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft, Check, Zap, Crown, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const Pricing = () => {
   const plans = [
     {
-      id: "trial",
-      name: "10-Day Access",
+      id: "free",
+      name: "Free Preview",
+      price: "$0",
+      period: "forever",
+      description: "MVP testing - will be removed after launch",
+      badge: "MVP Only",
+      icon: FileText,
+      features: [
+        "Preview templates only",
+        "Manual form filling",
+        "No PDF export",
+        "No AI features",
+        "For testing purposes"
+      ],
+      cta: "Start Free Preview",
+      highlight: false,
+      temporary: true
+    },
+    {
+      id: "basic",
+      name: "Basic Plan",
+      price: "$3",
+      period: "10 days",
+      description: "Access to all resume templates",
+      icon: FileText,
+      features: [
+        "All resume templates",
+        "Manual form filling",
+        "PDF export disabled",
+        "No AI features",
+        "10 days access"
+      ],
+      cta: "Get Basic Access",
+      highlight: false
+    },
+    {
+      id: "ai",
+      name: "AI Plan",
       price: "$7",
-      period: "one-time",
-      description: "Perfect for quick resume creation",
+      period: "10 days",
+      description: "Templates + AI enhancement",
       badge: "Most Popular",
       icon: Zap,
       features: [
-        "Full feature access",
-        "AI-powered suggestions",
-        "Export to PDF",
-        "Use all templates",
-        "10 days unlimited access",
-        "Basic support"
+        "All resume templates",
+        "AI content enhancement",
+        "PDF export disabled",
+        "Smart suggestions",
+        "10 days access"
       ],
-      cta: "Start 10-Day Trial",
+      cta: "Get AI Access",
       highlight: true
     },
     {
-      id: "monthly",
-      name: "Monthly Pro",
+      id: "pro",
+      name: "Pro Plan",
       price: "$15",
       period: "per month",
-      description: "For professionals who need ongoing access",
+      description: "Full access with exclusive features",
       icon: Crown,
       features: [
-        "Everything in 10-day access",
-        "Unlimited resume creation",
-        "Priority AI suggestions",
-        "Advanced templates",
-        "Priority support",
-        "Resume analytics",
-        "Multiple export formats",
-        "Version history"
+        "All templates + AI-generated ones",
+        "AI content enhancement",
+        "PDF export included",
+        "Premium support",
+        "Unlimited access",
+        "Future features"
       ],
-      cta: "Go Pro Monthly",
+      cta: "Go Pro",
       highlight: false
     }
   ];
 
-  const handleSubscribe = (planId: string) => {
-    // Placeholder for Stripe integration
-    console.log(`Subscribe to ${planId} plan`);
-    // TODO: Implement Stripe checkout
-    alert(`Stripe integration coming soon! Selected: ${planId}`);
+  const handleSubscribe = async (planId: string) => {
+    if (planId === 'free') {
+      // Navigate to builder for free plan
+      window.location.href = '/builder';
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { planType: planId }
+      });
+
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment setup failed. Please try again.');
+    }
   };
 
   return (
@@ -85,7 +134,7 @@ const Pricing = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {plans.map((plan) => {
             const IconComponent = plan.icon;
             return (
@@ -97,10 +146,15 @@ const Pricing = () => {
               >
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
+                    <Badge className={`text-white ${plan.temporary ? 'bg-orange-500' : 'bg-primary'}`}>
                       <Sparkles className="w-3 h-3 mr-1" />
                       {plan.badge}
                     </Badge>
+                  </div>
+                )}
+                {plan.temporary && (
+                  <div className="absolute top-2 right-2">
+                    <Badge variant="outline" className="text-xs">TEMP</Badge>
                   </div>
                 )}
                 

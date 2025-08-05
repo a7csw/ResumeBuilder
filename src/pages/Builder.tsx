@@ -5,20 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft, User, Sparkles, PenTool } from "lucide-react";
+import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ResumeBuilder from "@/components/ResumeBuilder";
 import ResumePreview from "@/components/ResumePreview";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 const Builder = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
-  const [hasPaidPlan, setHasPaidPlan] = useState(false); // This would come from your subscription logic
+  const [isStudent, setIsStudent] = useState(false);
+  const { userPlan, canUseAI, canExportPDF } = useUserPlan();
   const [resumeData, setResumeData] = useState<any>({
     personalInfo: { 
       firstName: "", 
@@ -101,7 +105,32 @@ const Builder = () => {
 
       {/* Configuration Section */}
       <div className="container py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Student Mode Toggle */}
+          <Card className="animate-fade-in-up hover-tilt">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Student Mode
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="student-mode"
+                  checked={isStudent}
+                  onCheckedChange={setIsStudent}
+                />
+                <Label htmlFor="student-mode" className="text-sm">
+                  {isStudent ? 'Student' : 'Professional'}
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {isStudent ? 'Focus on education & projects' : 'Focus on work experience'}
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="animate-fade-in-up hover-tilt">
             <CardHeader>
               <CardTitle className="text-sm">User Type</CardTitle>
@@ -146,23 +175,41 @@ const Builder = () => {
                     <PenTool className="h-3 w-3 mr-1" />
                     Manual
                   </TabsTrigger>
-                  <TabsTrigger value="ai" className="text-xs">
+                  <TabsTrigger 
+                    value="ai" 
+                    className="text-xs"
+                    disabled={!canUseAI()}
+                  >
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI Enhanced
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
+              {!canUseAI() && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  AI features require AI or Pro plan
+                </p>
+              )}
             </CardContent>
           </Card>
 
           <Card className="animate-fade-in-up delay-200 hover-tilt">
             <CardHeader>
-              <CardTitle className="text-sm">Plan Status</CardTitle>
+              <CardTitle className="text-sm flex items-center">
+                <Crown className="w-4 h-4 mr-2" />
+                Plan Status
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`px-3 py-2 rounded-md text-sm ${hasPaidPlan ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
-                {hasPaidPlan ? "Premium Plan" : "Free Plan"}
+              <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
+                {userPlan.plan === 'free' ? 'Free Plan' : 
+                 userPlan.plan === 'basic' ? 'Basic Plan' :
+                 userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {userPlan.plan === 'free' ? 'Preview only' : 
+                 userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -174,7 +221,9 @@ const Builder = () => {
             <ResumeBuilder 
               userType={userType}
               buildingMode={buildingMode}
-              hasPaidPlan={hasPaidPlan}
+              isStudent={isStudent}
+              canUseAI={canUseAI()}
+              canExportPDF={canExportPDF()}
               resumeData={resumeData}
               setResumeData={setResumeData}
             />
