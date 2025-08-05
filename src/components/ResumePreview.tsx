@@ -14,7 +14,7 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {!resumeData.personalInfo.firstName ? (
+        {!resumeData?.personalInfo?.firstName ? (
           <div className="text-center text-muted-foreground py-12 animate-fade-in">
             <p className="text-lg font-medium mb-2">Your resume preview will appear here</p>
             <p className="text-sm">Start filling out your resume details to see the live preview</p>
@@ -24,36 +24,36 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
             {/* Personal Information */}
             <div className="text-center border-b pb-6 animate-scale-in">
               <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+                {resumeData?.personalInfo?.firstName} {resumeData?.personalInfo?.lastName}
               </h1>
-              {resumeData.personalInfo.title && (
-                <p className="text-xl text-muted-foreground mb-4">{resumeData.personalInfo.title}</p>
+              {resumeData?.personalInfo?.title && (
+                <p className="text-xl text-muted-foreground mb-4">{resumeData?.personalInfo?.title}</p>
               )}
               <div className="flex justify-center gap-4 mt-4 text-sm text-muted-foreground flex-wrap">
-                {resumeData.personalInfo.email && <span>{resumeData.personalInfo.email}</span>}
-                {resumeData.personalInfo.phone && <span>{resumeData.personalInfo.phone}</span>}
-                {resumeData.personalInfo.location && <span>{resumeData.personalInfo.location}</span>}
+                {resumeData?.personalInfo?.email && <span>{resumeData.personalInfo.email}</span>}
+                {resumeData?.personalInfo?.phone && <span>{resumeData.personalInfo.phone}</span>}
+                {resumeData?.personalInfo?.location && <span>{resumeData.personalInfo.location}</span>}
               </div>
-              {(resumeData.personalInfo.linkedin || resumeData.personalInfo.website) && (
+              {(resumeData?.personalInfo?.linkedin || resumeData?.personalInfo?.website) && (
                 <div className="flex justify-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
-                  {resumeData.personalInfo.linkedin && <span>LinkedIn: {resumeData.personalInfo.linkedin}</span>}
-                  {resumeData.personalInfo.website && <span>Website: {resumeData.personalInfo.website}</span>}
+                  {resumeData?.personalInfo?.linkedin && <span>LinkedIn: {resumeData.personalInfo.linkedin}</span>}
+                  {resumeData?.personalInfo?.website && <span>Website: {resumeData.personalInfo.website}</span>}
                 </div>
               )}
             </div>
 
             {/* Professional Summary */}
-            {resumeData.summary && (
+            {resumeData?.summary && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   Professional Summary
                 </h2>
-                <p className="text-foreground leading-relaxed">{resumeData.summary}</p>
+                <p className="text-foreground leading-relaxed">{resumeData?.summary}</p>
               </div>
             )}
 
             {/* Education - Prioritized for students */}
-            {resumeData.education.length > 0 && (
+            {resumeData?.education?.length > 0 && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   Education
@@ -78,7 +78,7 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
             )}
 
             {/* Experience */}
-            {resumeData.experience.length > 0 && (
+            {resumeData?.experience?.length > 0 && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   {userType === "student" ? "Experience" : "Work Experience"}
@@ -114,7 +114,7 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
             )}
 
             {/* Projects - Emphasized for students */}
-            {resumeData.projects.length > 0 && (
+            {resumeData?.projects?.length > 0 && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   Projects
@@ -146,7 +146,7 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
             )}
 
             {/* Skills */}
-            {resumeData.skills.length > 0 && (
+            {resumeData?.skills?.length > 0 && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   Skills
@@ -165,7 +165,7 @@ const ResumePreview = ({ resumeData, userType }: ResumePreviewProps) => {
             )}
 
             {/* Certifications */}
-            {resumeData.certifications.length > 0 && (
+            {resumeData?.certifications?.length > 0 && (
               <div className="animate-scale-in">
                 <h2 className="text-xl font-semibold border-b border-border pb-2 mb-4 text-primary">
                   Certifications

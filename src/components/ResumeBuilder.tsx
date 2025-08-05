@@ -61,30 +61,12 @@ interface ResumeBuilderProps {
   userType: "student" | "professional" | "freelancer";
   buildingMode: "manual" | "ai";
   hasPaidPlan: boolean;
+  resumeData: ResumeData;
+  setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
 }
 
-const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan }: ResumeBuilderProps) => {
+const ResumeBuilder = ({ userType, buildingMode, hasPaidPlan, resumeData, setResumeData }: ResumeBuilderProps) => {
   const { toast } = useToast();
-  const [resumeData, setResumeData] = useState<ResumeData>({
-    personalInfo: { 
-      firstName: "", 
-      lastName: "", 
-      title: "", 
-      email: "", 
-      phone: "", 
-      location: "", 
-      linkedin: "", 
-      website: "", 
-      industry: "" 
-    },
-    summary: "",
-    experience: [],
-    education: [],
-    skills: [],
-    projects: [],
-    certifications: []
-  });
-
   const [newSkill, setNewSkill] = useState("");
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
 

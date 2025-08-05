@@ -19,7 +19,25 @@ const Builder = () => {
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
   const [hasPaidPlan, setHasPaidPlan] = useState(false); // This would come from your subscription logic
-  const [resumeData, setResumeData] = useState<any>({});
+  const [resumeData, setResumeData] = useState<any>({
+    personalInfo: { 
+      firstName: "", 
+      lastName: "", 
+      title: "", 
+      email: "", 
+      phone: "", 
+      location: "", 
+      linkedin: "", 
+      website: "", 
+      industry: "" 
+    },
+    summary: "",
+    experience: [],
+    education: [],
+    skills: [],
+    projects: [],
+    certifications: []
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -157,6 +175,8 @@ const Builder = () => {
               userType={userType}
               buildingMode={buildingMode}
               hasPaidPlan={hasPaidPlan}
+              resumeData={resumeData}
+              setResumeData={setResumeData}
             />
           </div>
 
