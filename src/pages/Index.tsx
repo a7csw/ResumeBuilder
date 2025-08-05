@@ -72,15 +72,15 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Button size="lg" asChild className="transition-smooth hover:scale-105">
-                <Link to={user ? "/builder" : "/auth"}>
-                  {user ? "Go to Builder" : "Get Started Free"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Link to="/builder">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Try Free Preview
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild className="transition-smooth hover:scale-105">
-                <Link to="/templates">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Templates
+                <Link to="/pricing">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Start with AI Templates
                 </Link>
               </Button>
             </div>
