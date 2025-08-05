@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +12,13 @@ import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } fr
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ResumeBuilder from "@/components/ResumeBuilder";
-import ResumePreview from "@/components/ResumePreview";
+import TemplatePreview from "@/components/TemplatePreview";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
 const Builder = () => {
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get("template") || "classic";
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
@@ -229,11 +231,12 @@ const Builder = () => {
             />
           </div>
 
-          {/* Resume Preview */}
+          {/* Template Preview */}
           <div className="sticky top-24">
-            <ResumePreview 
+            <TemplatePreview 
               resumeData={resumeData}
               userType={userType}
+              templateId={templateId}
             />
           </div>
         </div>

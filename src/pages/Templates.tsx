@@ -14,6 +14,9 @@ import templateClassic from "@/assets/template-classic.jpg";
 import templateMinimal from "@/assets/template-minimal.jpg";
 import templateCreative from "@/assets/template-creative.jpg";
 import templateTechnical from "@/assets/template-technical.jpg";
+import templateStudent from "@/assets/template-student.jpg";
+import templateGraduate from "@/assets/template-graduate.jpg";
+import templateInternship from "@/assets/template-internship.jpg";
 
 const Templates = () => {
   const navigate = useNavigate();
@@ -42,6 +45,16 @@ const Templates = () => {
       isPremium: false,
       isAI: false,
       isPopular: false
+    },
+    {
+      id: "student",
+      name: "Student Focus",
+      description: "Optimized layout for students and recent graduates",
+      image: templateStudent,
+      category: "Student",
+      isPremium: false,
+      isAI: false,
+      isPopular: true
     },
     
     // Premium Templates
@@ -75,6 +88,26 @@ const Templates = () => {
       isAI: false,
       isPopular: false
     },
+    {
+      id: "graduate",
+      name: "Fresh Graduate",
+      description: "Perfect for new graduates entering the job market",
+      image: templateGraduate,
+      category: "Student",
+      isPremium: true,
+      isAI: false,
+      isPopular: false
+    },
+    {
+      id: "internship",
+      name: "Internship Ready",
+      description: "Designed for students seeking internships and entry-level positions",
+      image: templateInternship,
+      category: "Student",
+      isPremium: true,
+      isAI: false,
+      isPopular: false
+    },
     
     // AI-Generated Templates (Pro only)
     {
@@ -99,7 +132,7 @@ const Templates = () => {
     }
   ];
 
-  const categories = ["all", "Professional", "Modern", "Creative", "Technical", "Minimal", "AI-Generated"];
+  const categories = ["all", "Professional", "Modern", "Creative", "Technical", "Minimal", "Student", "AI-Generated"];
   
   const filteredTemplates = templates.filter(template => {
     if (showAIOnly && !template.isAI) return false;
