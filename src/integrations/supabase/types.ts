@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_events: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          processed_at: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_event_id: string | null
+          stripe_subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      export_logs: {
+        Row: {
+          created_at: string
+          export_type: string
+          file_hash: string | null
+          file_size: number | null
+          id: string
+          metadata: Json | null
+          plan_type: string
+          template_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          export_type: string
+          file_hash?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          plan_type: string
+          template_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          export_type?: string
+          file_hash?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          plan_type?: string
+          template_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -71,21 +152,30 @@ export type Database = {
       Resumes: {
         Row: {
           created_at: string
+          export_count: number | null
           id: string
+          is_exported: boolean | null
+          template_id: string | null
           title: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
+          export_count?: number | null
           id?: string
+          is_exported?: boolean | null
+          template_id?: string | null
           title?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
+          export_count?: number | null
           id?: string
+          is_exported?: boolean | null
+          template_id?: string | null
           title?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -137,35 +227,65 @@ export type Database = {
       }
       user_plans: {
         Row: {
+          ai_calls_limit: number | null
+          ai_calls_used: number | null
+          can_refund: boolean | null
           created_at: string
+          currency: string | null
           expires_at: string | null
+          first_export_at: string | null
           id: string
           is_active: boolean | null
           plan_type: string
+          price_id: string | null
           price_paid: number | null
+          started_filling_at: string | null
+          starts_at: string | null
+          stripe_customer_id: string | null
           stripe_session_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          ai_calls_limit?: number | null
+          ai_calls_used?: number | null
+          can_refund?: boolean | null
           created_at?: string
+          currency?: string | null
           expires_at?: string | null
+          first_export_at?: string | null
           id?: string
           is_active?: boolean | null
           plan_type: string
+          price_id?: string | null
           price_paid?: number | null
+          started_filling_at?: string | null
+          starts_at?: string | null
+          stripe_customer_id?: string | null
           stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          ai_calls_limit?: number | null
+          ai_calls_used?: number | null
+          can_refund?: boolean | null
           created_at?: string
+          currency?: string | null
           expires_at?: string | null
+          first_export_at?: string | null
           id?: string
           is_active?: boolean | null
           plan_type?: string
+          price_id?: string | null
           price_paid?: number | null
+          started_filling_at?: string | null
+          starts_at?: string | null
+          stripe_customer_id?: string | null
           stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
