@@ -16,6 +16,8 @@ interface TemplateCardProps {
   onSelect: (templateId: string) => void;
   delay?: number;
   viewMode?: "grid" | "list";
+  disabled?: boolean;
+  tags?: string[];
 }
 
 const TemplateCard = ({ 
@@ -29,10 +31,12 @@ const TemplateCard = ({
   isPopular = false,
   onSelect,
   delay = 0,
-  viewMode = "grid"
+  viewMode = "grid",
+  disabled = false,
+  tags = []
 }: TemplateCardProps) => {
-  // Browsing/selection is allowed for all. Access level is enforced at export/unlock time.
-  const isLocked = false;
+  // Use the disabled prop to determine if template is locked
+  const isLocked = disabled;
 
   if (viewMode === "list") {
     return (
@@ -79,8 +83,9 @@ const TemplateCard = ({
               <Button 
                 onClick={() => onSelect(id)}
                 className="px-6"
+                disabled={disabled}
               >
-                Use Template
+                {disabled ? 'Upgrade Required' : 'Use Template'}
               </Button>
             </div>
           </div>
@@ -134,8 +139,9 @@ const TemplateCard = ({
         <Button 
           onClick={() => onSelect(id)}
           className="w-full transition-smooth hover:scale-105"
+          disabled={disabled}
         >
-          Use Template
+          {disabled ? 'Upgrade Required' : 'Use Template'}
         </Button>
       </CardContent>
     </Card>

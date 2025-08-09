@@ -23,7 +23,7 @@ const EnhancedBuilder = () => {
   const templateId = searchParams.get("template") || "classic";
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [userType, setUserType] = useState<"student" | "entry" | "professional">("professional");
+  const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
   const { userPlan, canUseFeature, canAccessTemplate, getUpgradeMessage } = useEnhancedUserPlan();
   const [resumeData, setResumeData] = useState<any>({
@@ -177,10 +177,10 @@ const EnhancedBuilder = () => {
                       Student
                     </div>
                   </SelectItem>
-                  <SelectItem value="entry">
+                  <SelectItem value="freelancer">
                     <div className="flex items-center">
                       <User className="h-4 w-4 mr-2" />
-                      Entry Level
+                      Freelancer
                     </div>
                   </SelectItem>
                   <SelectItem value="professional">
