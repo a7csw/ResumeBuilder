@@ -21,3 +21,21 @@ verify_jwt = true
 
 [functions.check-user-plan]
 verify_jwt = true
+
+[functions.enhanced-check-user-plan]
+verify_jwt = true
+
+[functions.enhanced-create-payment]
+verify_jwt = true
+
+[functions.ai-enhance-content]
+verify_jwt = true
+
+[functions.export-resume]
+verify_jwt = true
+
+[functions.stripe-webhooks]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = true
