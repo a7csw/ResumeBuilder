@@ -95,7 +95,6 @@ export default {
 				'pulse-slow': 'pulse 3s ease-in-out infinite'
 			},
 			keyframes: {
-				...this.theme?.extend?.keyframes,
 				'fadeIn': {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' }
