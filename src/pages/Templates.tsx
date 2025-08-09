@@ -205,15 +205,15 @@ const Templates = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="space-y-2">
               <div className="text-3xl font-bold text-primary">{templates.length}</div>
-              <div className="text-sm text-muted-foreground">Total Templates</div>
+              <div className="text-sm text-muted-foreground">Available Templates</div>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">50K+</div>
-              <div className="text-sm text-muted-foreground">Successful Applications</div>
+              <div className="text-3xl font-bold text-primary">ATS</div>
+              <div className="text-sm text-muted-foreground">Optimized</div>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">4.9★</div>
-              <div className="text-sm text-muted-foreground">User Rating</div>
+              <div className="text-3xl font-bold text-primary">PDF</div>
+              <div className="text-sm text-muted-foreground">Export Ready</div>
             </div>
           </div>
         </div>

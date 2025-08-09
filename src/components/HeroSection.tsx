@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Users, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { FileText, Sparkles, Clock, Shield, Download, ArrowRight, Play } from "lucide-react";
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
@@ -30,16 +31,16 @@ const HeroSection = ({ isAuthenticated }: HeroSectionProps) => {
           {/* Social proof */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground animate-fade-in-up delay-300">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span>50,000+ professionals</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
-              <span>4.9/5 rating</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
+              <Clock className="h-4 w-4" />
               <span>2 minutes to complete</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>ATS-friendly templates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              <span>PDF download ready</span>
             </div>
           </div>
 

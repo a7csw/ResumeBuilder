@@ -143,7 +143,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-8 px-6">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 ResumeBuilder. All rights reserved.</p>
+          <p>&copy; 2025 ResumeBuilder. All rights reserved.</p>
         </div>
       </footer>
     </div>
