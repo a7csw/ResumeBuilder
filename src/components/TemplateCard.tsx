@@ -29,15 +29,8 @@ const TemplateCard = ({
   onSelect,
   delay = 0
 }: TemplateCardProps) => {
-  const { userPlan } = useUserPlan();
-  
-  const canAccess = () => {
-    if (isAI) return userPlan.plan === 'pro' && userPlan.isActive;
-    if (isPremium) return userPlan.plan !== 'free' && userPlan.isActive;
-    return true; // Free templates accessible to all
-  };
-
-  const isLocked = !canAccess();
+  // Browsing/selection is allowed for all. Access level is enforced at export/unlock time.
+  const isLocked = false;
 
   return (
     <Card className={`shadow-elegant hover:shadow-glow transition-all duration-300 relative overflow-hidden ${isLocked ? 'opacity-60' : ''}`}>
@@ -50,14 +43,6 @@ const TemplateCard = ({
         </div>
       )}
       
-      {isAI && (
-        <div className="absolute top-2 right-2 z-10">
-          <Badge className="bg-purple-500 text-white">
-            <Sparkles className="w-3 h-3 mr-1" />
-            AI
-          </Badge>
-        </div>
-      )}
 
       {isPremium && !isAI && (
         <div className="absolute top-2 right-2 z-10">
@@ -91,11 +76,9 @@ const TemplateCard = ({
         <p className="text-sm text-muted-foreground mb-4">{description}</p>
         <Button 
           onClick={() => onSelect(id)}
-          disabled={isLocked}
           className="w-full"
-          variant={isLocked ? "outline" : "default"}
         >
-          {isLocked ? "Upgrade to Access" : "Use Template"}
+          Use Template
         </Button>
       </CardContent>
     </Card>

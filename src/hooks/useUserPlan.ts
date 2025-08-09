@@ -40,19 +40,22 @@ export const useUserPlan = () => {
   }, []);
 
   const canUseAI = () => {
-    return userPlan.plan === 'ai' || userPlan.plan === 'pro';
+    return userPlan.isActive && (userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };
 
   const canExportPDF = () => {
-    return userPlan.plan === 'pro';
+    // PDF export is available for any active paid plan (basic, ai, pro)
+    return userPlan.isActive && (userPlan.plan === 'basic' || userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };
 
   const canUseAITemplates = () => {
-    return userPlan.plan === 'pro';
+    // AI templates/features only for AI or Monthly plans when active
+    return userPlan.isActive && (userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };
 
   const canAccessTemplates = () => {
-    return userPlan.plan !== 'free' || !userPlan.isActive;
+    // Allow browsing/using templates; restrictions are enforced at export/unlock time
+    return true;
   };
 
   return {

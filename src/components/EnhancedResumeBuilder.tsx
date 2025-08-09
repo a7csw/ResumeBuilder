@@ -59,7 +59,6 @@ interface ResumeData {
 interface EnhancedResumeBuilderProps {
   userType: "student" | "professional" | "freelancer";
   buildingMode: "manual" | "ai";
-  isStudent: boolean;
   canUseAI: boolean;
   canExportPDF: boolean;
   resumeData: ResumeData;
@@ -70,7 +69,6 @@ interface EnhancedResumeBuilderProps {
 const EnhancedResumeBuilder = ({ 
   userType, 
   buildingMode, 
-  isStudent, 
   canUseAI, 
   canExportPDF, 
   resumeData, 

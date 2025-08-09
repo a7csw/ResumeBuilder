@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
 import TemplatePreview from "@/components/TemplatePreview";
+import SecurePreviewOverlay from "@/components/SecurePreviewOverlay";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
@@ -23,7 +24,6 @@ const Builder = () => {
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
-  const [isStudent, setIsStudent] = useState(false);
   const { userPlan, canUseAI, canExportPDF } = useUserPlan();
   const [resumeData, setResumeData] = useState<any>({
     personalInfo: { 
@@ -93,7 +93,7 @@ const Builder = () => {
           </Link>
           <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeAI</span>
+            <span className="font-bold">ResumeForge</span>
           </div>
           <div className="ml-auto flex items-center space-x-4">
             <Button variant="outline" size="sm" className="btn-magic hover-glow">
@@ -108,30 +108,6 @@ const Builder = () => {
       {/* Configuration Section */}
       <div className="container py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {/* Student Mode Toggle */}
-          <Card className="animate-fade-in-up hover-tilt">
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center">
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Student Mode
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="student-mode"
-                  checked={isStudent}
-                  onCheckedChange={setIsStudent}
-                />
-                <Label htmlFor="student-mode" className="text-sm">
-                  {isStudent ? 'Student' : 'Professional'}
-                </Label>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {isStudent ? 'Focus on education & projects' : 'Focus on work experience'}
-              </p>
-            </CardContent>
-          </Card>
 
           <Card className="animate-fade-in-up hover-tilt">
             <CardHeader>
@@ -223,7 +199,6 @@ const Builder = () => {
             <EnhancedResumeBuilder 
               userType={userType}
               buildingMode={buildingMode}
-              isStudent={isStudent}
               canUseAI={canUseAI()}
               canExportPDF={canExportPDF()}
               resumeData={resumeData}
@@ -233,12 +208,34 @@ const Builder = () => {
           </div>
 
           {/* Template Preview */}
-          <div className="sticky top-24">
-            <TemplatePreview 
-              resumeData={resumeData}
-              userType={userType}
-              templateId={templateId}
-            />
+          <div className="sticky top-24 relative" id="template-preview-wrapper">
+            {/* Blur and overlay when locked */}
+            {(() => {
+              const premiumTemplates = new Set(["modern","creative","technical","graduate","internship"]);
+              const isPremium = premiumTemplates.has(templateId);
+              const isLocked = !userPlan.isActive || (userPlan.plan === 'basic' && isPremium);
+              const required = !userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic');
+              return (
+                <>
+                  <div className={isLocked ? 'blur-xl grayscale opacity-95 transition-smooth' : 'transition-smooth'}>
+                    <TemplatePreview 
+                      resumeData={resumeData}
+                      userType={userType}
+                      templateId={templateId}
+                    />
+                  </div>
+                  <div className="absolute inset-0">
+                    {/* @ts-ignore - component exists */}
+                    <SecurePreviewOverlay
+                      locked={isLocked}
+                      requiredPlanLabel={required}
+                      watermarkText="ResumeForge"
+                      onUpgrade={() => { window.location.href = '/pricing'; }}
+                    />
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

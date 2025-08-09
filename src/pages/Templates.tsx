@@ -23,13 +23,13 @@ const Templates = () => {
   const { userPlan } = useUserPlan();
 
   const templates = [
-    // Free Templates
+    // Basic Templates
     {
       id: "classic",
       name: "Classic Professional",
       description: "Clean and traditional layout perfect for corporate environments",
       image: templateClassic,
-      category: "Professional",
+      category: "Basic",
       isPremium: false,
       isAI: false,
       isPopular: true
@@ -39,7 +39,7 @@ const Templates = () => {
       name: "Simple & Clean",
       description: "Distraction-free design that puts focus on your content",
       image: templateMinimal,
-      category: "Minimal",
+      category: "Basic",
       isPremium: false,
       isAI: false,
       isPopular: false
@@ -49,7 +49,7 @@ const Templates = () => {
       name: "Student Focus",
       description: "Optimized layout for students and recent graduates",
       image: templateStudent,
-      category: "Student",
+      category: "Basic",
       isPremium: false,
       isAI: false,
       isPopular: true
@@ -61,7 +61,7 @@ const Templates = () => {
       name: "Modern Minimalist", 
       description: "Contemporary design with modern typography",
       image: templateModern,
-      category: "Modern",
+      category: "Premium",
       isPremium: true,
       isAI: false,
       isPopular: true
@@ -71,7 +71,7 @@ const Templates = () => {
       name: "Creative Designer",
       description: "Eye-catching layout ideal for creative professionals",
       image: templateCreative,
-      category: "Creative",
+      category: "Premium",
       isPremium: true,
       isAI: false,
       isPopular: false
@@ -81,7 +81,7 @@ const Templates = () => {
       name: "Technical Expert",
       description: "Structured format optimized for technical roles",
       image: templateTechnical,
-      category: "Technical",
+      category: "Premium",
       isPremium: true,
       isAI: false,
       isPopular: false
@@ -91,7 +91,7 @@ const Templates = () => {
       name: "Fresh Graduate",
       description: "Perfect for new graduates entering the job market",
       image: templateGraduate,
-      category: "Student",
+      category: "Premium",
       isPremium: true,
       isAI: false,
       isPopular: false
@@ -101,31 +101,9 @@ const Templates = () => {
       name: "Internship Ready",
       description: "Designed for students seeking internships and entry-level positions",
       image: templateInternship,
-      category: "Student",
+      category: "Premium",
       isPremium: true,
       isAI: false,
-      isPopular: false
-    },
-    
-    // AI-Generated Templates (Pro only)
-    {
-      id: "ai-executive",
-      name: "Executive Leadership",
-      description: "AI-optimized layout for C-suite and executive positions",
-      image: templateModern,
-      category: "AI-Generated",
-      isPremium: true,
-      isAI: true,
-      isPopular: false
-    },
-    {
-      id: "ai-startup",
-      name: "Startup Innovator",
-      description: "Dynamic AI-generated design for startup environments",
-      image: templateCreative,
-      category: "AI-Generated", 
-      isPremium: true,
-      isAI: true,
       isPopular: false
     }
   ];
@@ -146,7 +124,7 @@ const Templates = () => {
           </Link>
           <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeAI</span>
+            <span className="font-bold">ResumeForge</span>
           </div>
           <div className="ml-auto">
             <ThemeToggle />
@@ -166,11 +144,11 @@ const Templates = () => {
         </div>
 
 
-        {/* Most Popular Section */}
+        {/* Premium Templates */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-center">Most Popular Templates</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">Premium Templates</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {templates.filter(t => t.isPopular).map((template, index) => (
+            {templates.filter(t => t.isPremium).map((template, index) => (
               <TemplateCard
                 key={template.id}
                 {...template}
@@ -181,13 +159,11 @@ const Templates = () => {
           </div>
         </div>
 
-        {/* All Templates */}
+        {/* Basic Templates */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-center">
-            All Templates
-          </h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">Basic Templates</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {templates.map((template, index) => (
+            {templates.filter(t => !t.isPremium).map((template, index) => (
               <TemplateCard
                 key={template.id}
                 {...template}

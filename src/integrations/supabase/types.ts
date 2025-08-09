@@ -47,6 +47,27 @@ export type Database = {
         }
         Relationships: []
       }
+      resume_downloads: {
+        Row: {
+          created_at: string
+          id: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       Resumes: {
         Row: {
           created_at: string

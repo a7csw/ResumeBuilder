@@ -9,35 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 const Pricing = () => {
   const plans = [
     {
-      id: "free",
-      name: "Free Preview",
-      price: "$0",
-      period: "forever",
-      description: "MVP testing - will be removed after launch",
-      badge: "MVP Only",
-      icon: FileText,
-      features: [
-        "Preview templates only",
-        "Manual form filling",
-        "No PDF export",
-        "No AI features",
-        "For testing purposes"
-      ],
-      cta: "Start Free Preview",
-      highlight: false,
-      temporary: true
-    },
-    {
       id: "basic",
       name: "Basic Plan",
       price: "$3",
       period: "10 days",
-      description: "Access to all resume templates",
+      description: "Access to Basic templates",
       icon: FileText,
       features: [
-        "All resume templates",
+        "Basic templates only",
         "Manual form filling",
-        "PDF export disabled",
+        "PDF export included after payment",
         "No AI features",
         "10 days access"
       ],
@@ -49,13 +30,13 @@ const Pricing = () => {
       name: "AI Plan",
       price: "$7",
       period: "10 days",
-      description: "Templates + AI enhancement",
+      description: "All templates + AI assistance",
       badge: "Most Popular",
       icon: Zap,
       features: [
-        "All resume templates",
-        "AI content enhancement",
-        "PDF export disabled",
+        "All templates (Basic + Premium)",
+        "AI assistance for completion",
+        "PDF export included after payment",
         "Smart suggestions",
         "10 days access"
       ],
@@ -64,20 +45,18 @@ const Pricing = () => {
     },
     {
       id: "pro",
-      name: "Pro Plan",
+      name: "Monthly Plan",
       price: "$15",
       period: "per month",
-      description: "Full access with exclusive features",
+      description: "Full access with premium support",
       icon: Crown,
       features: [
-        "All templates + AI-generated ones",
-        "AI content enhancement",
-        "PDF export included",
+        "Everything in AI plan",
+        "Unlimited downloads",
         "Premium support",
-        "Unlimited access",
-        "Future features"
+        "All future features"
       ],
-      cta: "Go Pro",
+      cta: "Subscribe Monthly",
       highlight: false
     }
   ];
@@ -115,7 +94,7 @@ const Pricing = () => {
           </Link>
           <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeAI</span>
+            <span className="font-bold">ResumeForge</span>
           </div>
           <div className="ml-auto">
             <ThemeToggle />
@@ -146,15 +125,10 @@ const Pricing = () => {
               >
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className={`text-white ${plan.temporary ? 'bg-orange-500' : 'bg-primary'}`}>
+                    <Badge className={`text-white bg-primary`}>
                       <Sparkles className="w-3 h-3 mr-1" />
                       {plan.badge}
                     </Badge>
-                  </div>
-                )}
-                {plan.temporary && (
-                  <div className="absolute top-2 right-2">
-                    <Badge variant="outline" className="text-xs">TEMP</Badge>
                   </div>
                 )}
                 

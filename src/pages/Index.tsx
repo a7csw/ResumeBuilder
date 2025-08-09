@@ -37,7 +37,7 @@ const Index = () => {
         <div className="container flex h-16 items-center">
           <div className="flex items-center space-x-2 animate-scale-in">
             <FileText className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">ResumeAI</span>
+            <span className="text-xl font-bold">ResumeForge</span>
           </div>
           <div className="ml-auto flex items-center space-x-4">
             <nav className="hidden md:flex space-x-6">
@@ -72,15 +72,9 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Button size="lg" asChild className="transition-smooth hover:scale-105">
-                <Link to="/builder">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Try Free Preview
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild className="transition-smooth hover:scale-105">
-                <Link to="/pricing">
+                <Link to={user ? "/templates" : "/auth"}>
                   <ArrowRight className="mr-2 h-4 w-4" />
-                  Start with AI Templates
+                  Start Building Your Resume
                 </Link>
               </Button>
             </div>
@@ -140,11 +134,11 @@ const Index = () => {
           <div className="text-center space-y-6 animate-fade-in-up">
             <h2 className="text-3xl font-bold">Ready to build your dream resume?</h2>
             <p className="text-xl text-muted-foreground">
-              Join thousands of professionals who've landed their dream jobs with ResumeAI
+              Join thousands of professionals who've landed their dream jobs with ResumeForge
             </p>
             <Button size="lg" asChild className="transition-smooth hover:scale-105">
-              <Link to={user ? "/builder" : "/auth"}>
-                {user ? "Go to Builder" : "Start Building Now"}
+              <Link to={user ? "/templates" : "/auth"}>
+                {user ? "Choose a Template" : "Start Building Now"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -155,7 +149,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-8 px-6">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 ResumeAI. All rights reserved.</p>
+          <p>&copy; 2024 ResumeForge. All rights reserved.</p>
         </div>
       </footer>
     </div>
