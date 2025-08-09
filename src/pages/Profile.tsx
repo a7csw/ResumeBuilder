@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft } from "lucide-react";
 import EditableProfile from "@/components/EditableProfile";
-import { Button } from "@/components/ui/button";
+import SubscriptionManager from "@/components/SubscriptionManager";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -56,7 +56,7 @@ const Profile = () => {
           </Link>
           <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeForge</span>
+            <span className="font-bold">ResumeBuilder</span>
           </div>
           <div className="ml-auto">
             <ThemeToggle />
@@ -66,22 +66,13 @@ const Profile = () => {
 
       {/* Main Content */}
       <div className="container py-8 max-w-4xl">
-        <EditableProfile user={user} />
-        <div className="mt-6">
-          <Button
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase.functions.invoke('customer-portal');
-                if (error) throw error;
-                window.open(data.url, '_blank');
-              } catch (e) {
-                console.error(e);
-                alert('Unable to open customer portal.');
-              }
-            }}
-          >
-            Manage Subscription
-          </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <EditableProfile user={user} />
+          </div>
+          <div className="lg:col-span-1">
+            <SubscriptionManager />
+          </div>
         </div>
       </div>
     </div>

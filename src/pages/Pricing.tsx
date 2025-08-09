@@ -94,7 +94,7 @@ const Pricing = () => {
           </Link>
           <div className="flex items-center space-x-2 ml-6">
             <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeForge</span>
+            <span className="font-bold">ResumeBuilder</span>
           </div>
           <div className="ml-auto">
             <ThemeToggle />
@@ -113,7 +113,7 @@ const Pricing = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan) => {
             const IconComponent = plan.icon;
             return (
@@ -170,28 +170,47 @@ const Pricing = () => {
           })}
         </div>
 
-        <div className="text-center mt-12 space-y-4">
-          <p className="text-muted-foreground">
-            All plans include our core features with no setup fees
-          </p>
-          <div className="flex justify-center items-center space-x-8 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <Check className="w-4 h-4 text-primary mr-2" />
-              Secure payments
+        <div className="text-center mt-16 space-y-6">
+          <div className="max-w-2xl mx-auto">
+            <h3 className="text-xl font-semibold mb-4">Why Choose ResumeBuilder?</h3>
+            <p className="text-muted-foreground mb-8">
+              Professional resume templates designed by experts, trusted by professionals worldwide.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Check className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold">ATS-Friendly</h4>
+              <p className="text-sm text-muted-foreground">
+                All templates are optimized for Applicant Tracking Systems
+              </p>
             </div>
-            <div className="flex items-center">
-              <Check className="w-4 h-4 text-primary mr-2" />
-              Cancel anytime
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Check className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold">Professional Design</h4>
+              <p className="text-sm text-muted-foreground">
+                Modern, clean designs that make a great first impression
+              </p>
             </div>
-            <div className="flex items-center">
-              <Check className="w-4 h-4 text-primary mr-2" />
-              24/7 support
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Check className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold">Easy to Use</h4>
+              <p className="text-sm text-muted-foreground">
+                Simple, intuitive interface gets you results fast
+              </p>
             </div>
           </div>
           
-          <div className="pt-6">
-            <p className="text-sm text-muted-foreground mb-4">
-              Questions about pricing? <Link to="/auth" className="text-primary hover:underline">Contact our support team</Link>
+          <div className="pt-8">
+            <p className="text-sm text-muted-foreground">
+              Need help choosing the right plan? <Link to="/auth" className="text-primary hover:underline">Get in touch</Link>
             </p>
           </div>
         </div>

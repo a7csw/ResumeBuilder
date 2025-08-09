@@ -12,6 +12,7 @@ import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } fr
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
+import TemplateSpecificForm from "@/components/TemplateSpecificForm";
 import TemplatePreview from "@/components/TemplatePreview";
 import SecurePreviewOverlay from "@/components/SecurePreviewOverlay";
 import ProfileDropdown from "@/components/ProfileDropdown";
@@ -196,6 +197,14 @@ const Builder = () => {
               setResumeData={setResumeData}
               userPlan={userPlan}
             />
+            
+            {/* Template-Specific Form */}
+            <TemplateSpecificForm
+              templateId={templateId}
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              canUseAI={canUseAI()}
+            />
           </div>
 
           {/* Template Preview */}
@@ -220,7 +229,7 @@ const Builder = () => {
                     <SecurePreviewOverlay
                       locked={isLocked}
                       requiredPlanLabel={required}
-                      watermarkText="ResumeBuilder"
+                      watermarkText="ResumeBuilder Pro"
                       onUpgrade={() => { window.location.href = '/pricing'; }}
                     />
                   </div>
