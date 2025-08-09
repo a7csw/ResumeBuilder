@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft, Eye, Download, Filter, Sparkles, Star } from "lucide-react";
+import NavigationHeader from "@/components/NavigationHeader";
+import { FileText, ArrowLeft, Eye, Download, Filter, Sparkles, Star, Grid, List } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TemplateCard from "@/components/TemplateCard";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
@@ -21,6 +22,8 @@ import templateInternship from "@/assets/template-internship.jpg";
 const Templates = () => {
   const navigate = useNavigate();
   const { userPlan } = useUserPlan();
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "basic" | "premium">("all");
 
   const templates = [
     // Basic Templates
@@ -113,64 +116,105 @@ const Templates = () => {
     navigate(`/builder?template=${templateId}`);
   };
 
+  const basicTemplates = templates.filter(t => !t.isPremium);
+  const premiumTemplates = templates.filter(t => t.isPremium);
+  
+  const filteredTemplates = selectedCategory === "basic" ? basicTemplates :
+                          selectedCategory === "premium" ? premiumTemplates :
+                          templates;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-14 items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm text-muted-foreground">Back to home</span>
-          </Link>
-          <div className="flex items-center space-x-2 ml-6">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeForge</span>
-          </div>
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      <NavigationHeader showBackButton backTo="/" />
 
       {/* Main Content */}
       <div className="container py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-12 animate-fade-in-up">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
             Professional Resume Templates
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose from our collection of ATS-friendly templates designed by HR professionals
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Choose from our collection of ATS-friendly templates designed by HR professionals to help you land your dream job
           </p>
         </div>
 
-
-        {/* Premium Templates */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-center">Premium Templates</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {templates.filter(t => t.isPremium).map((template, index) => (
-              <TemplateCard
-                key={template.id}
-                {...template}
-                onSelect={handleTemplateSelect}
-                delay={index * 100}
-              />
-            ))}
+        {/* Filter and View Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 animate-fade-in-up delay-200">
+          <Tabs value={selectedCategory} onValueChange={(value: any) => setSelectedCategory(value)}>
+            <TabsList className="grid w-full grid-cols-3 max-w-md">
+              <TabsTrigger value="all">All Templates</TabsTrigger>
+              <TabsTrigger value="basic">Basic ({basicTemplates.length})</TabsTrigger>
+              <TabsTrigger value="premium">Premium ({premiumTemplates.length})</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === "grid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="transition-smooth"
+            >
+              <Grid className="h-4 w-4 mr-2" />
+              Grid
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="transition-smooth"
+            >
+              <List className="h-4 w-4 mr-2" />
+              List
+            </Button>
           </div>
         </div>
 
-        {/* Basic Templates */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6 text-center">Basic Templates</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {templates.filter(t => !t.isPremium).map((template, index) => (
-              <TemplateCard
-                key={template.id}
-                {...template}
-                onSelect={handleTemplateSelect}
-                delay={index * 100}
-              />
-            ))}
+        {/* Templates Grid/List */}
+        <div className={`animate-fade-in-up delay-300 ${
+          viewMode === "grid" 
+            ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto" 
+            : "grid grid-cols-1 gap-4 max-w-4xl mx-auto"
+        }`}>
+          {filteredTemplates.map((template, index) => (
+            <TemplateCard
+              key={template.id}
+              {...template}
+              onSelect={handleTemplateSelect}
+              delay={index * 100}
+              viewMode={viewMode}
+            />
+          ))}
+        </div>
+
+        {filteredTemplates.length === 0 && (
+          <div className="text-center py-12 animate-fade-in-up delay-400">
+            <p className="text-lg text-muted-foreground">No templates found for the selected category.</p>
+            <Button 
+              onClick={() => setSelectedCategory("all")} 
+              variant="outline" 
+              className="mt-4"
+            >
+              Show All Templates
+            </Button>
+          </div>
+        )}
+
+        {/* Statistics */}
+        <div className="mt-16 text-center animate-fade-in-up delay-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="space-y-2">
+              <div className="text-3xl font-bold text-primary">{templates.length}</div>
+              <div className="text-sm text-muted-foreground">Total Templates</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl font-bold text-primary">50K+</div>
+              <div className="text-sm text-muted-foreground">Successful Applications</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl font-bold text-primary">4.9★</div>
+              <div className="text-sm text-muted-foreground">User Rating</div>
+            </div>
           </div>
         </div>
 

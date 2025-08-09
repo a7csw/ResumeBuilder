@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import NavigationHeader from "@/components/NavigationHeader";
 import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -84,26 +84,17 @@ const Builder = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-14 items-center">
-          <Link to="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors hover-lift">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Back to home</span>
-          </Link>
-          <div className="flex items-center space-x-2 ml-6">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeForge</span>
-          </div>
-          <div className="ml-auto flex items-center space-x-4">
-            <Button variant="outline" size="sm" className="btn-magic hover-glow">
-              Save Draft
-            </Button>
-            <ThemeToggle />
-            {user && <ProfileDropdown user={user} />}
-          </div>
-        </div>
-      </header>
+      <NavigationHeader 
+        showBackButton 
+        backTo="/" 
+        showSaveButton 
+        onSave={() => {
+          toast({
+            title: "Draft Saved",
+            description: "Your resume progress has been saved successfully.",
+          });
+        }}
+      />
 
       {/* Configuration Section */}
       <div className="container py-6">
@@ -229,7 +220,7 @@ const Builder = () => {
                     <SecurePreviewOverlay
                       locked={isLocked}
                       requiredPlanLabel={required}
-                      watermarkText="ResumeForge"
+                      watermarkText="ResumeBuilder"
                       onUpgrade={() => { window.location.href = '/pricing'; }}
                     />
                   </div>

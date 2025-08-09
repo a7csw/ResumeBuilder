@@ -2,15 +2,16 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import ProfileDropdown from "@/components/ProfileDropdown";
-import { FileText, Sparkles, Download, Eye, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import NavigationHeader from "@/components/NavigationHeader";
+import HeroSection from "@/components/HeroSection";
+import FeatureCard from "@/components/FeatureCard";
+import { Sparkles, Download, FileText, ArrowRight, Zap, Shield, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get initial session
@@ -30,57 +31,26 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/templates");
+    } else {
+      navigate("/auth");
+    }
+  };
+
+  const handleViewTemplates = () => {
+    navigate("/templates");
+  };
+
+  const handleViewPricing = () => {
+    navigate("/pricing");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-16 items-center">
-          <div className="flex items-center space-x-2 animate-scale-in">
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">ResumeForge</span>
-          </div>
-          <div className="ml-auto flex items-center space-x-4">
-            <nav className="hidden md:flex space-x-6">
-              <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
-              <Link to="/templates" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Templates</Link>
-              <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-            </nav>
-            <ThemeToggle />
-            {loading ? (
-              <div className="w-8 h-8 bg-muted rounded animate-pulse" />
-            ) : user ? (
-              <ProfileDropdown user={user} />
-            ) : (
-              <Button asChild>
-                <Link to="/auth">Sign In</Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="py-20 px-6">
-        <div className="container">
-          <div className="text-center space-y-6 max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-fade-in-up">
-              Create Your Perfect Resume in Minutes
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-200">
-              AI-powered resume builder with professional templates, smart suggestions, and one-click PDF export. 
-              Stand out from the competition with a resume that gets you hired.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
-              <Button size="lg" asChild className="transition-smooth hover:scale-105">
-                <Link to={user ? "/templates" : "/auth"}>
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Start Building Your Resume
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NavigationHeader />
+      <HeroSection isAuthenticated={!!user} />
 
       {/* Features Section */}
       <section id="features" className="py-20 px-6 bg-muted/30">
@@ -94,36 +64,60 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-200">
-              <CardHeader>
-                <Sparkles className="h-12 w-12 text-primary mb-4" />
-                <CardTitle>AI-Powered Content</CardTitle>
-                <CardDescription>
-                  Get intelligent suggestions for bullet points, summaries, and skills based on your experience and target role.
-                </CardDescription>
-              </CardHeader>
-            </Card>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <FeatureCard
+              icon={<Sparkles className="h-12 w-12 text-primary" />}
+              title="AI-Powered Content"
+              description="Get intelligent suggestions for bullet points, summaries, and skills based on your experience and target role."
+              delay="delay-200"
+              actionLabel="Try AI Features"
+              onAction={handleViewPricing}
+              clickable
+            />
             
-            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-300">
-              <CardHeader>
-                <FileText className="h-12 w-12 text-primary mb-4" />
-                <CardTitle>Professional Templates</CardTitle>
-                <CardDescription>
-                  Choose from multiple ATS-friendly templates designed by HR professionals to maximize your interview chances.
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <FeatureCard
+              icon={<FileText className="h-12 w-12 text-primary" />}
+              title="Professional Templates"
+              description="Choose from multiple ATS-friendly templates designed by HR professionals to maximize your interview chances."
+              delay="delay-300"
+              actionLabel="Browse Templates"
+              onAction={handleViewTemplates}
+              clickable
+            />
             
-            <Card className="shadow-elegant transition-smooth hover:shadow-glow hover:scale-105 animate-fade-in-up delay-400">
-              <CardHeader>
-                <Download className="h-12 w-12 text-primary mb-4" />
-                <CardTitle>One-Click Export</CardTitle>
-                <CardDescription>
-                  Export your resume to PDF format instantly, perfectly formatted and ready to send to potential employers.
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <FeatureCard
+              icon={<Download className="h-12 w-12 text-primary" />}
+              title="One-Click Export"
+              description="Export your resume to PDF format instantly, perfectly formatted and ready to send to potential employers."
+              delay="delay-400"
+              actionLabel="Get Started"
+              onAction={handleGetStarted}
+              clickable
+            />
+          </div>
+
+          {/* Additional Features Row */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-12">
+            <FeatureCard
+              icon={<Zap className="h-12 w-12 text-primary" />}
+              title="Lightning Fast"
+              description="Build your resume in under 5 minutes with our streamlined interface and smart auto-fill features."
+              delay="delay-500"
+            />
+            
+            <FeatureCard
+              icon={<Shield className="h-12 w-12 text-primary" />}
+              title="Secure & Private"
+              description="Your data is encrypted and secure. We never share your information with third parties."
+              delay="delay-600"
+            />
+            
+            <FeatureCard
+              icon={<Clock className="h-12 w-12 text-primary" />}
+              title="Real-time Preview"
+              description="See your resume update in real-time as you type. No surprises, just perfect formatting."
+              delay="delay-700"
+            />
           </div>
         </div>
       </section>
@@ -134,7 +128,7 @@ const Index = () => {
           <div className="text-center space-y-6 animate-fade-in-up">
             <h2 className="text-3xl font-bold">Ready to build your dream resume?</h2>
             <p className="text-xl text-muted-foreground">
-              Join thousands of professionals who've landed their dream jobs with ResumeForge
+              Join thousands of professionals who've landed their dream jobs with ResumeBuilder
             </p>
             <Button size="lg" asChild className="transition-smooth hover:scale-105">
               <Link to={user ? "/templates" : "/auth"}>
@@ -149,7 +143,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-8 px-6">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 ResumeForge. All rights reserved.</p>
+          <p>&copy; 2024 ResumeBuilder. All rights reserved.</p>
         </div>
       </footer>
     </div>

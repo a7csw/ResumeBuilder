@@ -10,7 +10,7 @@ interface SecurePreviewOverlayProps {
 const SecurePreviewOverlay: React.FC<SecurePreviewOverlayProps> = ({
   locked,
   requiredPlanLabel = "Basic",
-  watermarkText = "ResumeForge",
+  watermarkText = "ResumeBuilder",
   onUpgrade,
 }) => {
   if (!locked) return null;
