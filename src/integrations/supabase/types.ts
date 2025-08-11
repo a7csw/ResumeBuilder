@@ -128,6 +128,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          identifier: string
+          window_start: string | null
+        }
+        Insert: {
+          action_type: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          window_start?: string | null
+        }
+        Update: {
+          action_type?: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       resume_downloads: {
         Row: {
           created_at: string
@@ -225,20 +255,63 @@ export type Database = {
           },
         ]
       }
+      security_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          risk_score: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          risk_score?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          risk_score?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_plans: {
         Row: {
           ai_calls_limit: number | null
           ai_calls_used: number | null
           can_refund: boolean | null
           created_at: string
+          created_ip: unknown | null
           currency: string | null
           expires_at: string | null
+          failed_payment_attempts: number | null
           first_export_at: string | null
           id: string
           is_active: boolean | null
+          last_login_ip: unknown | null
           plan_type: string
           price_id: string | null
           price_paid: number | null
+          security_alerts_enabled: boolean | null
           started_filling_at: string | null
           starts_at: string | null
           stripe_customer_id: string | null
@@ -252,14 +325,18 @@ export type Database = {
           ai_calls_used?: number | null
           can_refund?: boolean | null
           created_at?: string
+          created_ip?: unknown | null
           currency?: string | null
           expires_at?: string | null
+          failed_payment_attempts?: number | null
           first_export_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_login_ip?: unknown | null
           plan_type: string
           price_id?: string | null
           price_paid?: number | null
+          security_alerts_enabled?: boolean | null
           started_filling_at?: string | null
           starts_at?: string | null
           stripe_customer_id?: string | null
@@ -273,14 +350,18 @@ export type Database = {
           ai_calls_used?: number | null
           can_refund?: boolean | null
           created_at?: string
+          created_ip?: unknown | null
           currency?: string | null
           expires_at?: string | null
+          failed_payment_attempts?: number | null
           first_export_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_login_ip?: unknown | null
           plan_type?: string
           price_id?: string | null
           price_paid?: number | null
+          security_alerts_enabled?: boolean | null
           started_filling_at?: string | null
           starts_at?: string | null
           stripe_customer_id?: string | null
@@ -317,7 +398,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_action_type: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
+      encrypt_sensitive_data: {
+        Args: { data_text: string; encryption_key?: string }
+        Returns: string
+      }
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_action_type: string
+          p_resource_type: string
+          p_resource_id?: string
+          p_details?: Json
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_risk_score?: number
+        }
+        Returns: string
+      }
+      sanitize_user_input: {
+        Args: { input_text: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

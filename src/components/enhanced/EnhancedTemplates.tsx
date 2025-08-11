@@ -240,7 +240,7 @@ const EnhancedTemplates = ({ onTemplateSelect }: EnhancedTemplatesProps) => {
           : "grid grid-cols-1 gap-4 max-w-4xl mx-auto"
       }`}>
         {filteredTemplates.map((template, index) => {
-          const hasAccess = canAccessTemplate(template.id, template.isPremium);
+          const hasAccess = canAccessTemplate(template.id);
           
           return (
             <div key={template.id} className="relative">

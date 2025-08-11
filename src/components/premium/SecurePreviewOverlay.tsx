@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Lock, Crown, Sparkles } from "lucide-react";
 
 interface SecurePreviewOverlayProps {
-  locked: boolean;
   requiredPlanLabel?: string;
   watermarkText?: string;
   onUpgrade?: () => void;
@@ -12,13 +11,13 @@ interface SecurePreviewOverlayProps {
 }
 
 const SecurePreviewOverlay: React.FC<SecurePreviewOverlayProps> = ({
-  locked,
   requiredPlanLabel = "AI Plan",
   watermarkText = "ResumeBuilder",
   onUpgrade,
   templateName = "Premium Template",
   isPremium = false,
 }) => {
+  const locked = isPremium; // Use isPremium as the lock state
   // Disable right-click and text selection when locked
   useEffect(() => {
     if (locked) {

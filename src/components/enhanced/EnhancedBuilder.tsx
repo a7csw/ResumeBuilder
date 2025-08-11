@@ -145,7 +145,7 @@ const EnhancedBuilder = () => {
   }
 
   const isPremiumTemplate = ["modern", "creative", "technical", "graduate", "internship", "executive", "tech-lead", "innovator", "consultant"].includes(templateId);
-  const hasTemplateAccess = canAccessTemplate(templateId, isPremiumTemplate);
+  const hasTemplateAccess = canAccessTemplate(templateId);
   const isLocked = !hasTemplateAccess;
 
   return (
