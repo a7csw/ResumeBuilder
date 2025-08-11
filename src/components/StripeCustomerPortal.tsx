@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, ExternalLink, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@supabase/auth-helpers-react';
 import { env } from '@/lib/env';
 
 interface StripeCustomerPortalProps {
@@ -24,8 +23,20 @@ export const StripeCustomerPortal: React.FC<StripeCustomerPortalProps> = ({
   size = 'default',
 }) => {
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
-  const user = useUser();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleOpenPortal = async () => {
     if (!user) {

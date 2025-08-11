@@ -1,154 +1,132 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/integrations/supabase/client';
-import { getPricingTier, canAccessTemplate } from '@/lib/pricing';
-import { paymentsDisabled } from '@/lib/flags';
 
 export interface UserPlanData {
   plan: 'free' | 'basic' | 'ai' | 'pro' | 'TEST';
   isActive: boolean;
-  expiresAt?: string;
-  aiUsageCount?: number;
-  aiUsageLimit?: number;
-  exportCount?: number;
-  exportLimit?: number;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
+  expiresAt: string | null;
+  aiUsageCount: number;
+  aiUsageLimit: number | null;
+  exportCount: number;
+  exportLimit: number | null;
+  canRefund?: boolean;
+  startedFillingAt?: string | null;
+  firstExportAt?: string | null;
 }
 
 export interface PlanCapabilities {
-  canAccessTemplate: (templateId: string) => boolean;
   canUseAI: boolean;
   canExport: boolean;
-  remainingAIUsage: number;
-  remainingExports: number;
-  shouldShowUpgrade: boolean;
-  upgradeReason?: string;
+  canAccessTemplate: (templateId: string) => boolean;
+  hasUnlimitedAI: boolean;
+  hasUnlimitedExport: boolean;
 }
 
-/**
- * Enhanced user plan hook with comprehensive plan gating
- */
 export function useEnhancedUserPlan() {
-  const user = useUser();
+  const [user, setUser] = useState<any>(null);
+  
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
   const [userPlan, setUserPlan] = useState<UserPlanData>({
     plan: 'free',
     isActive: false,
+    expiresAt: null,
+    aiUsageCount: 0,
+    aiUsageLimit: null,
+    exportCount: 0,
+    exportLimit: null,
   });
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
 
-  // Fetch user plan data
-  useEffect(() => {
-    async function fetchUserPlan() {
-      if (!user) {
-        setUserPlan({ plan: 'free', isActive: false });
-        setLoading(false);
-        return;
-      }
+  const capabilities: PlanCapabilities = {
+    canUseAI: userPlan.plan === 'ai' || userPlan.plan === 'pro',
+    canExport: userPlan.plan !== 'free',
+    canAccessTemplate: (templateId: string) => {
+      const premiumTemplates = ['modern', 'creative', 'technical', 'graduate', 'internship'];
+      if (!premiumTemplates.includes(templateId)) return true;
+      return userPlan.plan === 'ai' || userPlan.plan === 'pro';
+    },
+    hasUnlimitedAI: userPlan.plan === 'pro',
+    hasUnlimitedExport: userPlan.plan === 'pro',
+  };
 
-      // In test mode, treat all users as subscribed
-      if (paymentsDisabled()) {
-        setUserPlan({ 
-          plan: 'TEST', 
-          isActive: true,
-          aiUsageCount: 0,
-          aiUsageLimit: Infinity,
-          exportCount: 0,
-          exportLimit: Infinity,
-        });
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const { data, error: planError } = await supabase
-          .from('user_plans')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (planError && planError.code !== 'PGRST116') {
-          throw planError;
-        }
-
-        if (data) {
-          const now = new Date();
-          const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
-          const isActive = !expiresAt || expiresAt > now;
-
-          setUserPlan({
-            plan: data.plan_type as UserPlanData['plan'],
-            isActive,
-            expiresAt: data.expires_at,
-            aiUsageCount: data.ai_usage_count || 0,
-            aiUsageLimit: data.ai_usage_limit,
-            exportCount: data.export_count || 0,
-            exportLimit: data.export_limit,
-            stripeCustomerId: data.stripe_customer_id,
-            stripeSubscriptionId: data.stripe_subscription_id,
-          });
-        } else {
-          // No plan found, user is on free plan
-          setUserPlan({ plan: 'free', isActive: false });
-        }
-      } catch (err) {
-        console.error('Error fetching user plan:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch user plan');
-        setUserPlan({ plan: 'free', isActive: false });
-      } finally {
-        setLoading(false);
-      }
+  const fetchUserPlan = async () => {
+    if (!user) {
+      setUserPlan({
+        plan: 'free',
+        isActive: false,
+        expiresAt: null,
+        aiUsageCount: 0,
+        aiUsageLimit: null,
+        exportCount: 0,
+        exportLimit: null,
+      });
+      setLoading(false);
+      return;
     }
 
+    try {
+      const { data, error } = await supabase.functions.invoke('enhanced-check-user-plan');
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setUserPlan({
+          plan: data.plan,
+          isActive: data.isActive,
+          expiresAt: data.expiresAt,
+          aiUsageCount: data.ai_calls_used || 0,
+          aiUsageLimit: data.ai_calls_limit,
+          exportCount: 0,
+          exportLimit: 0,
+          canRefund: data.canRefund,
+          startedFillingAt: data.startedFillingAt,
+          firstExportAt: data.firstExportAt,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching user plan:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch plan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserPlan();
   }, [user]);
 
-  // Calculate plan capabilities
-  const capabilities: PlanCapabilities = {
-    canAccessTemplate: (templateId: string) => 
-      // In test mode, allow access to all templates
-      paymentsDisabled() ? true : canAccessTemplate(templateId, userPlan.isActive ? userPlan.plan : null),
-    
-    canUseAI: paymentsDisabled() ? true : (userPlan.isActive && 
-      (userPlan.plan === 'ai' || userPlan.plan === 'pro') &&
-      (userPlan.plan === 'pro' || (userPlan.aiUsageCount || 0) < (userPlan.aiUsageLimit || 0))),
-    
-    canExport: paymentsDisabled() ? true : (userPlan.isActive &&
-      (userPlan.plan === 'pro' || (userPlan.exportCount || 0) < (userPlan.exportLimit || Infinity))),
-    
-    remainingAIUsage: paymentsDisabled() ? Infinity : (userPlan.plan === 'pro' ? Infinity : 
-      Math.max(0, (userPlan.aiUsageLimit || 0) - (userPlan.aiUsageCount || 0))),
-    
-    remainingExports: paymentsDisabled() ? Infinity : (userPlan.plan === 'pro' ? Infinity :
-      Math.max(0, (userPlan.exportLimit || 0) - (userPlan.exportCount || 0))),
-    
-    shouldShowUpgrade: paymentsDisabled() ? false : (!userPlan.isActive || userPlan.plan === 'free'),
-    
-    upgradeReason: paymentsDisabled() ? undefined : (!userPlan.isActive ? 'No active subscription' :
-      userPlan.plan === 'free' ? 'Upgrade to access templates' : undefined),
-  };
-
-  // Utility functions
   const incrementAIUsage = async (): Promise<boolean> => {
-    if (!user || !capabilities.canUseAI) return false;
+    if (!user) return false;
 
     try {
       const { error } = await supabase
         .from('user_plans')
         .update({ 
-          ai_usage_count: (userPlan.aiUsageCount || 0) + 1 
+          ai_calls_used: (userPlan.aiUsageCount || 0) + 1 
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('is_active', true);
 
       if (error) throw error;
 
       setUserPlan(prev => ({
         ...prev,
-        aiUsageCount: (prev.aiUsageCount || 0) + 1,
+        aiUsageCount: (prev.aiUsageCount || 0) + 1
       }));
 
       return true;
@@ -159,21 +137,22 @@ export function useEnhancedUserPlan() {
   };
 
   const incrementExportCount = async (): Promise<boolean> => {
-    if (!user || !capabilities.canExport) return false;
+    if (!user) return false;
 
     try {
       const { error } = await supabase
         .from('user_plans')
         .update({ 
-          export_count: (userPlan.exportCount || 0) + 1 
+          ai_calls_used: (userPlan.exportCount || 0) + 1 
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('is_active', true);
 
       if (error) throw error;
 
       setUserPlan(prev => ({
         ...prev,
-        exportCount: (prev.exportCount || 0) + 1,
+        exportCount: (prev.exportCount || 0) + 1
       }));
 
       return true;
@@ -184,43 +163,46 @@ export function useEnhancedUserPlan() {
   };
 
   const refreshPlan = async () => {
-    if (user) {
-      setLoading(true);
-      // Force refetch
-      const { data } = await supabase
-        .from('user_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data) {
-        const now = new Date();
-        const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
-        const isActive = !expiresAt || expiresAt > now;
+    setLoading(true);
+    setError('');
+    await fetchUserPlan();
+  };
 
-        setUserPlan({
-          plan: data.plan_type as UserPlanData['plan'],
-          isActive,
-          expiresAt: data.expires_at,
-          aiUsageCount: data.ai_usage_count || 0,
-          aiUsageLimit: data.ai_usage_limit,
-          exportCount: data.export_count || 0,
-          exportLimit: data.export_limit,
-          stripeCustomerId: data.stripe_customer_id,
-          stripeSubscriptionId: data.stripe_subscription_id,
-        });
-      }
-      setLoading(false);
+  // Add missing methods for backward compatibility
+  const canUseFeature = (feature: 'ai' | 'export' | 'templates') => {
+    switch (feature) {
+      case 'ai': return capabilities.canUseAI;
+      case 'export': return capabilities.canExport;
+      case 'templates': return capabilities.canAccessTemplate('');
+      default: return false;
     }
   };
 
+  const canAccessTemplate = (templateId: string) => capabilities.canAccessTemplate(templateId);
+  
+  const getUpgradeMessage = (feature: string) => {
+    if (feature === 'ai') return 'AI features require an AI or Pro plan';
+    if (feature === 'export') return 'PDF export requires a paid plan';
+    return 'This feature requires an upgrade';
+  };
+
   return {
-    userPlan,
+    userPlan: {
+      ...userPlan,
+      canUseAI: capabilities.canUseAI,
+      canExportPDF: capabilities.canExport,
+      canUseAITemplates: capabilities.canUseAI,
+      aiCallsUsed: userPlan.aiUsageCount || 0,
+      aiCallsLimit: userPlan.aiUsageLimit || 0,
+    },
     capabilities,
     loading,
-    error,
+    error: error || '',
     incrementAIUsage,
     incrementExportCount,
     refreshPlan,
+    canUseFeature,
+    canAccessTemplate,
+    getUpgradeMessage,
   };
 }

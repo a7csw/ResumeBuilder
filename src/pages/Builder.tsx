@@ -227,10 +227,11 @@ const Builder = () => {
                   <div className="absolute inset-0">
                     {/* @ts-ignore - component exists */}
                     <SecurePreviewOverlay
-                      locked={isLocked}
                       requiredPlanLabel={required}
                       watermarkText="ResumeBuilder Pro"
                       onUpgrade={() => { window.location.href = '/pricing'; }}
+                      templateName={templateId || "Premium Template"}
+                      isPremium={isLocked}
                     />
                   </div>
                 </>
