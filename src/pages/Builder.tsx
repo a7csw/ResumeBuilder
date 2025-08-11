@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
 import TemplateSpecificForm from "@/components/TemplateSpecificForm";
 import TemplatePreview from "@/components/TemplatePreview";
-import SecurePreviewOverlay from "@/components/SecurePreviewOverlay";
+import SecurePreviewOverlay from "@/components/premium/SecurePreviewOverlay";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
@@ -225,7 +225,6 @@ const Builder = () => {
                     />
                   </div>
                   <div className="absolute inset-0">
-                    {/* @ts-ignore - component exists */}
                     <SecurePreviewOverlay
                       requiredPlanLabel={required}
                       watermarkText="ResumeBuilder Pro"

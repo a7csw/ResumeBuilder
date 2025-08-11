@@ -355,12 +355,11 @@ const EnhancedBuilder = () => {
             
             <div className="absolute inset-0">
               <SecurePreviewOverlay
-                locked={isLocked}
                 requiredPlanLabel={isPremiumTemplate ? 'AI or Pro Plan' : 'Basic Plan'}
                 watermarkText="ResumeBuilder Pro"
                 onUpgrade={() => navigate('/pricing')}
                 templateName={templateId}
-                isPremium={isPremiumTemplate}
+                isPremium={isLocked}
               />
             </div>
           </div>
