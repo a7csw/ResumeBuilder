@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { env } from "@/lib/env";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -24,7 +25,8 @@ const PaymentSuccess = () => {
         const planConfig: Record<string, any> = {
           basic: { price: 300, days: 10 },
           ai: { price: 700, days: 10 },
-          pro: { price: 1500, recurring: true }
+          pro: { price: 1500, recurring: true },
+          monthly: { price: 1500, recurring: true } // Lemon Squeezy uses 'monthly' instead of 'pro'
         };
 
         const plan = planConfig[planType as string];

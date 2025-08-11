@@ -7,6 +7,8 @@ import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NavigationHeader from "@/components/NavigationHeader";
+import { generateLemonSqueezyCheckoutUrl } from "@/lib/lemonsqueezy";
+import { env } from "@/lib/env";
 
 const EnhancedPricingPage = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -95,19 +97,39 @@ const EnhancedPricingPage = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('enhanced-create-payment', {
-        body: { planType: planId }
-      });
+      const userEmail = session.user.email;
+      const paymentsProvider = env.PAYMENTS_PROVIDER || 'stripe';
 
-      if (error) {
-        throw error;
-      }
+      if (paymentsProvider === 'lemonsqueezy') {
+        // Use Lemon Squeezy checkout
+        const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
+        const cancelUrl = `${window.location.origin}/pricing`;
+        
+        const checkoutUrl = generateLemonSqueezyCheckoutUrl(
+          planId,
+          userEmail,
+          successUrl,
+          cancelUrl
+        );
 
-      if (data.url) {
-        // Open Stripe checkout in new tab
-        window.open(data.url, '_blank');
+        // Open Lemon Squeezy checkout in new tab
+        window.open(checkoutUrl, '_blank');
       } else {
-        throw new Error('No checkout URL received');
+        // Use Stripe checkout (legacy)
+        const { data, error } = await supabase.functions.invoke('enhanced-create-payment', {
+          body: { planType: planId }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data.url) {
+          // Open Stripe checkout in new tab
+          window.open(data.url, '_blank');
+        } else {
+          throw new Error('No checkout URL received');
+        }
       }
 
     } catch (error) {

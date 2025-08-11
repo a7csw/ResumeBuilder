@@ -1,12 +1,24 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useEffect } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft, Check, Zap, Crown, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { generateLemonSqueezyCheckoutUrl } from "@/lib/lemonsqueezy";
+import { env } from "@/lib/env";
+import { paymentsDisabled } from "@/lib/flags";
 
 const Pricing = () => {
+  const navigate = useNavigate();
+
+  // Redirect to home if payments are disabled (test mode)
+  useEffect(() => {
+    if (paymentsDisabled()) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   const plans = [
     {
       id: "basic",
@@ -69,14 +81,38 @@ const Pricing = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { planType: planId }
-      });
+      // Get user email for checkout
+      const { data: { user } } = await supabase.auth.getUser();
+      const userEmail = user?.email;
 
-      if (error) throw error;
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      // Check payment provider
+      const paymentsProvider = env.PAYMENTS_PROVIDER || 'stripe';
+
+      if (paymentsProvider === 'lemonsqueezy') {
+        // Use Lemon Squeezy checkout
+        const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
+        const cancelUrl = `${window.location.origin}/pricing`;
+        
+        const checkoutUrl = generateLemonSqueezyCheckoutUrl(
+          planId,
+          userEmail,
+          successUrl,
+          cancelUrl
+        );
+
+        // Open Lemon Squeezy checkout in a new tab
+        window.open(checkoutUrl, '_blank');
+      } else {
+        // Use Stripe checkout (legacy)
+        const { data, error } = await supabase.functions.invoke('create-payment', {
+          body: { planType: planId }
+        });
+
+        if (error) throw error;
+        
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      }
     } catch (error) {
       console.error('Payment error:', error);
       alert('Payment setup failed. Please try again.');
