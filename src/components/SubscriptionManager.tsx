@@ -25,7 +25,7 @@ const SubscriptionManager = () => {
 
     setManageLoading(true);
     try {
-      const paymentsProvider = env.PAYMENTS_PROVIDER || 'stripe';
+      const paymentsProvider = env.PAYMENTS_PROVIDER || 'lemonsqueezy';
 
       if (paymentsProvider === 'lemonsqueezy') {
         // For Lemon Squeezy, show information about subscription management
@@ -35,10 +35,12 @@ const SubscriptionManager = () => {
           variant: "default"
         });
       } else {
-        // Use Stripe customer portal
-        const { data, error } = await supabase.functions.invoke('customer-portal');
-        if (error) throw error;
-        window.open(data.url, '_blank');
+        // Legacy notification for removed Stripe support
+        toast({
+          title: "Unavailable",
+          description: "Subscription management is currently unavailable. Please contact support.",
+          variant: "destructive"
+        });
       }
     } catch (e) {
       console.error(e);

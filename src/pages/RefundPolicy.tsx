@@ -73,7 +73,7 @@ const RefundPolicy = () => {
           <ul>
             <li>Refunds are issued to the original payment method</li>
             <li>Processing time: 5-10 business days</li>
-            <li>Stripe processing fees are not refundable</li>
+            <li>Lemon Squeezy processing fees are not refundable</li>
             <li>Your account access will be immediately downgraded</li>
           </ul>
 

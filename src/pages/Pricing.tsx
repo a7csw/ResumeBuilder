@@ -16,6 +16,7 @@ const Pricing = () => {
   // Redirect to home if payments are disabled (test mode)
   useEffect(() => {
     if (paymentsDisabled()) {
+      console.log('Test mode detected: Redirecting away from pricing page');
       navigate('/', { replace: true });
     }
   }, [navigate]);
@@ -86,37 +87,33 @@ const Pricing = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const userEmail = user?.email;
 
-      // Check payment provider
-      const paymentsProvider = env.PAYMENTS_PROVIDER || 'stripe';
+      // Only use Lemon Squeezy in production mode
+      if (!paymentsDisabled()) {
+        try {
+          // Use Lemon Squeezy checkout
+          const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
+          const cancelUrl = `${window.location.origin}/pricing`;
+          
+          const checkoutUrl = generateLemonSqueezyCheckoutUrl(
+            planId,
+            userEmail,
+            successUrl,
+            cancelUrl
+          );
 
-      if (paymentsProvider === 'lemonsqueezy') {
-        // Use Lemon Squeezy checkout
-        const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
-        const cancelUrl = `${window.location.origin}/pricing`;
-        
-        const checkoutUrl = generateLemonSqueezyCheckoutUrl(
-          planId,
-          userEmail,
-          successUrl,
-          cancelUrl
-        );
-
-        // Open Lemon Squeezy checkout in a new tab
-        window.open(checkoutUrl, '_blank');
+          // Open Lemon Squeezy checkout in a new tab
+          window.open(checkoutUrl, '_blank');
+        } catch (error) {
+          console.error('Payment error:', error);
+          alert('Payment setup failed. Please try again.');
+        }
       } else {
-        // Use Stripe checkout (legacy)
-        const { data, error } = await supabase.functions.invoke('create-payment', {
-          body: { planType: planId }
-        });
-
-        if (error) throw error;
-        
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+        console.log('Test mode: Payment bypassed, redirecting to home');
+        navigate('/');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Payment setup failed. Please try again.');
+      alert('Failed to start checkout. Please try again.');
     }
   };
 

@@ -98,7 +98,7 @@ const EnhancedPricingPage = () => {
       }
 
       const userEmail = session.user.email;
-      const paymentsProvider = env.PAYMENTS_PROVIDER || 'stripe';
+      const paymentsProvider = env.PAYMENTS_PROVIDER || 'lemonsqueezy';
 
       if (paymentsProvider === 'lemonsqueezy') {
         // Use Lemon Squeezy checkout
@@ -115,21 +115,8 @@ const EnhancedPricingPage = () => {
         // Open Lemon Squeezy checkout in new tab
         window.open(checkoutUrl, '_blank');
       } else {
-        // Use Stripe checkout (legacy)
-        const { data, error } = await supabase.functions.invoke('enhanced-create-payment', {
-          body: { planType: planId }
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data.url) {
-          // Open Stripe checkout in new tab
-          window.open(data.url, '_blank');
-        } else {
-          throw new Error('No checkout URL received');
-        }
+        // Legacy notification for removed Stripe support
+        throw new Error('Stripe payments have been removed. Only Lemon Squeezy is supported.');
       }
 
     } catch (error) {
@@ -271,7 +258,7 @@ const EnhancedPricingPage = () => {
           <p className="text-sm text-muted-foreground">
             ✓ 30-day money back guarantee if you haven't exported your resume
             <br />
-            ✓ All payments processed securely by Stripe
+            ✓ All payments processed securely by Lemon Squeezy
           </p>
         </div>
 

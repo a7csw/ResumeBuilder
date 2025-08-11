@@ -27,7 +27,7 @@ const Terms = () => {
 
           <h2>4. Subscription Plans</h2>
           <p>
-            We offer multiple subscription tiers with different features and pricing. All payments are processed securely through Stripe. Subscription fees are non-refundable except as outlined in our Refund Policy.
+            We offer multiple subscription tiers with different features and pricing. All payments are processed securely through Lemon Squeezy. Subscription fees are non-refundable except as outlined in our Refund Policy.
           </p>
 
           <h2>5. AI Features</h2>

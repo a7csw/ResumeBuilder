@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { paymentsDisabled } from '@/lib/flags';
+import { bypassPayments } from '@/lib/env';
 
 export type UserPlan = 'free' | 'basic' | 'ai' | 'pro' | 'TEST';
 
@@ -19,10 +19,10 @@ export const useUserPlan = () => {
   const [loading, setLoading] = useState(true);
 
   const checkUserPlan = async () => {
-    // In test mode, treat all users as subscribed
-    if (paymentsDisabled()) {
+    // In test mode, treat all users as having full access
+    if (bypassPayments()) {
       setUserPlan({ 
-        plan: 'TEST', 
+        plan: 'pro', // Grant highest plan in test mode
         isActive: true, 
         expiresAt: null 
       });
@@ -53,20 +53,20 @@ export const useUserPlan = () => {
 
   const canUseAI = () => {
     // In test mode, allow all AI features
-    if (paymentsDisabled()) return true;
+    if (bypassPayments()) return true;
     return userPlan.isActive && (userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };
 
   const canExportPDF = () => {
     // In test mode, allow all exports
-    if (paymentsDisabled()) return true;
+    if (bypassPayments()) return true;
     // PDF export is available for any active paid plan (basic, ai, pro)
     return userPlan.isActive && (userPlan.plan === 'basic' || userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };
 
   const canUseAITemplates = () => {
     // In test mode, allow all templates
-    if (paymentsDisabled()) return true;
+    if (bypassPayments()) return true;
     // AI templates/features only for AI or Monthly plans when active
     return userPlan.isActive && (userPlan.plan === 'ai' || userPlan.plan === 'pro');
   };

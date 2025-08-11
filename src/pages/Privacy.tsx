@@ -18,7 +18,7 @@ const Privacy = () => {
           <ul>
             <li>Name, email address, and contact information when you create an account</li>
             <li>Resume content, including work experience, education, and skills</li>
-            <li>Payment information processed securely through Stripe</li>
+            <li>Payment information processed securely through Lemon Squeezy</li>
             <li>Communication preferences and feedback</li>
           </ul>
 
@@ -51,7 +51,7 @@ const Privacy = () => {
             We do not sell, trade, or rent your personal information to third parties. We may share information in these limited circumstances:
           </p>
           <ul>
-            <li>With service providers who help us operate our platform (e.g., Stripe for payments, Supabase for data storage)</li>
+            <li>With service providers who help us operate our platform (e.g., Lemon Squeezy for payments, Supabase for data storage)</li>
             <li>When required by law or to protect our rights and safety</li>
             <li>In connection with a business transaction such as a merger or acquisition</li>
           </ul>
@@ -95,7 +95,7 @@ const Privacy = () => {
           </p>
           <ul>
             <li>Supabase for database and authentication services</li>
-            <li>Stripe for payment processing</li>
+            <li>Lemon Squeezy for payment processing</li>
             <li>OpenAI for AI-powered features</li>
           </ul>
           <p>

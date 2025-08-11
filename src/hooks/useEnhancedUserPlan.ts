@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { bypassPayments } from '@/lib/env';
 
 export interface UserPlanData {
   plan: 'free' | 'basic' | 'ai' | 'pro' | 'TEST';
@@ -51,22 +52,24 @@ export function useEnhancedUserPlan() {
   const [error, setError] = useState<string>('');
 
   const capabilities: PlanCapabilities = {
-    canUseAI: userPlan.plan === 'ai' || userPlan.plan === 'pro',
-    canExport: userPlan.plan !== 'free',
+    canUseAI: bypassPayments() || userPlan.plan === 'ai' || userPlan.plan === 'pro',
+    canExport: bypassPayments() || userPlan.plan !== 'free',
     canAccessTemplate: (templateId: string) => {
+      if (bypassPayments()) return true;
       const premiumTemplates = ['modern', 'creative', 'technical', 'graduate', 'internship'];
       if (!premiumTemplates.includes(templateId)) return true;
       return userPlan.plan === 'ai' || userPlan.plan === 'pro';
     },
-    hasUnlimitedAI: userPlan.plan === 'pro',
-    hasUnlimitedExport: userPlan.plan === 'pro',
+    hasUnlimitedAI: bypassPayments() || userPlan.plan === 'pro',
+    hasUnlimitedExport: bypassPayments() || userPlan.plan === 'pro',
   };
 
   const fetchUserPlan = async () => {
-    if (!user) {
+    // In test mode, grant full access without checking backend
+    if (bypassPayments()) {
       setUserPlan({
-        plan: 'free',
-        isActive: false,
+        plan: 'pro',
+        isActive: true,
         expiresAt: null,
         aiUsageCount: 0,
         aiUsageLimit: null,

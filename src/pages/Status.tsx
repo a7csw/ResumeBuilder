@@ -124,7 +124,7 @@ const Status = () => {
     'Supabase URL': process.env.NODE_ENV === 'development' ? 'https://sqvaqiepymfoubwibuds.supabase.co' : 'Configured',
     'Supabase Anon Key': 'Configured',
     'OpenAI API': 'Configured (Server-side)',
-    'Stripe Integration': 'Configured (Server-side)',
+    'Lemon Squeezy Integration': 'Configured (Server-side)',
     'Environment': process.env.NODE_ENV || 'development'
   };
 
@@ -234,7 +234,7 @@ const Status = () => {
                 <div>/api/enhanced-create-payment - Payment Processing</div>
                 <div>/api/ai-enhance-content - AI Features</div>
                 <div>/api/export-resume - PDF Export</div>
-                <div>/api/stripe-webhooks - Stripe Integration</div>
+                <div>/api/lemon-webhook - Lemon Squeezy Integration</div>
               </div>
             </CardContent>
           </Card>
