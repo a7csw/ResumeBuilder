@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { env } from "@/lib/env";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -54,6 +55,21 @@ const PaywallModal: React.FC<PaywallModalProps> = ({
     },
     pro: {
       name: "Pro Plan",
+      price: "$15",
+      duration: "monthly",
+      icon: Crown,
+      color: "bg-gradient-to-r from-yellow-400 to-orange-500",
+      features: [
+        "Everything in AI plan",
+        "Unlimited AI calls",
+        "Priority AI processing",
+        "Version history",
+        "Priority support"
+      ],
+      popular: false
+    },
+    monthly: {
+      name: "Monthly Plan",
       price: "$15",
       duration: "monthly",
       icon: Crown,

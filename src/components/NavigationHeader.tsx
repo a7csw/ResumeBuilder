@@ -7,6 +7,7 @@ import ProfileDropdown from "@/components/ProfileDropdown";
 import { FileText, ArrowLeft, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { paymentsDisabled } from "@/lib/flags";
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
@@ -44,7 +45,8 @@ const NavigationHeader = ({
 
   const navigationItems = [
     { href: "/templates", label: "Templates", requiresAuth: false },
-    { href: "/pricing", label: "Pricing", requiresAuth: false },
+    // Hide pricing in test mode
+    ...(paymentsDisabled() ? [] : [{ href: "/pricing", label: "Pricing", requiresAuth: false }]),
     { href: "/profile", label: "Profile", requiresAuth: true },
   ];
 
