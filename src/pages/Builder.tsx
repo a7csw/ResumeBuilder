@@ -22,7 +22,6 @@ import { paymentsDisabled } from "@/lib/flags";
 
 const Builder = () => {
   const [searchParams] = useSearchParams();
-  const templateId = searchParams.get("template") || "classic";
   const resumeId = searchParams.get("resumeId");
   const isViewMode = searchParams.get("mode") === "view";
   const [user, setUser] = useState<any>(null);
@@ -57,14 +56,21 @@ const Builder = () => {
     languages: []
   });
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedTemplateId, setSelectedTemplateId] = useState(templateId);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('classic'); // Always start with default
   const [selectedColor, setSelectedColor] = useState('indigo');
+  const [formCompleted, setFormCompleted] = useState(false); // Track if form has basic info
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const config = getTemplateConfig(selectedTemplateId);
   const premiumTemplateIds = useMemo(() => new Set(getPremiumTemplates().map(t => t.id)), []);
   const isPremium = premiumTemplateIds.has(selectedTemplateId);
+
+  // Check if basic form info is filled to enable template selection
+  const checkFormCompletion = (data: any) => {
+    const { personalInfo } = data;
+    return !!(personalInfo?.firstName && personalInfo?.lastName && personalInfo?.email);
+  };
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -77,8 +83,10 @@ const Builder = () => {
       // Load existing resume if resumeId is provided
       if (resumeId) {
         await loadExistingResume(resumeId);
-      } else if (!searchParams.get("template")) {
-        // Show mode selector for new resumes without template
+      } else {
+        // For new resumes, always start fresh at step 1
+        setStep(1);
+        // Show mode selector for new resumes
         setShowModeSelector(true);
       }
       
@@ -115,10 +123,15 @@ const Builder = () => {
         setResumeTitle(data.title);
         setUserType((data as any).mode || 'professional');
         setSelectedColor((data as any).color_variant || 'indigo');
-        setSelectedTemplateId(data.template_id || templateId);
-        // Update URL to match template from loaded resume
-        if (data.template_id && data.template_id !== templateId) {
-          navigate(`/builder?template=${data.template_id}&resumeId=${id}${isViewMode ? '&mode=view' : ''}`, { replace: true });
+        setSelectedTemplateId(data.template_id || 'classic');
+        setFormCompleted(checkFormCompletion(data.data || {}));
+        // If resume is loaded and has basic info, can start at step 2
+        if (data.template_id && checkFormCompletion(data.data || {})) {
+          setStep(2);
+        }
+        // Update URL to show we're editing an existing resume
+        if (data.template_id) {
+          navigate(`/builder?resumeId=${id}${isViewMode ? '&mode=view' : ''}`, { replace: true });
         }
       }
     } catch (error) {
@@ -163,8 +176,8 @@ const Builder = () => {
         
         if (error) throw error;
         
-        // Update URL to include the new resume ID
-        navigate(`/builder?template=${templateId}&resumeId=${data.id}`, { replace: true });
+        // Update URL to include the new resume ID but remove template param
+        navigate(`/builder?resumeId=${data.id}`, { replace: true });
       }
 
       toast({
@@ -187,12 +200,14 @@ const Builder = () => {
   const handleModeSelect = (mode: 'student' | 'professional' | 'freelancer') => {
     setUserType(mode);
     setShowModeSelector(false);
-    
-    // Redirect to template selection if no template is selected
-    if (!searchParams.get("template")) {
-      navigate(`/templates?userType=${mode}`);
-    }
+    // Stay in the builder to fill the form - don't redirect to templates
   };
+
+  // Track form changes to determine when to enable step 2
+  useEffect(() => {
+    const isCompleted = checkFormCompletion(resumeData);
+    setFormCompleted(isCompleted);
+  }, [resumeData]);
 
 
   if (loading) {
@@ -229,13 +244,22 @@ const Builder = () => {
         onBack={() => setStep(1)}
         onNext={() => {
           if (step === 1) {
+            if (!formCompleted) {
+              toast({
+                title: "Complete Required Fields",
+                description: "Please fill in your first name, last name, and email to continue.",
+                variant: "destructive",
+              });
+              return;
+            }
             handleSave();
             setStep(2);
           } else {
             handleSave();
           }
         }}
-        canNext={true}
+        canNext={step === 1 ? formCompleted : true}
+        isLastStep={step === 2}
       />
       <div className="container py-6">
         {step === 1 ? (
