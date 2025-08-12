@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft } from "lucide-react";
+import NavigationHeader from "@/components/NavigationHeader";
 import EditableProfile from "@/components/EditableProfile";
 import SubscriptionManager from "@/components/SubscriptionManager";
+import ResumesManager from "@/components/ResumesManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -47,33 +48,36 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-14 items-center">
-          <Link to="/builder" className="flex items-center space-x-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm text-muted-foreground">Back to builder</span>
-          </Link>
-          <div className="flex items-center space-x-2 ml-6">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeBuilder</span>
-          </div>
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container py-8 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <EditableProfile user={user} />
-          </div>
-          <div className="lg:col-span-1">
-            <SubscriptionManager />
-          </div>
-        </div>
+      <NavigationHeader 
+        showBackButton 
+        backTo="/builder" 
+        showThemeToggle
+      />
+      
+      <div className="container py-6">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="resumes">My Resumes</TabsTrigger>
+            <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile" className="mt-6">
+            <div className="max-w-2xl">
+              <EditableProfile user={user} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="resumes" className="mt-6">
+            <ResumesManager />
+          </TabsContent>
+          
+          <TabsContent value="subscription" className="mt-6">
+            <div className="max-w-2xl">
+              <SubscriptionManager />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

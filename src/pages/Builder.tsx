@@ -5,27 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import NavigationHeader from "@/components/NavigationHeader";
-import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown } from "lucide-react";
+import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
 import TemplateSpecificForm from "@/components/TemplateSpecificForm";
-import TemplatePreview from "@/components/TemplatePreview";
+import BuilderLayout from "@/components/builder/BuilderLayout";
+import LivePreview from "@/components/builder/LivePreview";
 import SecurePreviewOverlay from "@/components/premium/SecurePreviewOverlay";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { useDownloadPdf } from "@/lib/useDownloadPdf";
 
 const Builder = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("template") || "classic";
+  const resumeId = searchParams.get("resumeId");
+  const isViewMode = searchParams.get("mode") === "view";
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
+  const [resumeTitle, setResumeTitle] = useState("Untitled Resume");
   const { userPlan, canUseAI, canExportPDF } = useUserPlan();
+  const { downloadPdf, isDownloading } = useDownloadPdf();
   const [resumeData, setResumeData] = useState<any>({
     personalInfo: { 
       firstName: "", 
@@ -56,6 +63,12 @@ const Builder = () => {
         return;
       }
       setUser(session.user);
+      
+      // Load existing resume if resumeId is provided
+      if (resumeId) {
+        await loadExistingResume(resumeId);
+      }
+      
       setLoading(false);
     };
 
@@ -72,7 +85,89 @@ const Builder = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, resumeId]);
+
+  const loadExistingResume = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('resumes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setResumeData(data.data || {});
+        setResumeTitle(data.title);
+        // Update URL to match template from loaded resume
+        if (data.template_id !== templateId) {
+          navigate(`/builder?template=${data.template_id}&resumeId=${id}${isViewMode ? '&mode=view' : ''}`, { replace: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading resume:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load resume. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const resumeRecord = {
+        title: resumeTitle,
+        template_id: templateId,
+        data: resumeData,
+        user_id: user.id
+      };
+
+      if (resumeId) {
+        // Update existing resume
+        const { error } = await supabase
+          .from('resumes')
+          .update(resumeRecord)
+          .eq('id', resumeId);
+        
+        if (error) throw error;
+      } else {
+        // Create new resume
+        const { data, error } = await supabase
+          .from('resumes')
+          .insert(resumeRecord)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Update URL to include the new resume ID
+        navigate(`/builder?template=${templateId}&resumeId=${data.id}`, { replace: true });
+      }
+
+      toast({
+        title: "Resume Saved",
+        description: "Your resume has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    await downloadPdf(resumeData, templateId);
+  };
 
 
   if (loading) {
@@ -83,163 +178,199 @@ const Builder = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <NavigationHeader 
-        showBackButton 
-        backTo="/" 
-        showSaveButton 
-        onSave={() => {
-          toast({
-            title: "Draft Saved",
-            description: "Your resume progress has been saved successfully.",
-          });
-        }}
-      />
+  const premiumTemplates = new Set(["modern","creative","technical","graduate","internship"]);
+  const isPremium = premiumTemplates.has(templateId);
+  const isLocked = !userPlan.isActive || (userPlan.plan === 'basic' && isPremium);
+  const required = !userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic');
+
+  const leftPanel = (
+    <>
+      {/* Header Controls */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1">
+              <Label htmlFor="resume-title">Resume Title</Label>
+              <Input
+                id="resume-title"
+                value={resumeTitle}
+                onChange={(e) => setResumeTitle(e.target.value)}
+                placeholder="Enter resume title..."
+                disabled={isViewMode}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || isViewMode}
+              className="flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? "Saving..." : "Save Draft"}
+            </Button>
+            
+            <Button 
+              onClick={handleDownload}
+              disabled={isDownloading}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              {isDownloading ? "Generating..." : "Download PDF"}
+            </Button>
+
+            <Button 
+              onClick={() => navigate('/templates')}
+              variant="outline"
+              size="sm"
+            >
+              Change Template
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Configuration Section */}
-      <div className="container py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">User Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={userType} onValueChange={(value: any) => setUserType(value)} disabled={isViewMode}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Student
+                  </div>
+                </SelectItem>
+                <SelectItem value="professional">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Professional
+                  </div>
+                </SelectItem>
+                <SelectItem value="freelancer">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Freelancer
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
-          <Card className="animate-fade-in-up hover-tilt">
-            <CardHeader>
-              <CardTitle className="text-sm">User Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      Student
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="professional">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      Professional
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="freelancer">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      Freelancer
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          <Card className="animate-fade-in-up delay-100 hover-tilt">
-            <CardHeader>
-              <CardTitle className="text-sm">Building Mode</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="manual" className="text-xs">
-                    <PenTool className="h-3 w-3 mr-1" />
-                    Manual
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="ai" 
-                    className="text-xs"
-                    disabled={!canUseAI()}
-                  >
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    AI Enhanced
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              {!canUseAI() && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  AI features require AI or Pro plan
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="animate-fade-in-up delay-200 hover-tilt">
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center">
-                <Crown className="w-4 h-4 mr-2" />
-                Plan Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
-                {userPlan.plan === 'free' ? 'Free Plan' : 
-                 userPlan.plan === 'basic' ? 'Basic Plan' :
-                 userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {userPlan.plan === 'free' ? 'Preview only' : 
-                 userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Building Mode</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual" className="text-xs" disabled={isViewMode}>
+                  <PenTool className="h-3 w-3 mr-1" />
+                  Manual
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ai" 
+                  className="text-xs"
+                  disabled={!canUseAI() || isViewMode}
+                >
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  AI Enhanced
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {!canUseAI() && (
+              <p className="text-xs text-muted-foreground mt-2">
+                AI features require AI or Pro plan
               </p>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Resume Builder */}
-          <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-4">
-            <EnhancedResumeBuilder 
-              userType={userType}
-              buildingMode={buildingMode}
-              canUseAI={canUseAI()}
-              canExportPDF={canExportPDF()}
-              resumeData={resumeData}
-              setResumeData={setResumeData}
-              userPlan={userPlan}
-            />
-            
-            {/* Template-Specific Form */}
-            <TemplateSpecificForm
-              templateId={templateId}
-              resumeData={resumeData}
-              setResumeData={setResumeData}
-              canUseAI={canUseAI()}
-            />
-          </div>
-
-          {/* Template Preview */}
-          <div className="sticky top-24 relative" id="template-preview-wrapper">
-            {/* Blur and overlay when locked */}
-            {(() => {
-              const premiumTemplates = new Set(["modern","creative","technical","graduate","internship"]);
-              const isPremium = premiumTemplates.has(templateId);
-              const isLocked = !userPlan.isActive || (userPlan.plan === 'basic' && isPremium);
-              const required = !userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic');
-              return (
-                <>
-                  <div className={isLocked ? 'blur-xl grayscale opacity-95 transition-smooth' : 'transition-smooth'}>
-                    <TemplatePreview 
-                      resumeData={resumeData}
-                      userType={userType}
-                      templateId={templateId}
-                    />
-                  </div>
-                  <div className="absolute inset-0">
-                    <SecurePreviewOverlay
-                      requiredPlanLabel={required}
-                      watermarkText="ResumeBuilder Pro"
-                      onUpgrade={() => { window.location.href = '/pricing'; }}
-                      templateName={templateId || "Premium Template"}
-                      isPremium={isLocked}
-                    />
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center">
+              <Crown className="w-4 h-4 mr-2" />
+              Plan Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
+              {userPlan.plan === 'free' ? 'Free Plan' : 
+               userPlan.plan === 'basic' ? 'Basic Plan' :
+               userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {userPlan.plan === 'free' ? 'Preview only' : 
+               userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+
+      {/* Resume Builder */}
+      <EnhancedResumeBuilder 
+        userType={userType}
+        buildingMode={buildingMode}
+        canUseAI={canUseAI() && !isViewMode}
+        canExportPDF={canExportPDF()}
+        resumeData={resumeData}
+        setResumeData={isViewMode ? () => {} : setResumeData}
+        userPlan={userPlan}
+        isViewMode={isViewMode}
+      />
+      
+      {/* Template-Specific Form */}
+      <TemplateSpecificForm
+        templateId={templateId}
+        resumeData={resumeData}
+        setResumeData={isViewMode ? () => {} : setResumeData}
+        canUseAI={canUseAI() && !isViewMode}
+        isViewMode={isViewMode}
+      />
+    </>
+  );
+
+  const rightPanel = (
+    <LivePreview
+      templateId={templateId}
+      resumeData={resumeData}
+      userType={userType}
+      isLocked={isLocked}
+      overlayComponent={
+        <SecurePreviewOverlay
+          requiredPlanLabel={required}
+          watermarkText="ResumeBuilder Pro"
+          onUpgrade={() => { window.location.href = '/pricing'; }}
+          templateName={templateId || "Premium Template"}
+          isPremium={isLocked}
+        />
+      }
+    />
+  );
+
+  return (
+    <>
+      <NavigationHeader 
+        showBackButton 
+        backTo={resumeId ? "/profile" : "/"} 
+        showSaveButton={false}
+      />
+      <BuilderLayout 
+        leftPanel={leftPanel}
+        rightPanel={rightPanel}
+      />
+    </>
   );
 };
 

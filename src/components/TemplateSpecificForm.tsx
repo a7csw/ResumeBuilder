@@ -86,9 +86,10 @@ interface TemplateSpecificFormProps {
   resumeData: ResumeData;
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
   canUseAI: boolean;
+  isViewMode?: boolean;
 }
 
-const TemplateSpecificForm = ({ templateId, resumeData, setResumeData, canUseAI }: TemplateSpecificFormProps) => {
+const TemplateSpecificForm = ({ templateId, resumeData, setResumeData, canUseAI, isViewMode = false }: TemplateSpecificFormProps) => {
   const [newSkill, setNewSkill] = useState("");
 
   // Template configurations

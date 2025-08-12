@@ -64,6 +64,7 @@ interface EnhancedResumeBuilderProps {
   resumeData: ResumeData;
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
   userPlan: { plan: string; isActive: boolean };
+  isViewMode?: boolean;
 }
 
 const EnhancedResumeBuilder = ({ 
@@ -73,7 +74,8 @@ const EnhancedResumeBuilder = ({
   canExportPDF, 
   resumeData, 
   setResumeData,
-  userPlan 
+  userPlan,
+  isViewMode = false
 }: EnhancedResumeBuilderProps) => {
   const { toast } = useToast();
   const [newSkill, setNewSkill] = useState("");
