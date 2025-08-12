@@ -50,8 +50,7 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <NavigationHeader 
         showBackButton 
-        backTo="/builder" 
-        showThemeToggle
+        backTo="/builder"
       />
       
       <div className="container py-6">
