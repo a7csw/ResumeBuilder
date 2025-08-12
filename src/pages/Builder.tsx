@@ -15,8 +15,8 @@ import DynamicForm from "@/components/DynamicForm";
 import StepHeader from "@/components/builder/StepHeader";
 import TemplateGallery from "@/components/builder/TemplateGallery";
 import { useUserPlan } from "@/hooks/useUserPlan";
-import { useDownloadPdf } from "@/lib/useDownloadPdf";
-import { getTemplateConfig, getPremiumTemplates } from "@/lib/templateConfigs";
+
+import { getTemplateConfig } from "@/lib/templateConfigs";
 import { paymentsDisabled } from "@/lib/flags";
 
 const Builder = () => {
@@ -32,7 +32,6 @@ const Builder = () => {
   const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
   const [resumeTitle, setResumeTitle] = useState("Untitled Resume");
   const { userPlan, canUseAI, canExportPDF } = useUserPlan();
-  const { downloadPdf, isDownloading } = useDownloadPdf();
   const [resumeData, setResumeData] = useState<any>({
     personalInfo: { 
       firstName: "", 
@@ -56,13 +55,13 @@ const Builder = () => {
     volunteer: [],
     languages: []
   });
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(templateId);
+  const [selectedColor, setSelectedColor] = useState('indigo');
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const config = getTemplateConfig(templateId);
-  const premiumTemplateIds = new Set(getPremiumTemplates().map(t => t.id));
-  const isPremium = premiumTemplateIds.has(templateId);
-  const isLocked = !userPlan.isActive || (userPlan.plan === 'basic' && isPremium);
+  const config = getTemplateConfig(selectedTemplateId);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -112,8 +111,11 @@ const Builder = () => {
       if (data) {
         setResumeData(data.data || {});
         setResumeTitle(data.title);
+        setUserType((data as any).mode || 'professional');
+        setSelectedColor((data as any).color_variant || 'indigo');
+        setSelectedTemplateId(data.template_id || templateId);
         // Update URL to match template from loaded resume
-        if (data.template_id !== templateId) {
+        if (data.template_id && data.template_id !== templateId) {
           navigate(`/builder?template=${data.template_id}&resumeId=${id}${isViewMode ? '&mode=view' : ''}`, { replace: true });
         }
       }
@@ -134,7 +136,9 @@ const Builder = () => {
     try {
       const resumeRecord = {
         title: resumeTitle,
-        template_id: templateId,
+        template_id: selectedTemplateId,
+        color_variant: selectedColor,
+        mode: userType,
         data: resumeData,
         user_id: user.id
       };
@@ -177,9 +181,6 @@ const Builder = () => {
     }
   };
 
-  const handleDownload = async () => {
-    await downloadPdf(resumeData, templateId);
-  };
 
   const handleModeSelect = (mode: 'student' | 'professional' | 'freelancer') => {
     setUserType(mode);
@@ -214,184 +215,6 @@ const Builder = () => {
     );
   }
 
-  const required = !userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic');
-
-  const leftPanel = (
-    <>
-      {/* Header Controls */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex-1">
-              <Label htmlFor="resume-title">Resume Title</Label>
-              <Input
-                id="resume-title"
-                value={resumeTitle}
-                onChange={(e) => setResumeTitle(e.target.value)}
-                placeholder="Enter resume title..."
-                disabled={isViewMode}
-                className="mt-1"
-              />
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              onClick={handleSave} 
-              disabled={saving || isViewMode}
-              className="flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              {saving ? "Saving..." : "Save Draft"}
-            </Button>
-            
-            <Button 
-              onClick={handleDownload}
-              disabled={isDownloading}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4" />
-              {isDownloading ? "Generating..." : "Download PDF"}
-            </Button>
-
-            <Button 
-              onClick={() => navigate('/templates')}
-              variant="outline"
-              size="sm"
-            >
-              Change Template
-            </Button>
-
-            <Button 
-              onClick={() => setShowModeSelector(true)}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              {userType === 'student' ? 'Student' : 
-               userType === 'professional' ? 'Professional' : 'Freelancer'} Mode
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Configuration Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">User Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={userType} onValueChange={(value: any) => setUserType(value)} disabled={isViewMode}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Student
-                  </div>
-                </SelectItem>
-                <SelectItem value="professional">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Professional
-                  </div>
-                </SelectItem>
-                <SelectItem value="freelancer">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Freelancer
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Building Mode</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual" className="text-xs" disabled={isViewMode}>
-                  <PenTool className="h-3 w-3 mr-1" />
-                  Manual
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="ai" 
-                  className="text-xs"
-                  disabled={!canUseAI() || isViewMode}
-                >
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI Enhanced
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            {!canUseAI() && (
-              <p className="text-xs text-muted-foreground mt-2">
-                AI features require AI or Pro plan
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center">
-              <Crown className="w-4 h-4 mr-2" />
-              Plan Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
-              {userPlan.plan === 'free' ? 'Free Plan' : 
-               userPlan.plan === 'basic' ? 'Basic Plan' :
-               userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {userPlan.plan === 'free' ? 'Preview only' : 
-               userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Dynamic Form */}
-      <DynamicForm
-        config={config}
-        resumeData={resumeData}
-        setResumeData={isViewMode ? () => {} : setResumeData}
-        userType={userType}
-        canUseAI={canUseAI() && !isViewMode}
-        isViewMode={isViewMode}
-      />
-    </>
-  );
-
-  const rightPanel = (
-    <LivePreview
-      templateId={templateId}
-      resumeData={resumeData}
-      userType={userType}
-      isLocked={isLocked}
-      overlayComponent={
-        <SecurePreviewOverlay
-          requiredPlanLabel={required}
-          watermarkText="ResumeBuilder Pro"
-          onUpgrade={() => { window.location.href = '/pricing'; }}
-          templateName={config.name}
-          isPremium={isLocked}
-        />
-      }
-    />
-  );
-
   return (
     <>
       <NavigationHeader 
@@ -399,10 +222,174 @@ const Builder = () => {
         backTo={resumeId ? "/profile" : "/"} 
         showSaveButton={false}
       />
-      <BuilderLayout 
-        leftPanel={leftPanel}
-        rightPanel={rightPanel}
+      <StepHeader
+        step={step}
+        onBack={() => setStep(1)}
+        onNext={() => {
+          if (step === 1) {
+            handleSave();
+            setStep(2);
+          } else {
+            handleSave();
+          }
+        }}
+        canNext={true}
       />
+      <div className="container py-6">
+        {step === 1 ? (
+          <>
+            {/* Header Controls */}
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1">
+                    <Label htmlFor="resume-title">Resume Title</Label>
+                    <Input
+                      id="resume-title"
+                      value={resumeTitle}
+                      onChange={(e) => setResumeTitle(e.target.value)}
+                      placeholder="Enter resume title..."
+                      disabled={isViewMode}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={saving || isViewMode}
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? "Saving..." : "Save Draft"}
+                  </Button>
+
+                  <Button 
+                    onClick={() => setShowModeSelector(true)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    {userType === 'student' ? 'Student' : 
+                     userType === 'professional' ? 'Professional' : 'Freelancer'} Mode
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configuration Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">User Type</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Select value={userType} onValueChange={(value: any) => setUserType(value)} disabled={isViewMode}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-2" />
+                          Student
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="professional">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-2" />
+                          Professional
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="freelancer">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-2" />
+                          Freelancer
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Building Mode</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="manual" className="text-xs" disabled={isViewMode}>
+                        <PenTool className="h-3 w-3 mr-1" />
+                        Manual
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="ai" 
+                        className="text-xs"
+                        disabled={!canUseAI() || isViewMode}
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        AI Enhanced
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  {!canUseAI() && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      AI features require AI or Pro plan
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Plan Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
+                    {userPlan.plan === 'free' ? 'Free Plan' : 
+                     userPlan.plan === 'basic' ? 'Basic Plan' :
+                     userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {userPlan.plan === 'free' ? 'Preview only' : 
+                     userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Dynamic Form */}
+            <DynamicForm
+              config={config}
+              resumeData={resumeData}
+              setResumeData={isViewMode ? () => {} : setResumeData}
+              userType={userType}
+              canUseAI={canUseAI() && !isViewMode}
+              isViewMode={isViewMode}
+            />
+          </>
+        ) : (
+          <TemplateGallery
+            resumeData={resumeData}
+            mode={userType}
+            selectedTemplateId={selectedTemplateId}
+            selectedColor={selectedColor}
+            onSelect={async (id, color) => {
+              setSelectedTemplateId(id);
+              setSelectedColor(color);
+              if (user && resumeId) {
+                await supabase.from('resumes').update({ template_id: id, color_variant: color }).eq('id', resumeId);
+              }
+            }}
+          />
+        )}
+      </div>
     </>
   );
 };
