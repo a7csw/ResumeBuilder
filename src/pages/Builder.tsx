@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label";
 import NavigationHeader from "@/components/NavigationHeader";
 import { FileText, User, Sparkles, PenTool, Crown, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDownloadPdf } from "@/lib/useDownloadPdf";
 import ModeSelector from "@/components/ModeSelector";
 import DynamicForm from "@/components/DynamicForm";
 import StepHeader from "@/components/builder/StepHeader";
 import TemplateGallery from "@/components/builder/TemplateGallery";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
-import { getTemplateConfig } from "@/lib/templateConfigs";
+import { getTemplateConfig, getPremiumTemplates } from "@/lib/templateConfigs";
 import { paymentsDisabled } from "@/lib/flags";
 
 const Builder = () => {
@@ -62,7 +63,8 @@ const Builder = () => {
   const { toast } = useToast();
 
   const config = getTemplateConfig(selectedTemplateId);
-
+  const premiumTemplateIds = useMemo(() => new Set(getPremiumTemplates().map(t => t.id)), []);
+  const isPremium = premiumTemplateIds.has(selectedTemplateId);
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
