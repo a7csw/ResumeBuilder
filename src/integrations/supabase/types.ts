@@ -181,34 +181,46 @@ export type Database = {
       }
       resumes: {
         Row: {
+          color_variant: string | null
           created_at: string
           data: Json
+          exported_at: string | null
           id: string
+          mode: string | null
           pdf_url: string | null
           template_id: string
           title: string
           updated_at: string
           user_id: string
+          version: number | null
         }
         Insert: {
+          color_variant?: string | null
           created_at?: string
           data?: Json
+          exported_at?: string | null
           id?: string
+          mode?: string | null
           pdf_url?: string | null
           template_id?: string
           title?: string
           updated_at?: string
           user_id: string
+          version?: number | null
         }
         Update: {
+          color_variant?: string | null
           created_at?: string
           data?: Json
+          exported_at?: string | null
           id?: string
+          mode?: string | null
           pdf_url?: string | null
           template_id?: string
           title?: string
           updated_at?: string
           user_id?: string
+          version?: number | null
         }
         Relationships: []
       }

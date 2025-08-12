@@ -8,18 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import NavigationHeader from "@/components/NavigationHeader";
-import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown, Save } from "lucide-react";
-import { Link } from "react-router-dom";
+import { FileText, User, Sparkles, PenTool, Crown, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ModeSelector from "@/components/ModeSelector";
 import DynamicForm from "@/components/DynamicForm";
-import BuilderLayout from "@/components/builder/BuilderLayout";
-import LivePreview from "@/components/builder/LivePreview";
-import SecurePreviewOverlay from "@/components/premium/SecurePreviewOverlay";
-import ProfileDropdown from "@/components/ProfileDropdown";
+import StepHeader from "@/components/builder/StepHeader";
+import TemplateGallery from "@/components/builder/TemplateGallery";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useDownloadPdf } from "@/lib/useDownloadPdf";
 import { getTemplateConfig, getPremiumTemplates } from "@/lib/templateConfigs";
+import { paymentsDisabled } from "@/lib/flags";
 
 const Builder = () => {
   const [searchParams] = useSearchParams();
