@@ -4,9 +4,10 @@ interface TemplatePreviewProps {
   resumeData: any;
   userType: "student" | "professional" | "freelancer";
   templateId?: string;
+  isPreview?: boolean;
 }
 
-const TemplatePreview = ({ resumeData, userType, templateId = "classic" }: TemplatePreviewProps) => {
+const TemplatePreview = ({ resumeData, userType, templateId = "classic", isPreview = false }: TemplatePreviewProps) => {
   // Different template styles based on templateId
   const getTemplateStyles = () => {
     switch (templateId) {
@@ -235,29 +236,24 @@ const TemplatePreview = ({ resumeData, userType, templateId = "classic" }: Templ
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto animate-fade-in hover-scale" id="template-preview">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          Live Template Preview
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {!resumeData?.personalInfo?.firstName ? (
-          <div className="text-center text-muted-foreground py-12 animate-fade-in">
-            <p className="text-lg font-medium mb-2">Your template preview will appear here</p>
-            <p className="text-sm">Start filling out your resume details to see the live preview</p>
-          </div>
-        ) : (
-          <div className="animate-fade-in space-y-6">
-            {sectionOrder.map((sectionName) => (
-              <div key={sectionName}>
-                {renderSection(sectionName)}
-              </div>
-            ))}
+    <div className="w-full max-w-4xl mx-auto animate-fade-in" id="template-preview">
+      <div className="bg-white dark:bg-card border border-border rounded-lg shadow-sm p-6 space-y-6">
+        {isPreview && (
+          <div className="text-center text-muted-foreground/70 py-2 border-b border-dashed">
+            <p className="text-sm font-medium">Template Preview Mode</p>
+            <p className="text-xs">Start filling the form to see your actual data</p>
           </div>
         )}
-      </CardContent>
-    </Card>
+        
+        <div className="space-y-6">
+          {sectionOrder.map((sectionName) => (
+            <div key={sectionName}>
+              {renderSection(sectionName)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

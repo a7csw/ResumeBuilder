@@ -3,25 +3,21 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import NavigationHeader from "@/components/NavigationHeader";
-import { FileText, ArrowLeft, User, Sparkles, PenTool, GraduationCap, Crown, Save } from "lucide-react";
-import { Link } from "react-router-dom";
+import { FileText, Save, User, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import ModeSelector from "@/components/ModeSelector";
-import DynamicForm from "@/components/DynamicForm";
 import BuilderLayout from "@/components/builder/BuilderLayout";
 import LivePreview from "@/components/builder/LivePreview";
 import SecurePreviewOverlay from "@/components/premium/SecurePreviewOverlay";
-import ProfileDropdown from "@/components/ProfileDropdown";
+import ModeSelector from "@/components/ModeSelector";
+import DynamicForm from "@/components/DynamicForm";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useDownloadPdf } from "@/lib/useDownloadPdf";
 import { getTemplateConfig, getPremiumTemplates } from "@/lib/templateConfigs";
 
-const Builder = () => {
+const NewBuilder = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("template") || "classic";
   const resumeId = searchParams.get("resumeId");
@@ -31,7 +27,6 @@ const Builder = () => {
   const [saving, setSaving] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [userType, setUserType] = useState<"student" | "professional" | "freelancer">("professional");
-  const [buildingMode, setBuildingMode] = useState<"manual" | "ai">("manual");
   const [resumeTitle, setResumeTitle] = useState("Untitled Resume");
   const { userPlan, canUseAI, canExportPDF } = useUserPlan();
   const { downloadPdf, isDownloading } = useDownloadPdf();
@@ -99,7 +94,7 @@ const Builder = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, [navigate, resumeId]);
+  }, [navigate, resumeId, searchParams]);
 
   const loadExistingResume = async (id: string) => {
     try {
@@ -193,7 +188,6 @@ const Builder = () => {
     }
   };
 
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -215,8 +209,6 @@ const Builder = () => {
       </div>
     );
   }
-
-  const required = !userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic');
 
   const leftPanel = (
     <>
@@ -279,96 +271,32 @@ const Builder = () => {
         </CardContent>
       </Card>
 
-      {/* Configuration Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">User Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={userType} onValueChange={(value: any) => setUserType(value)} disabled={isViewMode}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Student
-                  </div>
-                </SelectItem>
-                <SelectItem value="professional">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Professional
-                  </div>
-                </SelectItem>
-                <SelectItem value="freelancer">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Freelancer
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Building Mode</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual" className="text-xs" disabled={isViewMode}>
-                  <PenTool className="h-3 w-3 mr-1" />
-                  Manual
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="ai" 
-                  className="text-xs"
-                  disabled={!canUseAI() || isViewMode}
-                >
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI Enhanced
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            {!canUseAI() && (
-              <p className="text-xs text-muted-foreground mt-2">
-                AI features require AI or Pro plan
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center">
-              <Crown className="w-4 h-4 mr-2" />
-              Plan Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
-              {userPlan.plan === 'free' ? 'Free Plan' : 
-               userPlan.plan === 'basic' ? 'Basic Plan' :
-               userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {userPlan.plan === 'free' ? 'Preview only' : 
-               userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Plan Status */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center">
+            <Crown className="w-4 h-4 mr-2" />
+            Plan Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className={`px-3 py-2 rounded-md text-sm ${userPlan.plan !== 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
+            {userPlan.plan === 'free' ? 'Free Plan' : 
+             userPlan.plan === 'basic' ? 'Basic Plan' :
+             userPlan.plan === 'ai' ? 'AI Plan' : 'Pro Plan'}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {userPlan.plan === 'free' ? 'Preview only' : 
+             userPlan.plan === 'pro' ? 'All features unlocked' : 'Limited features'}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Dynamic Form */}
       <DynamicForm
         config={config}
         resumeData={resumeData}
-        setResumeData={isViewMode ? () => {} : setResumeData}
+        setResumeData={setResumeData}
         userType={userType}
         canUseAI={canUseAI() && !isViewMode}
         isViewMode={isViewMode}
@@ -384,7 +312,7 @@ const Builder = () => {
       isLocked={isLocked}
       overlayComponent={
         <SecurePreviewOverlay
-          requiredPlanLabel={required}
+          requiredPlanLabel={!userPlan.isActive ? (isPremium ? 'AI (Premium) or Monthly' : 'Basic') : (isPremium ? 'AI (Premium) or Monthly' : 'Basic')}
           watermarkText="ResumeBuilder Pro"
           onUpgrade={() => { window.location.href = '/pricing'; }}
           templateName={config.name}
@@ -409,4 +337,4 @@ const Builder = () => {
   );
 };
 
-export default Builder;
+export default NewBuilder;
