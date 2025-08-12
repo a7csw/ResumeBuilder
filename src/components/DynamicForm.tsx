@@ -39,13 +39,24 @@ const DynamicForm = ({
   };
 
   const updateFieldValue = (sectionId: string, fieldId: string, value: any) => {
-    setResumeData((prev: any) => ({
-      ...prev,
-      [sectionId]: {
-        ...prev[sectionId],
-        [fieldId]: value
+    setResumeData((prev: any) => {
+      // Handle flat fields like summary, skills directly
+      if (sectionId === fieldId) {
+        return {
+          ...prev,
+          [sectionId]: value
+        };
       }
-    }));
+      
+      // Handle nested object fields  
+      return {
+        ...prev,
+        [sectionId]: {
+          ...prev[sectionId],
+          [fieldId]: value
+        }
+      };
+    });
   };
 
   const updateArrayValue = (sectionId: string, index: number, fieldId: string, value: any) => {
