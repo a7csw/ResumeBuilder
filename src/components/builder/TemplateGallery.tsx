@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import TemplatePreview from '@/components/TemplatePreview';
 import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates } from '@/lib/templatesRegistry';
 import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
+import PremiumFeatureWrapper from '@/components/premium/PremiumFeatureWrapper';
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
 import { cn } from '@/lib/utils';
 

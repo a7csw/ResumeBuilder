@@ -17,7 +17,8 @@ import StepHeader from "@/components/builder/StepHeader";
 import TemplateGallery from "@/components/builder/TemplateGallery";
 import { useUserPlan } from "@/hooks/useUserPlan";
 
-import { getTemplateConfig, getPremiumTemplates } from "@/lib/templateConfigs";
+import { getTemplateConfig } from "@/lib/templateConfigs";
+import { premiumTemplates } from "@/lib/templatesRegistry";
 import { paymentsDisabled } from "@/lib/flags";
 
 const Builder = () => {
@@ -56,14 +57,14 @@ const Builder = () => {
     languages: []
   });
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedTemplateId, setSelectedTemplateId] = useState('classic'); // Always start with default
+  const [selectedTemplateId, setSelectedTemplateId] = useState(''); // No template selected initially
   const [selectedColor, setSelectedColor] = useState('indigo');
   const [formCompleted, setFormCompleted] = useState(false); // Track if form has basic info
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const config = getTemplateConfig(selectedTemplateId);
-  const premiumTemplateIds = useMemo(() => new Set(getPremiumTemplates().map(t => t.id)), []);
+  const config = selectedTemplateId ? getTemplateConfig(selectedTemplateId) : getTemplateConfig('classic');
+  const premiumTemplateIds = useMemo(() => new Set(premiumTemplates().map(t => t.id)), []);
   const isPremium = premiumTemplateIds.has(selectedTemplateId);
 
   // Check if basic form info is filled to enable template selection
@@ -123,7 +124,7 @@ const Builder = () => {
         setResumeTitle(data.title);
         setUserType((data as any).mode || 'professional');
         setSelectedColor((data as any).color_variant || 'indigo');
-        setSelectedTemplateId(data.template_id || 'classic');
+        setSelectedTemplateId(data.template_id || '');
         setFormCompleted(checkFormCompletion(data.data || {}));
         // If resume is loaded and has basic info, can start at step 2
         if (data.template_id && checkFormCompletion(data.data || {})) {
