@@ -32,21 +32,19 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background Elements - Optimized for performance */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="absolute top-20 left-10 w-64 h-64 bg-slate-400/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-400/5 rounded-full blur-3xl"></div>
+        {/* Background Elements - Simplified for performance */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-100/30 to-gray-100/30 dark:from-slate-800/30 dark:to-gray-800/30"></div>
         
         <div className="relative z-10 container px-6 py-20 mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full">
               <Star className="w-4 h-4" />
               Trusted by 10,000+ professionals
             </div>
             
             {/* Main Heading */}
-                          <div className="flex items-center justify-center mb-8 animate-fade-in-up delay-100">
+            <div className="flex items-center justify-center mb-8">
                 <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
                   <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
                     NOV
@@ -61,17 +59,17 @@ const Index = () => {
                 </h1>
               </div>
               
-              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-slate-800 dark:text-slate-200 animate-fade-in-up delay-200">
+              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-slate-800 dark:text-slate-200">
                 AI-Powered Resume Builder
               </h2>
             
             {/* Subheading */}
-            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto animate-fade-in-up delay-300">
+            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto">
               Transform your career story into a stunning, ATS-optimized resume with the power of AI. Professional plans starting at $5. Join thousands who've landed their dream jobs.
             </p>
             
             {/* CTA Button */}
-            <div className="animate-fade-in-up delay-600">
+            <div>
               <Button 
                 onClick={handleBuildResume}
                 size="lg" 
@@ -84,7 +82,7 @@ const Index = () => {
             </div>
             
             {/* Trust Indicators */}
-            <div className="flex items-center justify-center gap-8 mt-16 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up delay-800">
+            <div className="flex items-center justify-center gap-8 mt-16 text-sm text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-500" />
                 Professional templates
