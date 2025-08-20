@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import ProfileDropdown from "@/components/ProfileDropdown";
 import { FileText, ArrowLeft, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { paymentsDisabled } from "@/lib/flags";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import ProfileDropdown from "@/components/ProfileDropdown";
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
@@ -22,32 +20,12 @@ const NavigationHeader = ({
   showSaveButton = false, 
   onSave 
 }: NavigationHeaderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoading } = useUserPlan();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const navigationItems = [
-    { href: "/templates", label: "Templates", requiresAuth: false },
-    // Hide pricing in test mode
-    ...(paymentsDisabled() ? [] : [{ href: "/pricing", label: "Pricing", requiresAuth: false }]),
-    { href: "/profile", label: "Profile", requiresAuth: true },
+    { href: "/pricing", label: "Pricing", requiresAuth: false },
   ];
 
   const isActiveRoute = (href: string) => location.pathname === href;
@@ -67,9 +45,19 @@ const NavigationHeader = ({
             </Link>
           )}
           
-          <Link to="/" className="flex items-center space-x-2 animate-scale-in">
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">ResumeBuilder</span>
+          <Link to="/" className="flex items-center space-x-2 animate-scale-in hover:opacity-80 transition-opacity">
+            <div className="text-2xl font-bold tracking-tight">
+              <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
+                NOV
+              </span>
+              <span className="text-slate-400 dark:text-slate-500">A</span>
+              <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
+                E
+              </span>
+              <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
+                CV
+              </span>
+            </div>
           </Link>
         </div>
 
@@ -139,15 +127,15 @@ const NavigationHeader = ({
           </Sheet>
 
           {/* User Section */}
-          {loading ? (
-            <div className="w-8 h-8 bg-muted rounded animate-pulse" />
-          ) : user ? (
-            <ProfileDropdown user={user} />
-          ) : (
-            <Button asChild className="transition-smooth hover:scale-105">
-              <Link to="/auth">Sign In</Link>
-            </Button>
-          )}
+                  {isLoading ? (
+          <div className="w-8 h-8 bg-muted rounded animate-pulse" />
+        ) : user ? (
+          <ProfileDropdown user={user} />
+        ) : (
+          <Button asChild className="transition-smooth hover:scale-105 bg-gradient-to-r from-slate-700 to-gray-700 hover:from-slate-800 hover:to-gray-800 text-white">
+            <Link to="/auth">Sign In</Link>
+          </Button>
+        )}
         </div>
       </div>
     </header>

@@ -1,6 +1,4 @@
-import { bypassPayments } from '@/lib/env';
-
+// Demo mode - simplified flags
 export const paymentsDisabled = () => {
-  // In test mode, all payment checks are bypassed
-  return bypassPayments();
+  return false; // Show payments for demo
 };

@@ -17,9 +17,9 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 263 83% 57%;
+    --primary: 20 15% 55%;
     --primary-foreground: 210 40% 98%;
-    --primary-glow: 263 83% 67%;
+    --primary-glow: 20 15% 65%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -73,9 +73,9 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 263 83% 67%;
+    --primary: 20 15% 65%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --primary-glow: 263 83% 77%;
+    --primary-glow: 20 15% 75%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -252,6 +252,32 @@ All colors MUST be HSL.
   .delay-600 { animation-delay: 600ms; }
   .delay-700 { animation-delay: 700ms; }
   .delay-800 { animation-delay: 800ms; }
+  .delay-1000 { animation-delay: 1000ms; }
+  
+  /* Performance optimizations */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Optimize heavy animations */
+  .animate-pulse {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
 
   /* Professional enhancements */
   .bg-gradient-primary {

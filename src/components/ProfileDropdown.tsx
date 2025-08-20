@@ -104,7 +104,7 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
         <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2 transition-smooth hover:bg-accent/50">
           <Avatar className="w-8 h-8">
             <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-slate-600 to-gray-600 text-white font-medium">
               {getInitials()}
             </AvatarFallback>
           </Avatar>

@@ -87,28 +87,22 @@ const Status = () => {
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'warning':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-      case 'error':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <RefreshCw className="h-5 w-5 text-gray-500 animate-spin" />;
+    if (status === 'operational') {
+      return <CheckCircle className="h-5 w-5 text-slate-500" />;
+    } else if (status === "warning") {
+      return <AlertCircle className="h-5 w-5 text-slate-500" />;
+    } else {
+      return <XCircle className="h-5 w-5 text-red-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Operational</Badge>;
-      case 'warning':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Warning</Badge>;
-      case 'error':
-        return <Badge variant="destructive">Error</Badge>;
-      default:
-        return <Badge variant="outline">Checking...</Badge>;
+    if (status === 'operational') {
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-800">Operational</Badge>;
+    } else if (status === "warning") {
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-800">Warning</Badge>;
+    } else {
+      return <Badge variant="destructive">Error</Badge>;
     }
   };
 

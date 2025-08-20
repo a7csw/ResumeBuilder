@@ -13,11 +13,10 @@ const SUPABASE_CONFIG = {
 
 // Lemon Squeezy Configuration
 const LEMON_SQUEEZY_CONFIG = {
-  storeId: "your-store-id", // Replace with your actual store ID
+  storeId: "92893", // Demo store ID - replace with your actual store ID
   products: {
-    basic: "variant-id-basic", // Replace with actual variant IDs
-    ai: "variant-id-ai",
-    monthly: "variant-id-monthly"
+    basic: "518740", // Basic Plan $5/10 days - replace with actual variant ID
+    pro: "518741", // Pro Plan $11/month - replace with actual variant ID
   }
 };
 
@@ -26,8 +25,8 @@ const APP_CONFIG = {
   url: typeof window !== 'undefined' ? window.location.origin : 'https://sqvaqiepymfoubwibuds.supabase.co',
   environment: 'development', // Change to 'production' when deploying
   paymentsProvider: 'lemonsqueezy', // Only Lemon Squeezy supported now
-  testMode: 'true', // Set to 'false' for production - enables full access without payments
-  showTestBanner: 'true' // Set to 'false' for production
+  testMode: 'false', // Demo mode - payments enabled
+  showTestBanner: 'false' // No test banner for clean demo
 };
 
 // Export the environment configuration
@@ -39,8 +38,7 @@ export const env = {
   // Lemon Squeezy
   LEMON_STORE_ID: LEMON_SQUEEZY_CONFIG.storeId,
   LEMON_PRODUCT_BASIC: LEMON_SQUEEZY_CONFIG.products.basic,
-  LEMON_PRODUCT_AI: LEMON_SQUEEZY_CONFIG.products.ai,
-  LEMON_PRODUCT_MONTHLY: LEMON_SQUEEZY_CONFIG.products.monthly,
+  LEMON_PRODUCT_PRO: LEMON_SQUEEZY_CONFIG.products.pro,
   
   // Application
   APP_URL: APP_CONFIG.url,
@@ -54,8 +52,7 @@ export const env = {
   VITE_SUPABASE_ANON_KEY: SUPABASE_CONFIG.anonKey,
   VITE_LEMON_STORE_ID: LEMON_SQUEEZY_CONFIG.storeId,
   VITE_LEMON_PRODUCT_BASIC: LEMON_SQUEEZY_CONFIG.products.basic,
-  VITE_LEMON_PRODUCT_AI: LEMON_SQUEEZY_CONFIG.products.ai,
-  VITE_LEMON_PRODUCT_MONTHLY: LEMON_SQUEEZY_CONFIG.products.monthly,
+  VITE_LEMON_PRODUCT_PRO: LEMON_SQUEEZY_CONFIG.products.pro,
   VITE_APP_URL: APP_CONFIG.url,
   VITE_ENVIRONMENT: APP_CONFIG.environment,
   VITE_TEST_MODE: APP_CONFIG.testMode,
@@ -86,8 +83,4 @@ export const showTestBanner = env.SHOW_TEST_BANNER === 'true';
 // Payment bypass helper - returns true if user should have access regardless of payment status
 export const bypassPayments = () => isTestMode;
 
-console.log('✅ Environment configuration loaded successfully');
-console.log('📊 Supabase URL:', env.SUPABASE_URL);
-console.log('💳 Payments Provider:', env.PAYMENTS_PROVIDER);
-console.log('🧪 Test Mode:', isTestMode ? 'Enabled (All features unlocked)' : 'Disabled');
-console.log('🔓 Payment Bypass:', bypassPayments() ? 'Active' : 'Inactive');
+// Silent mode for demo - no console logs

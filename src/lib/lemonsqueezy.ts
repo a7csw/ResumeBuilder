@@ -1,206 +1,191 @@
-/**
- * Lemon Squeezy Configuration
- * 
- * Centralized configuration for all Lemon Squeezy products and store.
- * Update these IDs after creating products in Lemon Squeezy Dashboard.
- */
+import { env } from './env';
 
 export interface LemonSqueezyProduct {
   id: string;
   name: string;
-  description: string;
   price: number;
-  currency: string;
-  interval: 'one_time' | 'month';
-  intervalCount?: number;
-  duration?: string;
+  variantId: string;
+  description: string;
+  duration: string;
   features: string[];
-  lemonProductId: string;
   popular?: boolean;
-  buttonText: string;
-  templateAccess: 'basic' | 'all';
-  aiAssistance: boolean;
-  aiUsageLimit?: number;
-  exportLimit?: number;
 }
 
-/**
- * LEMON SQUEEZY CONFIGURATION
- * 
- * ⚠️ CRITICAL: Replace these placeholder IDs with your actual Lemon Squeezy Product IDs
- * 
- * SETUP STEPS:
- * 1. Go to https://app.lemonsqueezy.com/dashboard
- * 2. Create 3 products:
- *    - Basic Plan: $3.00 USD (one-time payment)
- *    - AI Plan: $7.00 USD (one-time payment)  
- *    - Monthly Plan: $15.00 USD (monthly recurring)
- * 3. Copy the IDs from each product
- * 
- * TEST vs LIVE:
- * - For development: Use test mode IDs
- * - For production: Use live mode IDs
- * - NEVER mix test and live IDs
- */
-
-// 🔧 REPLACE THESE 4 VALUES WITH YOUR ACTUAL LEMON SQUEEZY IDs 🔧
-
-// Lemon Squeezy Store and Product ID Constants
-const LEMON_STORE_ID = import.meta.env.VITE_LEMON_STORE_ID || 'your-store-id-here';
-
-// Lemon Squeezy: Basic plan ($3 for 10 days)
-const LEMON_PRODUCT_BASIC = import.meta.env.VITE_LEMON_PRODUCT_BASIC || 'your-basic-product-id-here';
-
-// Lemon Squeezy: AI plan ($7 for 10 days + AI features)
-const LEMON_PRODUCT_AI = import.meta.env.VITE_LEMON_PRODUCT_AI || 'your-ai-product-id-here';
-
-// Lemon Squeezy: Monthly plan ($15/month recurring)
-const LEMON_PRODUCT_MONTHLY = import.meta.env.VITE_LEMON_PRODUCT_MONTHLY || 'your-monthly-product-id-here';
-
-// Runtime validation for Lemon Squeezy IDs
-function validateLemonSqueezyConfig() {
-  const ids = [
-    { name: 'LEMON_STORE_ID', value: LEMON_STORE_ID },
-    { name: 'LEMON_PRODUCT_BASIC', value: LEMON_PRODUCT_BASIC },
-    { name: 'LEMON_PRODUCT_AI', value: LEMON_PRODUCT_AI },
-    { name: 'LEMON_PRODUCT_MONTHLY', value: LEMON_PRODUCT_MONTHLY },
-  ];
-
-  const invalid = ids.filter(id => 
-    !id.value || 
-    id.value.includes('your-') ||
-    id.value.includes('here')
-  );
-
-  if (invalid.length > 0) {
-    throw new Error(
-      `Invalid Lemon Squeezy configuration. Please update .env.local with actual Lemon Squeezy IDs:\n${
-        invalid.map(id => `- ${id.name}: ${id.value}`).join('\n')
-      }\n\nGet your IDs from: https://app.lemonsqueezy.com/dashboard`
-    );
-  }
-}
-
-// Validate on import if Lemon Squeezy is the payment provider
-// Temporarily disabled for development - re-enable after setting real IDs
-// if (import.meta.env.VITE_PAYMENTS_PROVIDER === 'lemonsqueezy') {
-//   validateLemonSqueezyConfig();
-// }
-
-export const LEMON_SQUEEZY_CONFIG = {
-  STORE_ID: LEMON_STORE_ID,
-  PRODUCT_BASIC: LEMON_PRODUCT_BASIC,
-  PRODUCT_AI: LEMON_PRODUCT_AI,
-  PRODUCT_MONTHLY: LEMON_PRODUCT_MONTHLY,
-} as const;
-
-export const LEMON_SQUEEZY_PRODUCTS: LemonSqueezyProduct[] = [
-  {
+export const LEMON_SQUEEZY_PRODUCTS: Record<string, LemonSqueezyProduct> = {
+  basic: {
     id: 'basic',
-    name: 'Basic',
-    description: 'Perfect for simple resumes',
-    price: 3,
-    currency: 'USD',
-    interval: 'one_time',
+    name: 'Basic Plan',
+    price: 5.00,
+    variantId: env.LEMON_PRODUCT_BASIC,
+    description: 'Perfect for quick projects',
     duration: '10 days',
     features: [
-      'Access to 3 basic templates',
-      'Manual content entry',
-      'PDF export',
-      'ATS-optimized layouts',
-      '10-day access'
+      '1 AI-generated resume',
+      '3 professional templates',
+      'PDF download',
+      'Basic customization',
+      'Email support',
+      'NovaCV watermark'
     ],
-    lemonProductId: LEMON_SQUEEZY_CONFIG.PRODUCT_BASIC,
-    buttonText: 'Get Basic Access',
-    templateAccess: 'basic',
-    aiAssistance: false,
-    exportLimit: 5,
+    popular: false
   },
-  {
-    id: 'ai',
-    name: 'AI Enhanced',
-    description: 'AI-powered resume building',
-    price: 7,
-    currency: 'USD',
-    interval: 'one_time',
-    duration: '10 days',
+  pro: {
+    id: 'pro',
+    name: 'Professional Plan',
+    price: 11.00,
+    variantId: env.LEMON_PRODUCT_PRO,
+    description: 'For serious professionals',
+    duration: 'month',
     features: [
-      'Access to ALL templates',
-      'AI content suggestions',
-      'Smart formatting',
-      'Industry-specific optimization',
-      '30 AI enhancements',
-      '10-day access'
-    ],
-    lemonProductId: LEMON_SQUEEZY_CONFIG.PRODUCT_AI,
-    popular: true,
-    buttonText: 'Get AI Access',
-    templateAccess: 'all',
-    aiAssistance: true,
-    aiUsageLimit: 30,
-    exportLimit: 10,
-  },
-  {
-    id: 'monthly',
-    name: 'Pro Monthly',
-    description: 'Unlimited access with premium support',
-    price: 15,
-    currency: 'USD',
-    interval: 'month',
-    features: [
-      'Everything in AI plan',
-      'Unlimited AI usage',
-      'Unlimited exports',
+      'Unlimited AI-generated resumes',
+      '20+ premium templates',
+      'Advanced AI optimization',
+      'Multiple format exports (PDF, DOCX)',
+      'No watermarks',
       'Priority support',
-      'Multiple resume versions',
-      'Monthly billing'
+      'ATS optimization',
+      'Resume analytics',
+      'Custom styling options',
+      'Unlimited revisions'
     ],
-    lemonProductId: LEMON_SQUEEZY_CONFIG.PRODUCT_MONTHLY,
-    buttonText: 'Go Pro',
-    templateAccess: 'all',
-    aiAssistance: true,
-    // No limits for monthly plan
-  },
-];
+    popular: true
+  }
+};
 
-// Helper functions
-export function getLemonSqueezyProduct(productId: string): LemonSqueezyProduct | undefined {
-  return LEMON_SQUEEZY_PRODUCTS.find(product => product.id === productId);
+export interface CheckoutUrlOptions {
+  variantId: string;
+  customData?: Record<string, any>;
+  checkoutData?: {
+    email?: string;
+    name?: string;
+    billing_address?: Record<string, string>;
+  };
 }
 
-export function getLemonSqueezyProductByLemonId(lemonProductId: string): LemonSqueezyProduct | undefined {
-  return LEMON_SQUEEZY_PRODUCTS.find(product => product.lemonProductId === lemonProductId);
+export function generateLemonSqueezyCheckoutUrl(options: CheckoutUrlOptions): string {
+  const baseUrl = 'https://novacv.lemonsqueezy.com/checkout/buy';
+  const url = new URL(`${baseUrl}/${options.variantId}`);
+  
+  // Add custom data for tracking
+  if (options.customData) {
+    url.searchParams.set('custom', JSON.stringify(options.customData));
+  }
+  
+  // Add checkout data
+  if (options.checkoutData) {
+    if (options.checkoutData.email) {
+      url.searchParams.set('checkout[email]', options.checkoutData.email);
+    }
+    if (options.checkoutData.name) {
+      url.searchParams.set('checkout[name]', options.checkoutData.name);
+    }
+  }
+  
+  // Add store configuration
+  url.searchParams.set('media', '0'); // Disable media
+  url.searchParams.set('logo', '0'); // Disable logo
+  url.searchParams.set('desc', '0'); // Disable description
+  url.searchParams.set('discount', '1'); // Enable discount codes
+  url.searchParams.set('enabled', '67163'); // Enable specific payment methods
+  
+  return url.toString();
 }
 
-// Generate checkout URLs
-export function generateLemonSqueezyCheckoutUrl(
-  productId: string, 
+export function getLemonSqueezyProduct(planId: string): LemonSqueezyProduct | null {
+  return LEMON_SQUEEZY_PRODUCTS[planId] || null;
+}
+
+export function validateLemonSqueezyConfig(): boolean {
+  const requiredIds = Object.values(LEMON_SQUEEZY_PRODUCTS).map(p => p.variantId);
+  const missingIds = requiredIds.filter(id => !id || id.includes('variant-id'));
+  
+  if (missingIds.length > 0) {
+    console.warn('Missing Lemon Squeezy variant IDs:', missingIds);
+    return false;
+  }
+  
+  return true;
+}
+
+// Initialize checkout for a specific plan
+export async function initiateLemonSqueezyCheckout(
+  planId: string,
   userEmail?: string,
-  successUrl?: string,
-  cancelUrl?: string
-): string {
-  const product = getLemonSqueezyProduct(productId);
+  userName?: string,
+  userId?: string
+): Promise<void> {
+  const product = getLemonSqueezyProduct(planId);
   if (!product) {
-    throw new Error(`Product not found: ${productId}`);
+    throw new Error(`Invalid plan ID: ${planId}`);
   }
-
-  const baseUrl = `https://${LEMON_SQUEEZY_CONFIG.STORE_ID}.lemonsqueezy.com/checkout/buy/${product.lemonProductId}`;
-  const params = new URLSearchParams();
-
-  if (userEmail) {
-    params.append('checkout[email]', userEmail);
-  }
-
-  if (successUrl) {
-    params.append('checkout[success_url]', successUrl);
-  }
-
-  if (cancelUrl) {
-    params.append('checkout[cancel_url]', cancelUrl);
-  }
-
-  const queryString = params.toString();
-  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  
+  const checkoutUrl = generateLemonSqueezyCheckoutUrl({
+    variantId: product.variantId,
+    customData: {
+      plan_id: planId,
+      user_id: userId,
+      source: 'novacv_web'
+    },
+    checkoutData: {
+      email: userEmail,
+      name: userName
+    }
+  });
+  
+  // Open checkout in the same window
+  window.location.href = checkoutUrl;
 }
 
-export default LEMON_SQUEEZY_CONFIG;
+// Webhook event types
+export interface LemonSqueezyWebhookEvent {
+  meta: {
+    event_name: string;
+    custom_data?: Record<string, any>;
+  };
+  data: {
+    id: string;
+    type: string;
+    attributes: {
+      store_id: number;
+      variant_id: number;
+      variant_name: string;
+      product_id: number;
+      product_name: string;
+      customer_id: number;
+      order_id: number;
+      identifier: string;
+      order_number: number;
+      user_name: string;
+      user_email: string;
+      status: string;
+      status_formatted: string;
+      refunded: boolean;
+      refunded_at: string | null;
+      subtotal: number;
+      discount_total: number;
+      tax: number;
+      total: number;
+      subtotal_usd: number;
+      discount_total_usd: number;
+      tax_usd: number;
+      total_usd: number;
+      tax_name: string | null;
+      tax_rate: string;
+      currency: string;
+      created_at: string;
+      updated_at: string;
+    };
+  };
+}
+
+export const LEMON_SQUEEZY_EVENTS = {
+  ORDER_CREATED: 'order_created',
+  ORDER_REFUNDED: 'order_refunded',
+  SUBSCRIPTION_CREATED: 'subscription_created',
+  SUBSCRIPTION_UPDATED: 'subscription_updated',
+  SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
+  SUBSCRIPTION_RESUMED: 'subscription_resumed',
+  SUBSCRIPTION_EXPIRED: 'subscription_expired',
+  SUBSCRIPTION_PAUSED: 'subscription_paused',
+  SUBSCRIPTION_UNPAUSED: 'subscription_unpaused'
+} as const;

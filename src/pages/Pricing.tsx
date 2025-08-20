@@ -1,254 +1,287 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft, Check, Zap, Crown, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import NavigationHeader from "@/components/NavigationHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { generateLemonSqueezyCheckoutUrl } from "@/lib/lemonsqueezy";
-import { env } from "@/lib/env";
-import { paymentsDisabled } from "@/lib/flags";
+import { initiateLemonSqueezyCheckout } from "@/lib/lemonsqueezy";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Check, 
+  Star, 
+  Sparkles, 
+  ArrowRight, 
+  Crown,
+  Zap,
+  Clock,
+  Infinity
+} from "lucide-react";
 
 const Pricing = () => {
+  const [selectedPlan, setSelectedPlan] = useState<"basic" | "pro" | null>(null);
   const navigate = useNavigate();
-
-  // Redirect to home if payments are disabled (test mode)
-  useEffect(() => {
-    if (paymentsDisabled()) {
-      console.log('Test mode detected: Redirecting away from pricing page');
-      navigate('/', { replace: true });
-    }
-  }, [navigate]);
+  const { toast } = useToast();
 
   const plans = [
     {
       id: "basic",
       name: "Basic Plan",
-      price: "$3",
-      period: "10 days",
-      description: "Access to Basic templates",
-      icon: FileText,
+      subtitle: "Perfect for quick projects",
+      price: "$5",
+      period: "for 10 days",
+      description: "Get started with essential resume building features",
       features: [
-        "Basic templates only",
-        "Manual form filling",
-        "PDF export included after payment",
-        "No AI features",
-        "10 days access"
+        "1 AI-generated resume",
+        "3 professional templates",
+        "PDF download",
+        "Basic customization",
+        "Email support",
+        "NovaCV watermark"
       ],
-      cta: "Get Basic Access",
-      highlight: false
-    },
-    {
-      id: "ai",
-      name: "AI Plan",
-      price: "$7",
-      period: "10 days",
-      description: "All templates + AI assistance",
-      badge: "Most Popular",
-      icon: Zap,
-      features: [
-        "All templates (Basic + Premium)",
-        "AI assistance for completion",
-        "PDF export included after payment",
-        "Smart suggestions",
-        "10 days access"
-      ],
-      cta: "Get AI Access",
-      highlight: true
+      buttonText: "Start Basic",
+      popular: false,
+      planId: "basic",
+      gradient: "from-slate-600 to-gray-600",
+      icon: <Zap className="w-12 h-12" />
     },
     {
       id: "pro",
-      name: "Monthly Plan",
-      price: "$15",
+      name: "Professional Plan",
+      subtitle: "For serious professionals",
+      price: "$11",
       period: "per month",
-      description: "Full access with premium support",
-      icon: Crown,
+      description: "Everything you need to create outstanding resumes",
       features: [
-        "Everything in AI plan",
-        "Unlimited downloads",
-        "Premium support",
-        "All future features"
+        "Unlimited AI-generated resumes",
+        "20+ premium templates",
+        "Advanced AI optimization",
+        "Multiple format exports (PDF, DOCX)",
+        "No watermarks",
+        "Priority support",
+        "ATS optimization",
+        "Resume analytics",
+        "Custom styling options",
+        "Unlimited revisions"
       ],
-      cta: "Subscribe Monthly",
-      highlight: false
+      buttonText: "Go Professional",
+      popular: true,
+      planId: "pro",
+      gradient: "from-slate-600 to-gray-600",
+      icon: <Crown className="w-12 h-12" />
     }
   ];
 
-  const handleSubscribe = async (planId: string) => {
-    if (planId === 'free') {
-      // Navigate to builder for free plan
-      window.location.href = '/builder';
-      return;
-    }
+  const handleSelectPlan = (planId: "basic" | "pro") => {
+    setSelectedPlan(planId);
+  };
 
+  const handleSubscribe = async (planId: "basic" | "pro") => {
     try {
-      // Get user email for checkout
       const { data: { user } } = await supabase.auth.getUser();
-      const userEmail = user?.email;
-
-      // Only use Lemon Squeezy in production mode
-      if (!paymentsDisabled()) {
-        try {
-          // Use Lemon Squeezy checkout
-          const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
-          const cancelUrl = `${window.location.origin}/pricing`;
-          
-          const checkoutUrl = generateLemonSqueezyCheckoutUrl(
-            planId,
-            userEmail,
-            successUrl,
-            cancelUrl
-          );
-
-          // Open Lemon Squeezy checkout in a new tab
-          window.open(checkoutUrl, '_blank');
-        } catch (error) {
-          console.error('Payment error:', error);
-          alert('Payment setup failed. Please try again.');
-        }
-      } else {
-        console.log('Test mode: Payment bypassed, redirecting to home');
-        navigate('/');
+      
+      if (!user) {
+        navigate(`/auth?redirect=pricing`);
+        return;
       }
+
+      const plan = plans.find(p => p.id === planId);
+      if (!plan) return;
+
+      await initiateLemonSqueezyCheckout(
+        planId,
+        user.email || undefined,
+        user.user_metadata?.full_name || user.user_metadata?.name || undefined,
+        user.id
+      );
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('Failed to start checkout. Please try again.');
+      console.error('Error initiating checkout:', error);
+      toast({
+        title: "Payment Error",
+        description: "Failed to start checkout process. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-14 items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm text-muted-foreground">Back to home</span>
-          </Link>
-          <div className="flex items-center space-x-2 ml-6">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="font-bold">ResumeBuilder</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+      <NavigationHeader />
+      
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-20">
+        {/* Background Elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-slate-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-400/5 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10 container px-6 mx-auto">
+          <div className="text-center mb-16 animate-fade-in-up">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
+              Choose Your Plan
+            </h1>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Start with our basic plan for quick projects or go professional for unlimited access to all features.
+            </p>
           </div>
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="container py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that works best for you. No hidden fees, cancel anytime.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => {
-            const IconComponent = plan.icon;
-            return (
-              <Card 
-                key={plan.id} 
-                className={`shadow-elegant hover:shadow-glow transition-all duration-300 relative ${
-                  plan.highlight ? 'ring-2 ring-primary' : ''
+          {/* Plans */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+            {plans.map((plan, index) => (
+              <div
+                key={plan.id}
+                className={`relative p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 animate-fade-in-up ${
+                  plan.popular 
+                    ? 'ring-4 ring-slate-500 dark:ring-slate-400 shadow-2xl scale-105 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/20 dark:to-gray-900/20' 
+                    : 'hover:shadow-xl bg-white dark:bg-slate-800'
                 }`}
+                style={{ animationDelay: `${index * 200}ms` }}
               >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className={`text-white bg-primary`}>
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      {plan.badge}
+                {/* Popular Badge */}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-slate-600 to-gray-600 text-white px-6 py-2 text-sm font-medium shadow-lg">
+                      <Star className="w-4 h-4 mr-2" />
+                      Most Popular
                     </Badge>
                   </div>
                 )}
-                
-                <CardHeader className="text-center pb-6">
-                  <div className="flex justify-center mb-4">
-                    <div className={`p-3 rounded-full ${plan.highlight ? 'bg-primary/10' : 'bg-muted'}`}>
-                      <IconComponent className={`w-6 h-6 ${plan.highlight ? 'text-primary' : 'text-muted-foreground'}`} />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription className="text-base">{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground ml-2">{plan.period}</span>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-6">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Button 
-                    className="w-full"
-                    variant={plan.highlight ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => handleSubscribe(plan.id)}
-                  >
-                    {plan.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
 
-        <div className="text-center mt-16 space-y-6">
-          <div className="max-w-2xl mx-auto">
-            <h3 className="text-xl font-semibold mb-4">Why Choose ResumeBuilder?</h3>
-            <p className="text-muted-foreground mb-8">
-              Professional resume templates designed by experts, trusted by professionals worldwide.
-            </p>
+                {/* Plan Duration Badge */}
+                <div className="absolute top-4 right-4">
+                  <Badge variant="outline" className="text-xs">
+                    {plan.id === "basic" ? (
+                      <>
+                        <Clock className="w-3 h-3 mr-1" />
+                        10 Days
+                      </>
+                    ) : (
+                      <>
+                        <Infinity className="w-3 h-3 mr-1" />
+                        Monthly
+                      </>
+                    )}
+                  </Badge>
+                </div>
+
+                {/* Icon */}
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center ${
+                  plan.popular 
+                    ? 'bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800/50 dark:to-gray-800/50 text-slate-600 dark:text-slate-400'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                } hover:scale-110 transition-transform duration-300`}>
+                  {plan.icon}
+                </div>
+
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">
+                    {plan.name}
+                  </h3>
+                  <p className="text-sm font-medium mb-4 text-slate-600 dark:text-slate-400">
+                    {plan.subtitle}
+                  </p>
+                  <div className="flex items-baseline justify-center gap-2 mb-2">
+                    <span className="text-4xl font-bold text-slate-900 dark:text-white">
+                      {plan.price}
+                    </span>
+                    <span className="text-slate-600 dark:text-slate-400">
+                      {plan.period}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-300 text-sm">
+                    {plan.description}
+                  </p>
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center">
+                      <div className="w-5 h-5 bg-slate-100 dark:bg-slate-800/50 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <Check className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                      </div>
+                      <span className="text-slate-600 dark:text-slate-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA Button */}
+                <Button
+                  onClick={() => handleSubscribe(plan.id as "basic" | "pro")}
+                  className={`w-full py-4 text-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white shadow-lg'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  {plan.buttonText}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            ))}
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Check className="w-6 h-6 text-primary" />
+
+          {/* Features Comparison */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 mb-12 animate-fade-in-up delay-600">
+            <h3 className="text-xl font-bold text-center mb-8 text-slate-900 dark:text-white">
+              Why Choose Professional?
+            </h3>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-8 h-8 text-slate-600 dark:text-slate-400" />
+                </div>
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">Advanced AI</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Get intelligent suggestions for content, formatting, and optimization
+                </p>
               </div>
-              <h4 className="font-semibold">ATS-Friendly</h4>
-              <p className="text-sm text-muted-foreground">
-                All templates are optimized for Applicant Tracking Systems
-              </p>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Check className="w-6 h-6 text-primary" />
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Crown className="w-8 h-8 text-slate-600 dark:text-slate-400" />
+                </div>
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">Premium Templates</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Access to 20+ professional templates designed by experts
+                </p>
               </div>
-              <h4 className="font-semibold">Professional Design</h4>
-              <p className="text-sm text-muted-foreground">
-                Modern, clean designs that make a great first impression
-              </p>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Check className="w-6 h-6 text-primary" />
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-slate-600 dark:text-slate-400" />
+                </div>
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">ATS Optimized</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Ensure your resume passes through Applicant Tracking Systems
+                </p>
               </div>
-              <h4 className="font-semibold">Easy to Use</h4>
-              <p className="text-sm text-muted-foreground">
-                Simple, intuitive interface gets you results fast
-              </p>
             </div>
           </div>
-          
-          <div className="pt-8">
-            <p className="text-sm text-muted-foreground">
-              Need help choosing the right plan? <Link to="/auth" className="text-primary hover:underline">Get in touch</Link>
-            </p>
+
+          {/* FAQ Section */}
+          <div className="text-center animate-fade-in-up delay-800">
+            <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
+              Frequently Asked Questions
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="text-left">
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">Can I upgrade my plan?</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Yes! You can upgrade from Basic to Professional at any time. The remaining days from your Basic plan will be prorated.
+                </p>
+              </div>
+              <div className="text-left">
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">What happens after 10 days?</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  After 10 days, your Basic plan expires. You can upgrade to Professional for unlimited access or purchase another Basic plan.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
