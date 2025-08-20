@@ -67,7 +67,7 @@ const Index = () => {
             
             {/* Subheading */}
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto animate-fade-in-up delay-300">
-              Transform your career story into a stunning, ATS-optimized resume with the power of AI. Join thousands who've landed their dream jobs.
+              Transform your career story into a stunning, ATS-optimized resume with the power of AI. Professional plans starting at $5. Join thousands who've landed their dream jobs.
             </p>
             
             {/* CTA Button */}
@@ -87,11 +87,11 @@ const Index = () => {
             <div className="flex items-center justify-center gap-8 mt-16 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up delay-800">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                Free to start
+                Professional templates
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                No credit card required
+                AI-powered optimization
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-500" />
@@ -231,7 +231,7 @@ const Index = () => {
               variant="outline"
               className="px-12 py-6 text-lg bg-white text-slate-700 hover:bg-slate-50 border-0 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
-              Start Building Now - It's Free
+              Start Building Now
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
