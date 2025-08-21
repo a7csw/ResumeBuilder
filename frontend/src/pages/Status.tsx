@@ -115,11 +115,10 @@ const Status = () => {
   }
 
   const environmentConfig = {
-    'Supabase URL': process.env.NODE_ENV === 'development' ? 'https://sqvaqiepymfoubwibuds.supabase.co' : 'Configured',
-    'Supabase Anon Key': 'Configured',
-    'OpenAI API': 'Configured (Server-side)',
-    'Lemon Squeezy Integration': 'Configured (Server-side)',
-    'Environment': process.env.NODE_ENV || 'development'
+    'Supabase URL': import.meta.env.VITE_SUPABASE_URL || 'Configured',
+    'Supabase Anon Key': import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Configured' : 'Not Configured',
+    'Lemon Squeezy Integration': import.meta.env.VITE_LEMON_STORE_ID ? 'Configured' : 'Not Configured',
+    'Environment': import.meta.env.VITE_ENVIRONMENT || 'development'
   };
 
   return (
