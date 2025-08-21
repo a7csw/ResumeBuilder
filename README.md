@@ -1,324 +1,205 @@
-# ResumeAI - Professional Resume Builder
+# 🚀 Resume Builder - Full Stack Application
 
-A production-ready SaaS platform for building professional resumes with AI-powered content suggestions and ATS-optimized templates.
-
-## 🚀 Features
-
-- **3-Tier Pricing System**: Basic ($3/10 days), AI ($7/10 days), Pro ($15/month)
-- **11+ Professional Templates**: ATS-optimized designs for all career levels
-- **AI-Powered Content Enhancement**: Smart suggestions and content optimization
-- **Secure Export System**: PDF/DOCX exports with watermarking and copy protection
-- **Real-time Live Preview**: Secure, blurred preview system until payment
-- **Subscription Management**: Full Stripe integration with customer portal
-- **Mobile Responsive**: Optimized for all device sizes
-- **Authentication**: Email verification and secure user management
-
-## 📋 Tech Stack
-
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
-- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions)
-- **Payments**: Stripe (Checkout, Subscriptions, Webhooks)
-- **AI**: OpenAI GPT-4 integration
-- **Deployment**: Vercel/Netlify ready
-
-## 🛠️ Local Development Setup
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Supabase account
-- Stripe account
-- OpenAI API key (optional, for AI features)
-
-### 1. Clone and Install
-
-\`\`\`bash
-git clone https://github.com/a7csw/ResumeBuilder.git
-cd ResumeBuilder
-npm install
-\`\`\`
-
-### 2. Environment Variables
-
-Copy the environment template and fill in your values:
-
-\`\`\`bash
-cp env.example .env.local
-\`\`\`
-
-**Required Environment Variables:**
-
-| Variable | Description | Where to get |
-|----------|-------------|--------------|
-| \`VITE_SUPABASE_URL\` | Supabase project URL | Supabase Dashboard > Settings > API |
-| \`VITE_SUPABASE_ANON_KEY\` | Supabase anonymous key | Supabase Dashboard > Settings > API |
-| \`VITE_STRIPE_PUBLISHABLE_KEY\` | Stripe publishable key | Stripe Dashboard > Developers > API keys |
-
-**Server-side Environment Variables (for Supabase functions):**
-
-| Variable | Description | Where to get |
-|----------|-------------|--------------|
-| \`SUPABASE_SERVICE_ROLE_KEY\` | Supabase service role key | Supabase Dashboard > Settings > API |
-| \`STRIPE_SECRET_KEY\` | Stripe secret key | Stripe Dashboard > Developers > API keys |
-| \`STRIPE_WEBHOOK_SECRET\` | Stripe webhook secret | Stripe Dashboard > Developers > Webhooks |
-| \`OPENAI_API_KEY\` | OpenAI API key (optional) | OpenAI Platform |
-
-### 3. Supabase Setup
-
-1. **Create a Supabase project**: https://supabase.com/dashboard
-2. **Install Supabase CLI**: \`npm install -g supabase\`
-3. **Login to Supabase**: \`supabase login\`
-4. **Link your project**: \`supabase link --project-ref YOUR_PROJECT_ID\`
-5. **Push database schema**: \`supabase db push\`
-6. **Deploy edge functions**: \`supabase functions deploy\`
-
-### 4. Payment Provider Setup
-
-#### Option A: Lemon Squeezy (Recommended)
-
-1. **Create Lemon Squeezy Account**:
-   - Go to [Lemon Squeezy Dashboard](https://app.lemonsqueezy.com/dashboard)
-   - Create a new store
-
-2. **Create Products**:
-   - **Basic Plan**: $3.00 USD (one-time payment)
-   - **AI Plan**: $7.00 USD (one-time payment)
-   - **Monthly Plan**: $15.00 USD (monthly recurring)
-
-3. **Update environment variables**:
-   ```bash
-   VITE_LEMON_STORE_ID=your-store-id
-   VITE_LEMON_PRODUCT_BASIC=your-basic-product-id
-   VITE_LEMON_PRODUCT_AI=your-ai-product-id
-   VITE_LEMON_PRODUCT_MONTHLY=your-monthly-product-id
-   PAYMENTS_PROVIDER=lemonsqueezy
-   VITE_PAYMENTS_PROVIDER=lemonsqueezy
-   ```
-
-4. **Set up webhook**:
-   - In Lemon Squeezy Dashboard, go to Settings > Webhooks
-   - Add webhook URL: `https://your-project.supabase.co/functions/v1/lemon-webhook`
-   - Copy the webhook secret and add to Supabase secrets:
-     ```bash
-     npx supabase secrets set LEMON_WEBHOOK_SECRET=your-webhook-secret
-     ```
-
-#### Option B: Stripe (Legacy)
-
-1. **Create Stripe products and prices**:
-   - Basic Plan: $3 one-time payment
-   - AI Plan: $7 one-time payment  
-   - Pro Plan: $15 monthly subscription
-
-2. **Update pricing configuration**:
-   Edit \`src/lib/pricing.ts\` with your actual Stripe product and price IDs:
-   
-   \`\`\`typescript
-   export const STRIPE_CONFIG = {
-     BASIC_PRODUCT_ID: 'prod_YOUR_ACTUAL_ID',
-     BASIC_PRICE_ID: 'price_YOUR_ACTUAL_ID',
-     // ... etc
-   };
-   \`\`\`
-
-3. **Set up webhook endpoint**:
-   - URL: \`https://your-project.supabase.co/functions/v1/stripe-webhooks\`
-   - Events: \`checkout.session.completed\`, \`customer.subscription.updated\`, \`customer.subscription.deleted\`
-
-4. **Test webhooks locally**:
-   \`\`\`bash
-   stripe listen --forward-to localhost:54321/functions/v1/stripe-webhooks
-   \`\`\`
-
-5. **Configure for Stripe**:
-   ```bash
-   PAYMENTS_PROVIDER=stripe
-   VITE_PAYMENTS_PROVIDER=stripe
-   ```
-
-### 5. Start Development Server
-
-\`\`\`bash
-npm run dev
-\`\`\`
-
-The application will be available at \`http://localhost:8080\`
+A modern, AI-powered resume builder with secure payment processing, built with React, Node.js, and Paddle payments.
 
 ## 📁 Project Structure
 
-\`\`\`
-src/
-├── components/
-│   ├── enhanced/          # Enhanced page components
-│   ├── premium/           # Premium feature components
-│   ├── templates/         # Resume templates
-│   └── ui/               # Reusable UI components
-├── hooks/
-│   ├── useEnhancedUserPlan.ts  # Plan management
-│   └── useUserPlan.ts          # Legacy plan hook
-├── lib/
-│   ├── env.ts            # Environment variables
-│   ├── pricing.ts        # Stripe configuration
-│   ├── analytics.ts      # Analytics tracking
-│   └── seo.ts           # SEO utilities
-├── pages/               # Main pages
-└── integrations/
-    └── supabase/        # Supabase client and types
+```
+ResumeBuilder/
+├── frontend/                 # React + Vite frontend application
+│   ├── src/                 # React source code
+│   ├── public/              # Static assets
+│   ├── package.json         # Frontend dependencies
+│   ├── vite.config.ts       # Vite configuration
+│   └── vercel.json          # Vercel deployment config
+├── backend/                  # Node.js + Express backend
+│   ├── src/                 # Backend source code
+│   ├── package.json         # Backend dependencies
+│   └── env.example          # Environment variables template
+├── package.json              # Root monorepo configuration
+└── README.md                 # This file
+```
 
-supabase/
-├── functions/           # Edge functions
-│   ├── stripe-webhooks/
-│   ├── customer-portal/
-│   ├── ai-enhance-content/
-│   └── export-resume/
-└── migrations/         # Database migrations
-\`\`\`
+## 🎯 Features
 
-## 🏗️ Database Schema
+### Frontend (React + Vite)
+- ✅ **Modern UI/UX** with Tailwind CSS and shadcn/ui
+- ✅ **AI-Powered Resume Generation** with intelligent suggestions
+- ✅ **Professional Templates** for various industries
+- ✅ **Real-time Preview** with live editing
+- ✅ **Responsive Design** for all devices
+- ✅ **Dark/Light Theme** support
+- ✅ **Performance Optimized** with code splitting and lazy loading
 
-Key tables:
-- \`profiles\` - User profile information
-- \`user_plans\` - Subscription and usage tracking
-- \`resumes\` - Resume data
-- \`export_logs\` - Export audit trail
-- \`billing_events\` - Payment history
+### Backend (Node.js + Express)
+- ✅ **RESTful API** with comprehensive endpoints
+- ✅ **Paddle Payment Integration** for secure transactions
+- ✅ **User Authentication** with JWT tokens
+- ✅ **MongoDB Database** with Mongoose ODM
+- ✅ **Webhook Processing** for payment events
+- ✅ **Rate Limiting** and security middleware
+- ✅ **Vercel Serverless** compatible
 
-## 🔒 Security Features
+### Payment Features
+- ✅ **One-time Payments** (Basic Plan - $5)
+- ✅ **Recurring Subscriptions** (Pro Plan - $11/month)
+- ✅ **Secure Webhooks** with signature verification
+- ✅ **Automatic Plan Upgrades** after successful payment
 
-- **Row Level Security (RLS)** on all tables
-- **Secure preview system** with blur and watermarks
-- **Copy/print protection** for non-subscribers
-- **Webhook signature verification**
-- **Export audit logging**
-- **Refund protection** (no refunds if exports occurred)
+## 🚀 Quick Start
 
-## 🚦 Subscription Flow
+### Prerequisites
+- Node.js 18+ 
+- npm 8+
+- MongoDB (local or cloud)
 
-1. **Free User** → Browse templates (blurred)
-2. **Select Template** → Redirected to auth if not logged in
-3. **Choose Plan** → Stripe Checkout
-4. **Payment Success** → Webhook updates user plan
-5. **Build Resume** → Access based on plan tier
-6. **Export** → Usage tracking and audit logging
+### Installation
 
-## 📊 Plan Capabilities
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/a7csw/ResumeBuilder.git
+   cd ResumeBuilder
+   ```
 
-| Feature | Free | Basic | AI | Pro |
-|---------|------|-------|----|----|
-| Template Access | Preview only | 3 basic | All 11+ | All 11+ |
-| AI Assistance | ❌ | ❌ | 30 uses | Unlimited |
-| PDF Export | ❌ | 5 exports | 10 exports | Unlimited |
-| Duration | Forever | 10 days | 10 days | Monthly |
+2. **Install all dependencies**
+   ```bash
+   npm run install:all
+   ```
 
-## 🚀 Deployment
+3. **Set up environment variables**
+   ```bash
+   # Backend
+   cp backend/env.example backend/.env
+   # Edit backend/.env with your configuration
+   
+   # Frontend
+   cp frontend/.env.local.template frontend/.env.local
+   # Edit frontend/.env.local with your configuration
+   ```
 
-### Vercel Deployment
+4. **Start development servers**
+   ```bash
+   # Start both frontend and backend
+   npm run dev
+   
+   # Or start individually
+   npm run dev:frontend    # Frontend on http://localhost:8080
+   npm run dev:backend     # Backend on http://localhost:5000
+   ```
 
-1. **Connect repository** to Vercel
-2. **Configure environment variables** in Vercel dashboard
-3. **Set build settings**:
-   - Build Command: \`npm run build\`
-   - Output Directory: \`dist\`
-4. **Deploy**
+## 🛠️ Development
 
-### Environment Variables for Production
+### Available Scripts
 
-\`\`\`
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_your-live-key
-VITE_APP_URL=https://yourdomain.com
-VITE_ENVIRONMENT=production
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-\`\`\`
+```bash
+# Root level (monorepo)
+npm run dev              # Start both frontend and backend
+npm run build            # Build both applications
+npm run install:all      # Install dependencies for all workspaces
+npm run clean            # Clean all build artifacts
 
-### Supabase Production Setup
+# Frontend specific
+npm run dev:frontend     # Start frontend dev server
+npm run build:frontend   # Build frontend for production
+npm run lint:frontend    # Lint frontend code
 
-1. **Upgrade to Pro plan** for production usage
-2. **Deploy edge functions**: \`supabase functions deploy --project-ref YOUR_PROJECT_ID\`
-3. **Set production secrets**:
-   \`\`\`bash
-   supabase secrets set STRIPE_SECRET_KEY=sk_live_...
-   supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
-   supabase secrets set OPENAI_API_KEY=sk-...
-   \`\`\`
+# Backend specific
+npm run dev:backend      # Start backend dev server
+npm run build:backend    # Build backend for production
+npm run lint:backend     # Lint backend code
+```
 
-## ✅ Production Checklist
+### Frontend Development
+```bash
+cd frontend
+npm run dev              # Start Vite dev server
+npm run build            # Build for production
+npm run preview          # Preview production build
+```
 
-### Pre-Launch
-- [ ] Update Stripe price IDs in \`src/lib/pricing.ts\`
-- [ ] Configure production environment variables
-- [ ] Test payment flow end-to-end
-- [ ] Verify webhook endpoints
-- [ ] Set up domain and SSL
-- [ ] Configure analytics (GA4/Plausible)
+### Backend Development
+```bash
+cd backend
+npm run dev              # Start with nodemon
+npm start                # Start production server
+npm run test             # Run tests
+```
 
-### Security
-- [ ] Enable RLS on all Supabase tables
-- [ ] Verify webhook signature validation
-- [ ] Test export audit logging
-- [ ] Confirm secure preview overlay
-- [ ] Test refund policy enforcement
+## 🌐 Deployment
 
-### Legal & Compliance
-- [ ] Review Terms of Service
-- [ ] Update Privacy Policy
-- [ ] Configure refund policy
-- [ ] Add GDPR compliance features
-- [ ] Set up customer support
+### Frontend (Vercel)
+The frontend is configured for Vercel deployment:
+- Automatic builds from Git
+- Environment variables configured
+- Optimized for performance
 
-### Performance
-- [ ] Optimize images and assets
-- [ ] Enable CDN for static files
-- [ ] Test mobile responsiveness
-- [ ] Verify loading speeds
-- [ ] Set up monitoring
+### Backend (Vercel Functions)
+The backend is optimized for Vercel serverless deployment:
+- API routes as serverless functions
+- Environment variables support
+- Webhook compatibility
 
-## 🛠️ Available Scripts
+### Environment Variables
 
-| Script | Description |
-|--------|-------------|
-| \`npm run dev\` | Start development server |
-| \`npm run build\` | Build for production |
-| \`npm run preview\` | Preview production build |
-| \`npm run lint\` | Run ESLint |
-| \`npm run type-check\` | Run TypeScript checks |
+#### Frontend (.env.local)
+```bash
+VITE_API_URL=http://localhost:5000/api/v1
+VITE_APP_NAME=NovaCV Resume Builder
+```
 
-## 🐛 Troubleshooting
+#### Backend (.env)
+```bash
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+PADDLE_API_KEY=your_paddle_api_key
+PADDLE_ENVIRONMENT=production
+PADDLE_WEBHOOK_SECRET=your_webhook_secret
+```
 
-### Common Issues
+## 🔐 Security Features
 
-**Development server won't start:**
-- Check environment variables in \`.env.local\`
-- Ensure Node.js version is 18+
-- Clear node_modules and reinstall: \`rm -rf node_modules package-lock.json && npm install\`
+- ✅ **JWT Authentication** with refresh tokens
+- ✅ **Rate Limiting** to prevent abuse
+- ✅ **CORS Protection** with configurable origins
+- ✅ **Input Validation** and sanitization
+- ✅ **Secure Headers** with Helmet.js
+- ✅ **Webhook Signature Verification** for Paddle
 
-**Stripe webhooks failing:**
-- Verify webhook secret in environment variables
-- Check webhook endpoint URL
-- Test locally with Stripe CLI
+## 📊 API Documentation
 
-**Supabase connection issues:**
-- Verify project URL and keys
-- Check if project is paused
-- Ensure RLS policies allow access
+### Authentication
+- `POST /api/v1/users/register` - User registration
+- `POST /api/v1/users/login` - User login
+- `POST /api/v1/users/refresh` - Refresh JWT token
 
-**TypeScript errors:**
-- Run \`npm run type-check\` for detailed errors
-- Ensure all dependencies are installed
-- Check for missing type definitions
+### Payments
+- `POST /api/v1/payments/checkout` - Create payment checkout
+- `GET /api/v1/payments/plans` - Get subscription plans
+- `GET /api/v1/payments/subscription` - Get user subscription
 
-## 📞 Support
+### Webhooks
+- `POST /api/v1/payments/webhook/paddle` - Paddle webhook endpoint
 
-For technical support or questions:
-- Create an issue in this repository
-- Check existing documentation
-- Review Supabase and Stripe documentation
+## 🤝 Contributing
 
-## 📄 License
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: Check the docs folder for detailed guides
+- **Issues**: Report bugs and request features via GitHub Issues
+- **Discussions**: Join the community discussions
 
 ---
 
-Built with ❤️ using React, TypeScript, Supabase, and Stripe.
+**🚀 Built with ❤️ by the NovaCV Team**
