@@ -1,32 +1,31 @@
 /**
- * Environment Configuration for Lovable Projects
+ * Environment Configuration for Vercel Deployment
  * 
- * Note: Lovable doesn't use .env files or VITE_ environment variables
- * Public keys and URLs are stored directly in the code
+ * All environment variables must be prefixed with VITE_ for client-side access
  */
 
-// Supabase Configuration (from Lovable project)
+// Supabase Configuration
 const SUPABASE_CONFIG = {
-  url: "https://sqvaqiepymfoubwibuds.supabase.co",
-  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxdmFxaWVweW1mb3Vid2lidWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5MTQzNzYsImV4cCI6MjA2OTQ5MDM3Nn0._pZbc371YtVF2-zT6DjVQDpLs-2uiDLHT-eFngdewYo"
+  url: import.meta.env.VITE_SUPABASE_URL || "https://sqvaqiepymfoubwibuds.supabase.co",
+  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxdmFxaWVweW1mb3Vid2lidWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5MTQzNzYsImV4cCI6MjA2OTQ5MDM3Nn0._pZbc371YtVF2-zT6DjVQDpLs-2uiDLHT-eFngdewYo"
 };
 
 // Lemon Squeezy Configuration
 const LEMON_SQUEEZY_CONFIG = {
-  storeId: "92893", // Demo store ID - replace with your actual store ID
+  storeId: import.meta.env.VITE_LEMON_STORE_ID || "92893",
   products: {
-    basic: "518740", // Basic Plan $5/10 days - replace with actual variant ID
-    pro: "518741", // Pro Plan $11/month - replace with actual variant ID
+    basic: import.meta.env.VITE_LEMON_PRODUCT_BASIC || "518740",
+    pro: import.meta.env.VITE_LEMON_PRODUCT_PRO || "518741",
   }
 };
 
 // Application Configuration
 const APP_CONFIG = {
   url: typeof window !== 'undefined' ? window.location.origin : 'https://sqvaqiepymfoubwibuds.supabase.co',
-  environment: 'development', // Change to 'production' when deploying
-  paymentsProvider: 'lemonsqueezy', // Only Lemon Squeezy supported now
-  testMode: 'false', // Demo mode - payments enabled
-  showTestBanner: 'false' // No test banner for clean demo
+  environment: import.meta.env.VITE_ENVIRONMENT || 'development',
+  paymentsProvider: 'lemonsqueezy',
+  testMode: import.meta.env.VITE_TEST_MODE || 'false',
+  showTestBanner: import.meta.env.VITE_SHOW_TEST_BANNER || 'false'
 };
 
 // Export the environment configuration
@@ -47,7 +46,7 @@ export const env = {
   TEST_MODE: APP_CONFIG.testMode,
   SHOW_TEST_BANNER: APP_CONFIG.showTestBanner,
   
-  // Legacy VITE_ aliases for backward compatibility
+  // VITE_ prefixed variables for Vercel
   VITE_SUPABASE_URL: SUPABASE_CONFIG.url,
   VITE_SUPABASE_ANON_KEY: SUPABASE_CONFIG.anonKey,
   VITE_LEMON_STORE_ID: LEMON_SQUEEZY_CONFIG.storeId,
@@ -58,16 +57,6 @@ export const env = {
   VITE_TEST_MODE: APP_CONFIG.testMode,
   VITE_SHOW_TEST_BANNER: APP_CONFIG.showTestBanner
 } as const;
-
-// Type for server-side environment variables (used in Supabase functions)
-export interface ServerEnv {
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
-  OPENAI_API_KEY?: string;
-  RESEND_API_KEY?: string;
-  LEMON_SQUEEZY_API_KEY?: string;
-  LEMON_SQUEEZY_WEBHOOK_SECRET?: string;
-}
 
 // Development helpers
 export const isDevelopment = env.ENVIRONMENT === 'development';

@@ -1,0 +1,20 @@
+# Vercel Environment Variables Template
+# Copy these variables to your Vercel dashboard
+# All variables must be prefixed with VITE_ for client-side access
+
+# Supabase Configuration
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Lemon Squeezy Configuration
+VITE_LEMON_STORE_ID=your-store-id
+VITE_LEMON_PRODUCT_BASIC=your-basic-plan-variant-id
+VITE_LEMON_PRODUCT_PRO=your-pro-plan-variant-id
+
+# Application Configuration
+VITE_ENVIRONMENT=production
+VITE_TEST_MODE=false
+VITE_SHOW_TEST_BANNER=false
+
+# API Configuration (if using external APIs)
+VITE_API_URL=https://your-backend-api.com/api/v1

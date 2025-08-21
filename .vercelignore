@@ -1,0 +1,70 @@
+# Backend folders
+backend/
+supabase/
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+*/dist/
+*/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+LAUNCH.md
+DEPLOYMENT_GUIDE.md
+PADDLE_SETUP.md
+VERCEL_DEPLOYMENT.md
+NEXT_STEPS_RECOMMENDATIONS.md
+PRODUCTION_DEPLOYMENT.md
+BACKEND_SETUP.md
+
+# Large files
+*.zip
+ResumeBuilderAi.zip
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
