@@ -47,6 +47,20 @@ app.use(compressionConfig);
 // Rate limiting
 app.use(generalRateLimit);
 
+// Webhook raw body middleware (must be before JSON parsing)
+app.use('/api/*/payments/webhook/paddle', (req, res, next) => {
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', chunk => {
+    data += chunk;
+  });
+  req.on('end', () => {
+    req.rawBody = data;
+    req.body = JSON.parse(data);
+    next();
+  });
+});
+
 // Request parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

@@ -254,25 +254,31 @@ const getPaymentHistory = catchAsync(async (req, res) => {
 });
 
 /**
- * Process Paddle webhook
+ * Process Paddle webhook (modern SDK)
  * @route POST /api/v1/payments/webhook/paddle
  * @access Public (but IP restricted)
  */
 const handlePaddleWebhook = catchAsync(async (req, res) => {
-  const webhookData = req.body;
-  const signature = req.headers['x-paddle-signature'] || req.body.p_signature;
+  const signature = req.headers['paddle-signature'];
+  const rawBody = req.rawBody || JSON.stringify(req.body);
 
-  // Verify webhook signature
-  if (!paddleService.verifyWebhookSignature(webhookData, signature)) {
-    throw new APIError('Invalid webhook signature', 401);
+  if (!signature) {
+    throw new APIError('Missing Paddle-Signature header', 400);
+  }
+
+  // Unmarshal and verify webhook with modern SDK
+  const eventData = paddleService.unmarshalWebhook(rawBody, signature);
+  
+  if (!eventData) {
+    throw new APIError('Invalid webhook signature or data', 401);
   }
 
   // Process webhook
-  const result = await paddleService.processWebhook(webhookData);
+  const result = await paddleService.processWebhook(eventData);
 
   // Log webhook processing
-  console.log(`Paddle webhook processed: ${webhookData.alert_name}`, {
-    alertId: webhookData.alert_id,
+  console.log(`Paddle webhook processed: ${eventData.eventType}`, {
+    eventId: eventData.eventId,
     result: result.success,
     message: result.message,
   });
@@ -280,7 +286,7 @@ const handlePaddleWebhook = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Webhook processed successfully',
-    alertId: webhookData.alert_id,
+    eventId: eventData.eventId,
   });
 });
 

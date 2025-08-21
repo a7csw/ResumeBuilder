@@ -33,18 +33,19 @@ const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 
-  // Paddle Configuration
+  // Paddle Configuration (Modern SDK)
   paddle: {
-    vendorId: process.env.PADDLE_VENDOR_ID,
     apiKey: process.env.PADDLE_API_KEY,
-    publicKey: process.env.PADDLE_PUBLIC_KEY,
     environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
     webhookSecret: process.env.PADDLE_WEBHOOK_SECRET,
-    // Product IDs for different plans
+    // Price IDs for different plans (modern Paddle uses Price IDs)
     plans: {
       basic: process.env.PADDLE_BASIC_PLAN_ID,
       pro: process.env.PADDLE_PRO_PLAN_ID,
     },
+    // Legacy fields (deprecated in modern SDK)
+    // vendorId: process.env.PADDLE_VENDOR_ID, // No longer used
+    // publicKey: process.env.PADDLE_PUBLIC_KEY, // Replaced by webhookSecret
   },
 
   // Plans Configuration

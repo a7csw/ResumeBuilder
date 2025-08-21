@@ -3,7 +3,7 @@
  * Handles all Paddle payment operations and webhook processing
  */
 
-const PaddleSDK = require('paddle-sdk');
+const { Paddle, Environment } = require('@paddle/paddle-node-sdk');
 const crypto = require('crypto');
 const config = require('../config/config');
 const User = require('../models/User');
@@ -11,9 +11,9 @@ const Subscription = require('../models/Subscription');
 
 class PaddleService {
   constructor() {
-    // Initialize Paddle SDK
-    this.paddle = new PaddleSDK(config.paddle.vendorId, config.paddle.apiKey, {
-      environment: config.paddle.environment, // 'sandbox' or 'production'
+    // Initialize modern Paddle SDK
+    this.paddle = new Paddle(config.paddle.apiKey, {
+      environment: config.paddle.environment === 'production' ? Environment.production : Environment.sandbox,
     });
   }
 
@@ -36,44 +36,44 @@ class PaddleService {
         throw new Error(`Paddle plan ID not configured for: ${planId}`);
       }
 
-      const checkoutData = {
-        product_id: paddlePlanId,
+      // Prepare line items for the modern SDK
+      const lineItems = [{
+        priceId: paddlePlanId,
         quantity: 1,
-        customer_email: userInfo.email,
-        customer_country: userInfo.country || 'US',
-        
-        // Pass user information in passthrough
-        passthrough: JSON.stringify({
-          userId,
-          planId,
-          source: 'novacv_web',
-          timestamp: Date.now(),
-        }),
+      }];
 
-        // Success and cancel URLs
-        success_url: `${config.frontend.successUrl}?plan=${planId}&userId=${userId}`,
-        cancel_url: `${config.frontend.cancelUrl}?plan=${planId}`,
+      // Prepare customer information
+      const customerData = userInfo.email ? {
+        email: userInfo.email,
+      } : undefined;
 
-        // Additional settings
-        display_mode: 'overlay',
-        theme: 'light',
-        locale: 'en',
-        
-        // Marketing consent
-        marketing_consent: false,
+      // Custom data to pass through
+      const customData = {
+        userId,
+        planId,
+        source: 'novacv_web',
+        timestamp: Date.now(),
       };
 
-      // For one-time payments (Basic plan)
-      if (planId === 'basic') {
-        checkoutData.recurring = false;
+      // Create transaction with modern SDK
+      const transactionRequest = {
+        items: lineItems,
+        customData,
+        returnUrl: `${config.frontend.successUrl}?plan=${planId}&userId=${userId}`,
+        discardUrl: `${config.frontend.cancelUrl}?plan=${planId}`,
+      };
+
+      // Add customer if provided
+      if (customerData) {
+        transactionRequest.customer = customerData;
       }
 
-      const response = await this.paddle.generatePayLink(checkoutData);
+      const transaction = await this.paddle.transactions.create(transactionRequest);
       
-      if (response.success) {
-        return response.response.url;
+      if (transaction && transaction.checkoutUrl) {
+        return transaction.checkoutUrl;
       } else {
-        throw new Error(`Paddle checkout generation failed: ${response.error.message}`);
+        throw new Error('Failed to generate checkout URL from Paddle');
       }
 
     } catch (error) {
@@ -83,75 +83,69 @@ class PaddleService {
   }
 
   /**
-   * Verify webhook signature
-   * @param {Object} body - Webhook body
-   * @param {string} signature - Paddle signature
+   * Verify webhook signature using modern Paddle SDK
+   * @param {string} rawBody - Raw webhook body as string
+   * @param {string} signature - Paddle-Signature header
    * @returns {boolean} - Whether signature is valid
    */
-  verifyWebhookSignature(body, signature) {
+  verifyWebhookSignature(rawBody, signature) {
     try {
-      const publicKey = config.paddle.publicKey;
-      
-      // Serialize the fields
-      const sortedKeys = Object.keys(body).sort();
-      const serializedFields = sortedKeys
-        .filter(key => key !== 'p_signature')
-        .map(key => `${key}=${body[key]}`)
-        .join('&');
-
-      // Verify signature
-      const verifier = crypto.createVerify('RSA-SHA1');
-      verifier.update(serializedFields);
-      verifier.end();
-
-      const isValid = verifier.verify(publicKey, signature, 'base64');
-      
-      if (!isValid) {
-        console.error('Invalid Paddle webhook signature');
-      }
-      
-      return isValid;
+      // Use the modern SDK's webhook signature verification
+      const eventData = this.paddle.webhooks.unmarshal(rawBody, config.paddle.webhookSecret, signature);
+      return !!eventData;
     } catch (error) {
-      console.error('Error verifying Paddle webhook signature:', error);
+      console.error('Invalid Paddle webhook signature:', error);
       return false;
     }
   }
 
   /**
-   * Process webhook event
-   * @param {Object} webhookData - Webhook data from Paddle
+   * Unmarshal webhook data using modern SDK
+   * @param {string} rawBody - Raw webhook body as string
+   * @param {string} signature - Paddle-Signature header
+   * @returns {Object|null} - Parsed webhook data or null if invalid
+   */
+  unmarshalWebhook(rawBody, signature) {
+    try {
+      return this.paddle.webhooks.unmarshal(rawBody, config.paddle.webhookSecret, signature);
+    } catch (error) {
+      console.error('Error unmarshaling Paddle webhook:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Process webhook event with modern SDK
+   * @param {Object} eventData - Webhook data from Paddle (already unmarshaled)
    * @returns {Promise<Object>} - Processing result
    */
-  async processWebhook(webhookData) {
+  async processWebhook(eventData) {
     try {
-      const alertName = webhookData.alert_name;
+      const eventType = eventData.eventType;
       
-      console.log(`Processing Paddle webhook: ${alertName}`);
+      console.log(`Processing Paddle webhook: ${eventType}`);
 
-      switch (alertName) {
-        case 'subscription_payment_succeeded':
-          return await this.handleSubscriptionPaymentSucceeded(webhookData);
+      switch (eventType) {
+        case 'subscription.created':
+          return await this.handleSubscriptionCreated(eventData);
         
-        case 'subscription_created':
-          return await this.handleSubscriptionCreated(webhookData);
+        case 'subscription.updated':
+          return await this.handleSubscriptionUpdated(eventData);
         
-        case 'subscription_updated':
-          return await this.handleSubscriptionUpdated(webhookData);
+        case 'subscription.canceled':
+          return await this.handleSubscriptionCancelled(eventData);
         
-        case 'subscription_cancelled':
-          return await this.handleSubscriptionCancelled(webhookData);
+        case 'transaction.completed':
+          return await this.handleTransactionCompleted(eventData);
         
-        case 'subscription_payment_failed':
-          return await this.handleSubscriptionPaymentFailed(webhookData);
+        case 'transaction.payment_failed':
+          return await this.handleTransactionPaymentFailed(eventData);
         
-        case 'payment_succeeded':
-          return await this.handlePaymentSucceeded(webhookData);
-        
-        case 'payment_refunded':
-          return await this.handlePaymentRefunded(webhookData);
+        case 'adjustment.created':
+          return await this.handleAdjustmentCreated(eventData);
         
         default:
-          console.log(`Unhandled webhook event: ${alertName}`);
+          console.log(`Unhandled webhook event: ${eventType}`);
           return { success: true, message: 'Event logged but not processed' };
       }
     } catch (error) {
@@ -194,17 +188,18 @@ class PaddleService {
   }
 
   /**
-   * Handle subscription created
-   * @param {Object} data - Webhook data
+   * Handle subscription created (modern SDK)
+   * @param {Object} eventData - Webhook event data
    */
-  async handleSubscriptionCreated(data) {
+  async handleSubscriptionCreated(eventData) {
     try {
-      const passthrough = JSON.parse(data.passthrough || '{}');
-      const userId = passthrough.userId;
-      const planId = passthrough.planId;
+      const subscription = eventData.data;
+      const customData = subscription.customData || {};
+      const userId = customData.userId;
+      const planId = customData.planId;
 
       if (!userId || !planId) {
-        throw new Error('Missing userId or planId in passthrough data');
+        throw new Error('Missing userId or planId in custom data');
       }
 
       // Find user
@@ -214,44 +209,42 @@ class PaddleService {
       }
 
       // Create subscription record
-      const subscription = new Subscription({
+      const newSubscription = new Subscription({
         userId: user._id,
-        paddleSubscriptionId: data.subscription_id,
-        paddleCustomerId: data.user_id,
-        paddleCheckoutId: data.checkout_id,
-        paddlePlanId: data.subscription_plan_id,
+        paddleSubscriptionId: subscription.id,
+        paddleCustomerId: subscription.customerId,
+        paddlePlanId: subscription.items[0]?.price?.id || null,
         plan: planId,
-        status: data.status,
-        currency: data.currency,
-        unitPrice: parseFloat(data.unit_price),
-        nextBillAmount: parseFloat(data.next_bill_date ? data.unit_price : 0),
-        startDate: new Date(),
-        nextBillDate: data.next_bill_date ? new Date(data.next_bill_date) : null,
-        billingType: data.next_bill_date ? 'recurring' : 'one_time',
-        paddleData: data,
+        status: subscription.status,
+        currency: subscription.currencyCode,
+        unitPrice: subscription.items[0]?.price?.unitPrice?.amount || 0,
+        nextBillAmount: subscription.nextBilledAt ? subscription.items[0]?.price?.unitPrice?.amount || 0 : 0,
+        startDate: new Date(subscription.createdAt),
+        nextBillDate: subscription.nextBilledAt ? new Date(subscription.nextBilledAt) : null,
+        billingType: subscription.nextBilledAt ? 'recurring' : 'one_time',
+        paddleData: subscription,
       });
 
       // For one-time payments (Basic plan), set end date
       if (planId === 'basic') {
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + config.subscriptionPlans.basic.duration);
-        subscription.endDate = endDate;
-        subscription.billingType = 'one_time';
+        newSubscription.endDate = endDate;
+        newSubscription.billingType = 'one_time';
       }
 
-      subscription.addEvent('subscription_created', data, data.alert_id);
-      await subscription.save();
+      newSubscription.addEvent('subscription_created', subscription, eventData.eventId);
+      await newSubscription.save();
 
       // Update user subscription
       user.subscription = {
         plan: planId,
         status: 'active',
-        startDate: new Date(),
-        endDate: subscription.endDate || subscription.nextBillDate,
+        startDate: new Date(subscription.createdAt),
+        endDate: newSubscription.endDate || newSubscription.nextBillDate,
         autoRenew: planId === 'pro',
-        paddleSubscriptionId: data.subscription_id,
-        paddleCustomerId: data.user_id,
-        paddleCheckoutId: data.checkout_id,
+        paddleSubscriptionId: subscription.id,
+        paddleCustomerId: subscription.customerId,
       };
 
       // Reset usage limits for new subscription
@@ -367,23 +360,105 @@ class PaddleService {
   }
 
   /**
-   * Handle one-time payment succeeded
-   * @param {Object} data - Webhook data
+   * Handle transaction completed (modern SDK)
+   * @param {Object} eventData - Webhook event data
    */
-  async handlePaymentSucceeded(data) {
+  async handleTransactionCompleted(eventData) {
     try {
-      const passthrough = JSON.parse(data.passthrough || '{}');
-      const userId = passthrough.userId;
-      const planId = passthrough.planId;
+      const transaction = eventData.data;
+      const customData = transaction.customData || {};
+      const userId = customData.userId;
+      const planId = customData.planId;
 
-      // This is handled in subscription_created for recurring payments
-      // For one-time payments, the subscription should already be created
-      
-      console.log(`💰 Payment succeeded for user ${userId}, plan ${planId}`);
+      console.log(`💰 Transaction completed for user ${userId}, plan ${planId}`);
 
-      return { success: true, message: 'Payment processed successfully' };
+      // For one-time purchases, update user plan directly
+      if (planId === 'basic' && userId) {
+        const user = await User.findById(userId);
+        if (user) {
+          // Create a one-time subscription record
+          const subscription = new Subscription({
+            userId: user._id,
+            paddleSubscriptionId: null, // No subscription for one-time
+            paddleCustomerId: transaction.customerId,
+            paddleCheckoutId: transaction.id,
+            plan: planId,
+            status: 'active',
+            currency: transaction.currencyCode,
+            unitPrice: transaction.details.totals.total,
+            billingType: 'one_time',
+            startDate: new Date(transaction.createdAt),
+            endDate: new Date(Date.now() + (config.subscriptionPlans.basic.duration * 24 * 60 * 60 * 1000)),
+            paddleData: transaction,
+          });
+
+          subscription.addEvent('transaction_completed', transaction, eventData.eventId);
+          await subscription.save();
+
+          // Update user subscription
+          user.subscription = {
+            plan: planId,
+            status: 'active',
+            startDate: new Date(transaction.createdAt),
+            endDate: subscription.endDate,
+            autoRenew: false,
+            paddleCustomerId: transaction.customerId,
+          };
+
+          const planConfig = config.subscriptionPlans[planId];
+          user.usage.aiGenerations.limit = planConfig.features.aiGenerations;
+          user.usage.aiGenerations.used = 0;
+          user.usage.aiGenerations.resetDate = new Date();
+
+          await user.save();
+        }
+      }
+
+      return { success: true, message: 'Transaction completed successfully' };
     } catch (error) {
-      console.error('Error handling payment succeeded:', error);
+      console.error('Error handling transaction completed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle transaction payment failed (modern SDK)
+   * @param {Object} eventData - Webhook event data
+   */
+  async handleTransactionPaymentFailed(eventData) {
+    try {
+      const transaction = eventData.data;
+      const customData = transaction.customData || {};
+      const userId = customData.userId;
+
+      console.log(`❌ Transaction payment failed for user ${userId}`);
+
+      return { success: true, message: 'Payment failure processed' };
+    } catch (error) {
+      console.error('Error handling transaction payment failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle adjustment created (refunds, etc.)
+   * @param {Object} eventData - Webhook event data
+   */
+  async handleAdjustmentCreated(eventData) {
+    try {
+      const adjustment = eventData.data;
+      
+      console.log(`🔄 Adjustment created: ${adjustment.action}`);
+
+      // Handle refunds
+      if (adjustment.action === 'refund') {
+        // Find the related transaction or subscription
+        // Implementation depends on your specific refund handling needs
+      }
+
+      return { success: true, message: 'Adjustment processed successfully' };
+    } catch (error) {
+      console.error('Error handling adjustment created:', error);
       throw error;
     }
   }
