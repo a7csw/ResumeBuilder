@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
@@ -20,9 +20,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Performance optimizations
+    // Simplified build configuration for better compatibility
     sourcemap: false,
-    minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -31,12 +30,6 @@ export default defineConfig(({ mode }) => ({
           'ui-vendor': ['lucide-react'],
           'utils': ['clsx', 'tailwind-merge'],
         },
-      },
-    },
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
       },
     },
   },
