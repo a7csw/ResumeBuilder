@@ -7,7 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NavigationHeader from "@/components/NavigationHeader";
-import { generateLemonSqueezyCheckoutUrl } from "@/lib/lemonsqueezy";
+import { initiateLemonSqueezyCheckout } from "@/lib/lemonsqueezy";
 import { env } from "@/lib/env";
 
 const EnhancedPricingPage = () => {
@@ -105,15 +105,14 @@ const EnhancedPricingPage = () => {
         const successUrl = `${window.location.origin}/payment-success?plan=${planId}`;
         const cancelUrl = `${window.location.origin}/pricing`;
         
-        const checkoutUrl = generateLemonSqueezyCheckoutUrl(
+        // Use the initiateLemonSqueezyCheckout function instead
+        await initiateLemonSqueezyCheckout(
           planId,
           userEmail,
-          successUrl,
-          cancelUrl
+          session.user.user_metadata?.full_name || session.user.email,
+          session.user.id
         );
-
-        // Open Lemon Squeezy checkout in new tab
-        window.open(checkoutUrl, '_blank');
+        return; // Exit early since initiateLemonSqueezyCheckout handles the redirect
       } else {
         // Legacy notification for removed Stripe support
         throw new Error('Stripe payments have been removed. Only Lemon Squeezy is supported.');

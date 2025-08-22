@@ -111,34 +111,46 @@ export function useUserPlan() {
 
   // Helper functions
   const checkCapability = async (capability: 'ai_generation' | 'template_access' | 'export' | 'no_watermark'): Promise<boolean> => {
-    if (!user?.id) return false;
+    if (!user?.id || !userPlan) return false;
     
-    try {
-      const { data, error } = await supabase.rpc('check_plan_capability', {
-        p_user_id: user.id,
-        p_capability: capability
-      });
-
-      if (error) {
-        console.error('Error checking capability:', error);
+    // Simple capability check based on plan type
+    switch (capability) {
+      case 'ai_generation':
+        return userPlan.isActive && (userPlan.planType === 'basic' || userPlan.planType === 'pro');
+      case 'template_access':
+        return true; // All users can access templates
+      case 'export':
+        return userPlan.isActive;
+      case 'no_watermark':
+        return userPlan.isActive && userPlan.planType === 'pro';
+      default:
         return false;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error checking capability:', error);
-      return false;
     }
   };
 
   const incrementUsage = async (usageType: 'ai_calls' | 'templates' | 'exports'): Promise<boolean> => {
-    if (!user?.id) return false;
+    if (!user?.id || !userPlan) return false;
     
     try {
-      const { data, error } = await supabase.rpc('increment_plan_usage', {
-        p_user_id: user.id,
-        p_usage_type: usageType
-      });
+      // Simple usage increment - just update the user_plans table
+      const updates: any = {};
+      
+      switch (usageType) {
+        case 'ai_calls':
+          updates.ai_calls_used = (userPlan.aiCallsUsed || 0) + 1;
+          break;
+        case 'templates':
+          // Template usage is not tracked in current schema
+          return true;
+        case 'exports':
+          // Export usage is not tracked in current schema
+          return true;
+      }
+
+      const { error } = await supabase
+        .from('user_plans')
+        .update(updates)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error incrementing usage:', error);
@@ -149,7 +161,7 @@ export function useUserPlan() {
       queryClient.invalidateQueries({ queryKey: ['userPlan', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['planUsage', user?.id] });
 
-      return data;
+      return true;
     } catch (error) {
       console.error('Error incrementing usage:', error);
       return false;

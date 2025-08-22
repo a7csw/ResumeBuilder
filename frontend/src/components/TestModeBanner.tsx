@@ -1,4 +1,6 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const TestModeBanner: React.FC = () => {
   // Demo mode - no test banner

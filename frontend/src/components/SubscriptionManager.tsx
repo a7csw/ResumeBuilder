@@ -11,7 +11,8 @@ import { env } from "@/lib/env";
 import { paymentsDisabled } from "@/lib/flags";
 
 const SubscriptionManager = () => {
-  const { userPlan, loading, checkUserPlan } = useUserPlan();
+  const { userPlan, refetchPlan } = useUserPlan();
+  const loading = false; // Remove loading state as it's not available from useUserPlan
   const { toast } = useToast();
   const navigate = useNavigate();
   const [manageLoading, setManageLoading] = useState(false);
@@ -106,8 +107,8 @@ const SubscriptionManager = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Current Plan</span>
-            <Badge className={getPlanColor(userPlan.plan)}>
-              {getPlanDisplayName(userPlan.plan)}
+            <Badge className={getPlanColor(userPlan.planType)}>
+              {getPlanDisplayName(userPlan.planType)}
             </Badge>
           </div>
 
@@ -139,7 +140,7 @@ const SubscriptionManager = () => {
         <div className="space-y-3">
           <h4 className="text-sm font-semibold">Plan Features</h4>
           <div className="grid grid-cols-1 gap-2 text-sm">
-            {userPlan.plan === 'TEST' && (
+            {userPlan.planType === 'TEST' && (
               <>
                 <div className="flex items-center gap-2 text-yellow-600">
                   🧪 All templates unlocked
@@ -156,7 +157,7 @@ const SubscriptionManager = () => {
               </>
             )}
             
-            {userPlan.plan === 'free' && (
+            {userPlan.planType === 'free' && (
               <>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <AlertCircle className="w-4 h-4" />
@@ -169,7 +170,7 @@ const SubscriptionManager = () => {
               </>
             )}
             
-            {userPlan.plan === 'basic' && (
+            {userPlan.planType === 'basic' && (
               <>
                 <div className="flex items-center gap-2 text-green-600">
                   ✓ Basic templates access
@@ -183,7 +184,7 @@ const SubscriptionManager = () => {
               </>
             )}
 
-            {userPlan.plan === 'ai' && (
+            {userPlan.planType === 'ai' && (
               <>
                 <div className="flex items-center gap-2 text-green-600">
                   ✓ All templates (Basic + Premium)
@@ -200,7 +201,7 @@ const SubscriptionManager = () => {
               </>
             )}
 
-            {userPlan.plan === 'pro' && (
+            {userPlan.planType === 'pro' && (
               <>
                 <div className="flex items-center gap-2 text-green-600">
                   ✓ Everything in AI plan
@@ -242,7 +243,7 @@ const SubscriptionManager = () => {
 
               {userPlan.isActive && (
                 <Button 
-                  onClick={checkUserPlan}
+                  onClick={() => refetchPlan()}
                   variant="ghost" 
                   size="sm"
                   className="w-full"

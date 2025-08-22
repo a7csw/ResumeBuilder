@@ -54,7 +54,7 @@ const ResumesManager = () => {
   };
 
   const canEdit = () => {
-    return bypassPayments() || (userPlan.isActive && userPlan.plan === 'pro');
+    return bypassPayments() || (userPlan.isActive && userPlan.planType === 'pro');
   };
 
   const handleView = (resume: Resume) => {

@@ -111,7 +111,7 @@ const MyResumes = () => {
   };
 
   const canEdit = () => {
-    return userPlan?.isActive && userPlan?.plan === 'pro';
+    return userPlan?.isActive && userPlan?.planType === 'pro';
   };
 
   const formatDate = (dateString: string) => {

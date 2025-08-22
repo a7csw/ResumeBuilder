@@ -85,7 +85,7 @@ const SubscriptionDetails = () => {
     navigate('/pricing');
   };
 
-  const isSubscribed = userPlan?.isActive && (userPlan?.plan === 'basic' || userPlan?.plan === 'pro');
+  const isSubscribed = userPlan?.isActive && (userPlan?.planType === 'basic' || userPlan?.planType === 'pro');
 
   if (isLoading) {
     return (
@@ -142,16 +142,16 @@ const SubscriptionDetails = () => {
               {/* Plan Badge */}
               <div className="text-center">
                 <Badge className={`px-4 py-2 text-base font-semibold ${
-                  userPlan.plan === 'pro' 
+                  userPlan.planType === 'pro' 
                     ? 'bg-gradient-to-r from-slate-600 to-gray-600 text-white'
                     : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
                 }`}>
-                  {userPlan.plan === 'pro' ? (
+                  {userPlan.planType === 'pro' ? (
                     <Crown className="w-4 h-4 mr-2" />
                   ) : (
                     <Sparkles className="w-4 h-4 mr-2" />
                   )}
-                  {getPlanDisplayName(userPlan.plan)}
+                  {getPlanDisplayName(userPlan.planType)}
                 </Badge>
               </div>
 
@@ -160,14 +160,14 @@ const SubscriptionDetails = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-slate-700 dark:text-slate-300">Price</span>
                   <span className="font-bold text-lg text-slate-900 dark:text-slate-100">
-                    {getPlanPrice(userPlan.plan)}
+                    {getPlanPrice(userPlan.planType)}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-slate-700 dark:text-slate-300">Billing</span>
                   <span className="text-slate-600 dark:text-slate-400">
-                    {getPlanDuration(userPlan.plan)}
+                    {getPlanDuration(userPlan.planType)}
                   </span>
                 </div>
 
@@ -182,7 +182,7 @@ const SubscriptionDetails = () => {
                 {userPlan.expiresAt && (
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-slate-700 dark:text-slate-300">
-                      {userPlan.plan === 'basic' ? 'Expires' : 'Renews'}
+                      {userPlan.planType === 'basic' ? 'Expires' : 'Renews'}
                     </span>
                     <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                       <Calendar className="w-4 h-4" />
@@ -202,7 +202,7 @@ const SubscriptionDetails = () => {
                   Manage with Lemon Squeezy
                 </Button>
 
-                {userPlan.plan === 'basic' && (
+                {userPlan.planType === 'basic' && (
                   <Button 
                     onClick={handleUpgrade}
                     variant="outline"
@@ -226,7 +226,7 @@ const SubscriptionDetails = () => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
-                {userPlan.plan === 'pro' && (
+                {userPlan.planType === 'pro' && (
                   <>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
@@ -290,7 +290,7 @@ const SubscriptionDetails = () => {
                   </>
                 )}
 
-                {userPlan.plan === 'basic' && (
+                {userPlan.planType === 'basic' && (
                   <>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
