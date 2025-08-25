@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: novacv-backend
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_VERSION
+        value: v1
+      # Required: Add these in Render Dashboard Environment Variables
+      # - MONGODB_URI
+      # - JWT_SECRET  
+      # - PADDLE_API_KEY
+      # - PADDLE_ENVIRONMENT
+      # - PADDLE_WEBHOOK_SECRET
+      # - PADDLE_BASIC_PLAN_ID
+      # - PADDLE_PRO_PLAN_ID
+      # - FRONTEND_URL
+    healthCheckPath: /api/v1/health
+    auto-deploy: false
