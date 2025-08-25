@@ -123,9 +123,7 @@ const config = {
 
 // Validation for required environment variables
 const requiredEnvVars = [
-  'PADDLE_VENDOR_ID',
   'PADDLE_API_KEY',
-  'PADDLE_PUBLIC_KEY',
   'PADDLE_BASIC_PLAN_ID',
   'PADDLE_PRO_PLAN_ID',
   'JWT_SECRET',

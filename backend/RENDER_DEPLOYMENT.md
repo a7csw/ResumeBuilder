@@ -32,14 +32,14 @@ FRONTEND_URL=https://your-frontend-app.onrender.com
 
 #### **Paddle Payment Integration:**
 ```bash
-# Paddle Configuration
+# Paddle Configuration (Required)
 PADDLE_API_KEY=your-paddle-api-key
 PADDLE_ENVIRONMENT=sandbox
-PADDLE_WEBHOOK_SECRET=your-paddle-webhook-secret
-
-# Paddle Plan IDs (Price IDs from modern Paddle)
 PADDLE_BASIC_PLAN_ID=pri_basic_plan_price_id  
 PADDLE_PRO_PLAN_ID=pri_pro_plan_price_id
+
+# Paddle Webhook (Optional for testing)
+PADDLE_WEBHOOK_SECRET=your-paddle-webhook-secret
 ```
 
 #### **Optional Email Configuration:**
