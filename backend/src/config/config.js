@@ -132,7 +132,9 @@ const requiredEnvVars = [
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0 && config.server.nodeEnv === 'production') {
-  console.error('Missing required environment variables:', missingEnvVars);
+  console.error('🚨 Missing required environment variables:', missingEnvVars);
+  console.error('📋 Please add these variables in Render Dashboard → Environment Variables');
+  console.error('📖 See RENDER_ENV_COPY_PASTE.txt for exact values to use');
   process.exit(1);
 }
 

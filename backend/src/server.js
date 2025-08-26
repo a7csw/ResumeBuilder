@@ -227,8 +227,8 @@ const startServer = async () => {
       
       // Log important configuration warnings
       if (config.server.nodeEnv === 'production') {
-        if (!config.paddle.vendorId || !config.paddle.apiKey) {
-          logger.warn('Production warning: Paddle credentials not configured');
+        if (!config.paddle.apiKey) {
+          logger.warn('Production warning: Paddle API key not configured');
         }
         if (config.jwt.secret === 'your-fallback-secret-key') {
           logger.warn('Production warning: Using default JWT secret');
