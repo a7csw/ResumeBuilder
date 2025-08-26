@@ -27,14 +27,22 @@ router.get('/info', (req, res) => {
     success: true,
     data: {
       name: 'NovaCV API',
-      description: 'Resume builder backend with Paddle payment integration',
+      description: 'Resume builder backend with Supabase integration',
       version: '1.0.0',
+      database: 'Supabase',
       documentation: '/api/v1/docs',
+      note: 'Main functionality handled by Supabase Edge Functions',
       endpoints: {
-        users: '/api/v1/users',
-        payments: '/api/v1/payments',
+        users: '/api/v1/users (simplified)',
+        payments: '/api/v1/payments (simplified)',
         health: '/api/v1/health',
       },
+      supabaseEdgeFunctions: {
+        userPlan: '/functions/v1/check-user-plan',
+        stripeCheckout: '/functions/v1/stripe-checkout',
+        pdfGeneration: '/functions/v1/generate-resume-pdf',
+        aiEnhancement: '/functions/v1/ai-enhance-resume'
+      }
     },
   });
 });

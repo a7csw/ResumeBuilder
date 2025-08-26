@@ -13,16 +13,11 @@ const config = {
     apiVersion: process.env.API_VERSION || 'v1',
   },
 
-  // Database Configuration
-  database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/novacv',
-    testUri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/novacv_test',
-    options: {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4, // Use IPv4, skip trying IPv6
-    },
+  // Supabase Configuration
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    anonKey: process.env.SUPABASE_ANON_KEY,
   },
 
   // JWT Configuration
@@ -32,19 +27,21 @@ const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 
-  // Paddle Configuration (Modern SDK)
-  paddle: {
-    apiKey: process.env.PADDLE_API_KEY,
-    environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
-    webhookSecret: process.env.PADDLE_WEBHOOK_SECRET,
-    // Price IDs for different plans (modern Paddle uses Price IDs)
-    plans: {
-      basic: process.env.PADDLE_BASIC_PLAN_ID,
-      pro: process.env.PADDLE_PRO_PLAN_ID,
+  // Payment Configuration (Stripe/Lemon Squeezy)
+  payments: {
+    provider: process.env.PAYMENTS_PROVIDER || 'stripe', // 'stripe' or 'lemonsqueezy'
+    // Stripe Configuration
+    stripe: {
+      secretKey: process.env.STRIPE_SECRET_KEY,
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
     },
-    // Legacy fields (deprecated in modern SDK)
-    // vendorId: process.env.PADDLE_VENDOR_ID, // No longer used
-    // publicKey: process.env.PADDLE_PUBLIC_KEY, // Replaced by webhookSecret
+    // Lemon Squeezy Configuration
+    lemonSqueezy: {
+      apiKey: process.env.LEMON_SQUEEZY_API_KEY,
+      storeId: process.env.LEMON_STORE_ID,
+      webhookSecret: process.env.LEMON_WEBHOOK_SECRET,
+    },
   },
 
   // Plans Configuration
@@ -122,9 +119,8 @@ const config = {
 
 // Validation for required environment variables
 const requiredEnvVars = [
-  'PADDLE_API_KEY',
-  'PADDLE_BASIC_PLAN_ID',
-  'PADDLE_PRO_PLAN_ID',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
   'JWT_SECRET',
 ];
 
@@ -133,7 +129,7 @@ const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 if (missingEnvVars.length > 0 && config.server.nodeEnv === 'production') {
   console.error('🚨 Missing required environment variables:', missingEnvVars);
   console.error('📋 Please add these variables in Render Dashboard → Environment Variables');
-  console.error('📖 See RENDER_ENV_COPY_PASTE.txt for exact values to use');
+  console.error('📖 See SUPABASE_SETUP.md for exact values to use');
   process.exit(1);
 }
 
@@ -142,8 +138,8 @@ if (config.server.nodeEnv === 'development') {
   console.log('🔧 Configuration loaded:', {
     nodeEnv: config.server.nodeEnv,
     port: config.server.port,
-    paddleEnv: config.paddle.environment,
-    databaseUri: config.database.uri.replace(/\/\/.*@/, '//***:***@'), // Hide credentials
+    paymentsProvider: config.payments.provider,
+    supabaseUrl: config.supabase.url ? config.supabase.url.replace(/\/\/.*\./, '//*****.') : 'not configured',
   });
 }
 

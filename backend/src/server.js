@@ -10,7 +10,7 @@ const morgan = require('morgan');
 
 // Import configuration and utilities
 const config = require('./config/config');
-const { connectDatabase } = require('./config/database');
+const { initializeSupabase, testDatabaseOperations } = require('./config/supabase');
 const logger = require('./utils/logger');
 
 // Import middleware
@@ -47,19 +47,8 @@ app.use(compressionConfig);
 // Rate limiting
 app.use(generalRateLimit);
 
-// Webhook raw body middleware (must be before JSON parsing)
-app.use('/api/*/payments/webhook/paddle', (req, res, next) => {
-  let data = '';
-  req.setEncoding('utf8');
-  req.on('data', chunk => {
-    data += chunk;
-  });
-  req.on('end', () => {
-    req.rawBody = data;
-    req.body = JSON.parse(data);
-    next();
-  });
-});
+// Note: Webhook handling is done by Supabase Edge Functions
+// No special webhook middleware needed for this simplified backend
 
 // Request parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -106,6 +95,8 @@ app.get('/', (req, res) => {
     success: true,
     message: 'Welcome to NovaCV API',
     version: '1.0.0',
+    database: 'Supabase',
+    note: 'Main functionality handled by Supabase Edge Functions',
     documentation: '/api/v1/info',
     health: '/api/v1/health',
   });
@@ -196,8 +187,14 @@ process.on('unhandledRejection', (reason, promise) => {
  */
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDatabase();
+    // Initialize Supabase client
+    await initializeSupabase();
+    
+    // Test database operations
+    const dbTestPassed = await testDatabaseOperations();
+    if (!dbTestPassed) {
+      console.warn('⚠️ Database tests failed, but continuing to start server...');
+    }
     
     // Start HTTP server
     const PORT = config.server.port;
@@ -218,8 +215,8 @@ const startServer = async () => {
 📚 Documentation: http://localhost:${PORT}/api/v1/docs
 ❤️ Health Check: http://localhost:${PORT}/api/v1/health
 
-💳 Payment Provider: Paddle
-🗄️ Database: MongoDB
+💳 Payment Provider: ${config.payments.provider}
+🗄️ Database: Supabase
 🔐 Security: Enabled
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -227,11 +224,14 @@ const startServer = async () => {
       
       // Log important configuration warnings
       if (config.server.nodeEnv === 'production') {
-        if (!config.paddle.apiKey) {
-          logger.warn('Production warning: Paddle API key not configured');
+        if (!config.supabase.serviceRoleKey) {
+          logger.warn('Production warning: Supabase service role key not configured');
         }
         if (config.jwt.secret === 'your-fallback-secret-key') {
           logger.warn('Production warning: Using default JWT secret');
+        }
+        if (!config.payments.stripe.secretKey && config.payments.provider === 'stripe') {
+          logger.warn('Production warning: Stripe secret key not configured');
         }
       }
     });

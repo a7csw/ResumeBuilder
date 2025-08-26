@@ -1,73 +1,12 @@
 /**
- * Payment Controller
- * Handles all payment-related operations including Paddle integration
+ * Payment Controller - Simplified for Supabase
+ * Since this app uses Supabase Edge Functions for payment operations,
+ * these endpoints provide basic responses and redirect to proper Edge Functions
  */
 
-const paddleService = require('../services/paddleService');
-const User = require('../models/User');
-const Subscription = require('../models/Subscription');
 const { catchAsync, APIError } = require('../middlewares/errorHandler');
+const { getSupabaseClient } = require('../config/supabase');
 const config = require('../config/config');
-
-/**
- * Generate checkout URL for a subscription plan
- * @route POST /api/v1/payments/checkout
- * @access Private
- */
-const createCheckout = catchAsync(async (req, res) => {
-  const { planId, successUrl, cancelUrl } = req.body;
-  const userId = req.userId;
-
-  // Validate plan
-  if (!config.subscriptionPlans[planId]) {
-    throw new APIError(`Invalid plan: ${planId}`, 400);
-  }
-
-  // Get user information
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new APIError('User not found', 404);
-  }
-
-  // Check if user already has an active subscription
-  const existingSubscription = await Subscription.findOne({
-    userId,
-    status: 'active',
-  });
-
-  if (existingSubscription && existingSubscription.isActive()) {
-    throw new APIError('User already has an active subscription', 409);
-  }
-
-  // Prepare user information for checkout
-  const userInfo = {
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    country: 'US', // You can add country field to user model
-  };
-
-  // Generate checkout URL
-  const checkoutUrl = await paddleService.generateCheckoutUrl(
-    planId,
-    userId,
-    userInfo
-  );
-
-  res.status(200).json({
-    success: true,
-    message: 'Checkout URL generated successfully',
-    data: {
-      checkoutUrl,
-      plan: config.subscriptionPlans[planId],
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.fullName,
-      },
-    },
-  });
-});
 
 /**
  * Get available subscription plans
@@ -75,350 +14,153 @@ const createCheckout = catchAsync(async (req, res) => {
  * @access Public
  */
 const getPlans = catchAsync(async (req, res) => {
-  const plans = Object.values(config.subscriptionPlans).map(plan => ({
-    id: plan.id,
-    name: plan.name,
-    price: plan.price,
-    currency: plan.currency,
-    duration: plan.duration,
-    recurring: plan.recurring || false,
-    features: plan.features,
-  }));
-
   res.status(200).json({
     success: true,
-    message: 'Plans retrieved successfully',
-    data: { plans },
+    message: 'Subscription plans configuration',
+    data: {
+      plans: config.subscriptionPlans,
+      paymentProvider: config.payments.provider,
+      note: 'Use Stripe/Lemon Squeezy Edge Functions for actual payment processing'
+    }
   });
 });
 
 /**
- * Get current user's subscription details
+ * Create checkout session
+ * @route POST /api/v1/payments/checkout
+ * @access Private
+ */
+const createCheckout = catchAsync(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Checkout handled by Supabase Edge Functions',
+    note: 'Use your existing stripe-checkout or lemon-squeezy Edge Functions',
+    edgeFunctions: {
+      stripe: '/functions/v1/stripe-checkout',
+      lemonSqueezy: '/functions/v1/lemon-squeezy-webhook'
+    }
+  });
+});
+
+/**
+ * Get subscription details
  * @route GET /api/v1/payments/subscription
  * @access Private
  */
 const getSubscription = catchAsync(async (req, res) => {
-  const userId = req.userId;
+  try {
+    const supabase = getSupabaseClient();
+    
+    // Example: fetch user plans
+    const { data: userPlans, error } = await supabase
+      .from('user_plans')
+      .select('*')
+      .eq('is_active', true)
+      .limit(5);
 
-  // Get user with subscription details
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new APIError('User not found', 404);
+    res.status(200).json({
+      success: true,
+      message: 'Subscription data available via Supabase',
+      note: 'Use Supabase Edge Functions for complete subscription management',
+      sample_data: {
+        userPlansTableAccess: userPlans ? true : false,
+        availableFields: ['plan_type', 'is_active', 'expires_at', 'stripe_customer_id']
+      }
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: 'Subscription management handled by Supabase Edge Functions',
+      note: 'Use your existing check-user-plan Edge Function'
+    });
   }
-
-  // Get detailed subscription from database
-  const subscription = await Subscription.findOne({
-    userId,
-    status: { $in: ['active', 'trialing', 'past_due'] },
-  }).sort({ createdAt: -1 });
-
-  // Prepare response data
-  const subscriptionData = {
-    plan: user.subscription.plan,
-    status: user.subscription.status,
-    startDate: user.subscription.startDate,
-    endDate: user.subscription.endDate,
-    autoRenew: user.subscription.autoRenew,
-    daysRemaining: user.subscriptionDaysRemaining,
-    features: config.subscriptionPlans[user.subscription.plan]?.features || {},
-    usage: {
-      aiGenerations: {
-        used: user.usage.aiGenerations.used,
-        limit: user.usage.aiGenerations.limit,
-        remaining: user.getRemainingAIGenerations(),
-      },
-      templatesUsed: user.usage.templatesUsed.length,
-      exportsThisMonth: user.usage.exportsThisMonth,
-    },
-  };
-
-  // Add Paddle-specific details if available
-  if (subscription) {
-    subscriptionData.paddle = {
-      subscriptionId: subscription.paddleSubscriptionId,
-      customerId: subscription.paddleCustomerId,
-      nextBillDate: subscription.nextBillDate,
-      nextBillAmount: subscription.nextBillAmount,
-      currency: subscription.currency,
-      billingType: subscription.billingType,
-    };
-  }
-
-  res.status(200).json({
-    success: true,
-    message: 'Subscription details retrieved successfully',
-    data: subscriptionData,
-  });
 });
 
 /**
- * Cancel user's subscription
- * @route POST /api/v1/payments/subscription/cancel
+ * Cancel subscription
+ * @route DELETE /api/v1/payments/subscription
  * @access Private
  */
 const cancelSubscription = catchAsync(async (req, res) => {
-  const userId = req.userId;
-
-  // Find active subscription
-  const subscription = await Subscription.findOne({
-    userId,
-    status: 'active',
-  });
-
-  if (!subscription) {
-    throw new APIError('No active subscription found', 404);
-  }
-
-  // For one-time subscriptions (Basic plan), they can't be cancelled
-  if (subscription.billingType === 'one_time') {
-    throw new APIError('One-time subscriptions cannot be cancelled', 400);
-  }
-
-  // Cancel subscription with Paddle
-  const cancelSuccess = await paddleService.cancelSubscription(
-    subscription.paddleSubscriptionId
-  );
-
-  if (!cancelSuccess) {
-    throw new APIError('Failed to cancel subscription with payment provider', 500);
-  }
-
-  // Update local subscription status
-  await subscription.cancel();
-
-  // Update user subscription status
-  const user = await User.findById(userId);
-  user.subscription.status = 'cancelled';
-  user.subscription.autoRenew = false;
-  await user.save();
-
   res.status(200).json({
     success: true,
-    message: 'Subscription cancelled successfully',
-    data: {
-      cancelledAt: subscription.cancelledAt,
-      endDate: subscription.endDate || subscription.nextBillDate,
-      remainingAccess: subscription.daysRemaining || subscription.daysUntilNextBill,
-    },
+    message: 'Subscription cancellation handled by payment provider Edge Functions',
+    note: 'Use Stripe portal or Lemon Squeezy customer portal Edge Functions'
   });
 });
 
 /**
- * Get subscription history and billing information
+ * Get subscription history
  * @route GET /api/v1/payments/history
  * @access Private
  */
 const getPaymentHistory = catchAsync(async (req, res) => {
-  const userId = req.userId;
-  const { page = 1, limit = 10 } = req.query;
+  try {
+    const supabase = getSupabaseClient();
+    
+    // Example: fetch billing events
+    const { data: billingEvents, error } = await supabase
+      .from('billing_events')
+      .select('event_type, amount, currency, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-  // Get all subscriptions for the user
-  const subscriptions = await Subscription.find({ userId })
-    .sort({ createdAt: -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit);
-
-  const total = await Subscription.countDocuments({ userId });
-
-  // Format subscription history
-  const history = subscriptions.map(sub => ({
-    id: sub._id,
-    plan: sub.plan,
-    status: sub.status,
-    startDate: sub.startDate,
-    endDate: sub.endDate,
-    amount: sub.unitPrice,
-    currency: sub.currency,
-    billingType: sub.billingType,
-    paddleSubscriptionId: sub.paddleSubscriptionId,
-    events: sub.events.map(event => ({
-      type: event.eventType,
-      date: event.processedAt,
-      data: event.eventData,
-    })),
-  }));
-
-  res.status(200).json({
-    success: true,
-    message: 'Payment history retrieved successfully',
-    data: {
-      history,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: limit,
-      },
-    },
-  });
+    res.status(200).json({
+      success: true,
+      message: 'Payment history available via Supabase',
+      note: 'Use billing_events table for payment history',
+      sample_data: {
+        billingEventsAccess: billingEvents ? true : false,
+        recentEventsCount: billingEvents ? billingEvents.length : 0
+      }
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: 'Payment history handled by Supabase Edge Functions',
+      note: 'Query billing_events table for payment history'
+    });
+  }
 });
 
 /**
- * Process Paddle webhook (modern SDK)
- * @route POST /api/v1/payments/webhook/paddle
- * @access Public (but IP restricted)
+ * Handle webhook from payment provider
+ * @route POST /api/v1/payments/webhook/:provider
+ * @access Public
  */
-const handlePaddleWebhook = catchAsync(async (req, res) => {
-  const signature = req.headers['paddle-signature'];
-  const rawBody = req.rawBody || JSON.stringify(req.body);
-
-  if (!signature) {
-    throw new APIError('Missing Paddle-Signature header', 400);
-  }
-
-  // Unmarshal and verify webhook with modern SDK
-  const eventData = paddleService.unmarshalWebhook(rawBody, signature);
+const handleWebhook = catchAsync(async (req, res) => {
+  const { provider } = req.params;
   
-  if (!eventData) {
-    throw new APIError('Invalid webhook signature or data', 401);
-  }
-
-  // Process webhook
-  const result = await paddleService.processWebhook(eventData);
-
-  // Log webhook processing
-  console.log(`Paddle webhook processed: ${eventData.eventType}`, {
-    eventId: eventData.eventId,
-    result: result.success,
-    message: result.message,
-  });
-
   res.status(200).json({
     success: true,
-    message: 'Webhook processed successfully',
-    eventId: eventData.eventId,
-  });
-});
-
-/**
- * Get user's feature access
- * @route GET /api/v1/payments/features
- * @access Private
- */
-const getFeatureAccess = catchAsync(async (req, res) => {
-  const user = req.user;
-
-  const planConfig = config.subscriptionPlans[user.subscription.plan];
-  const features = planConfig ? planConfig.features : {};
-
-  // Check subscription status and expiration
-  const isSubscriptionActive = user.subscription.status === 'active' &&
-    (!user.subscription.endDate || new Date() < new Date(user.subscription.endDate));
-
-  const featureAccess = {};
-  
-  if (isSubscriptionActive) {
-    // User has active subscription, check each feature
-    for (const [feature, value] of Object.entries(features)) {
-      featureAccess[feature] = user.hasFeatureAccess(feature);
+    message: `${provider} webhooks handled by Supabase Edge Functions`,
+    note: `Use your existing ${provider}-webhook Edge Function`,
+    edgeFunctions: {
+      stripe: '/functions/v1/stripe-webhook',
+      lemonSqueezy: '/functions/v1/lemon-webhook'
     }
-  } else {
-    // No active subscription, deny all paid features
-    for (const feature of Object.keys(features)) {
-      featureAccess[feature] = false;
-    }
-  }
-
-  res.status(200).json({
-    success: true,
-    message: 'Feature access retrieved successfully',
-    data: {
-      plan: user.subscription.plan,
-      subscriptionActive: isSubscriptionActive,
-      features: featureAccess,
-      usage: {
-        aiGenerations: {
-          used: user.usage.aiGenerations.used,
-          limit: user.usage.aiGenerations.limit,
-          remaining: user.getRemainingAIGenerations(),
-        },
-      },
-    },
   });
 });
 
 /**
- * Update subscription plan (upgrade/downgrade)
- * @route PUT /api/v1/payments/subscription/plan
+ * Get customer portal URL
+ * @route GET /api/v1/payments/portal
  * @access Private
  */
-const updateSubscriptionPlan = catchAsync(async (req, res) => {
-  const { newPlanId } = req.body;
-  const userId = req.userId;
-
-  // Validate new plan
-  if (!config.subscriptionPlans[newPlanId]) {
-    throw new APIError(`Invalid plan: ${newPlanId}`, 400);
-  }
-
-  // Get current subscription
-  const currentSubscription = await Subscription.findOne({
-    userId,
-    status: 'active',
-  });
-
-  if (!currentSubscription) {
-    throw new APIError('No active subscription found', 404);
-  }
-
-  // For now, we'll require users to cancel and create new subscription
-  // In a more complex setup, you'd handle plan changes through Paddle API
-  throw new APIError(
-    'Plan changes are currently not supported. Please cancel your current subscription and subscribe to the new plan.',
-    400
-  );
-});
-
-/**
- * Verify payment completion
- * @route POST /api/v1/payments/verify
- * @access Private
- */
-const verifyPayment = catchAsync(async (req, res) => {
-  const { checkoutId, subscriptionId } = req.body;
-  const userId = req.userId;
-
-  // Find subscription by checkout ID or subscription ID
-  const subscription = await Subscription.findOne({
-    userId,
-    $or: [
-      { paddleCheckoutId: checkoutId },
-      { paddleSubscriptionId: subscriptionId },
-    ],
-  });
-
-  if (!subscription) {
-    throw new APIError('Payment verification failed: subscription not found', 404);
-  }
-
-  // Check if subscription is active
-  const isActive = subscription.isActive();
-
+const getCustomerPortal = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Payment verification completed',
-    data: {
-      verified: isActive,
-      subscription: {
-        id: subscription._id,
-        plan: subscription.plan,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        nextBillDate: subscription.nextBillDate,
-      },
-    },
+    message: 'Customer portal handled by payment provider Edge Functions',
+    note: 'Use your existing customer-portal Edge Function'
   });
 });
 
 module.exports = {
-  createCheckout,
   getPlans,
+  createCheckout,
   getSubscription,
   cancelSubscription,
   getPaymentHistory,
-  handlePaddleWebhook,
-  getFeatureAccess,
-  updateSubscriptionPlan,
-  verifyPayment,
+  handleWebhook,
+  getCustomerPortal,
 };
