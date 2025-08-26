@@ -44,6 +44,27 @@ const connectDatabase = async () => {
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error.message);
     
+    // Provide helpful error messages
+    if (error.message.includes('ENOTFOUND') || error.message.includes('querySrv')) {
+      console.error('🔍 This looks like a DNS/connection issue:');
+      console.error('   1. Check your MONGODB_URI environment variable');
+      console.error('   2. Make sure you have a real MongoDB Atlas cluster');
+      console.error('   3. See MONGODB_SETUP.md for step-by-step setup');
+      console.error('   4. Verify your cluster URL is correct');
+    } else if (error.message.includes('authentication failed')) {
+      console.error('🔐 Authentication failed:');
+      console.error('   1. Check your username and password in MONGODB_URI');
+      console.error('   2. Make sure the database user exists in MongoDB Atlas');
+      console.error('   3. Verify the password is correct');
+    } else if (error.message.includes('IP not in whitelist')) {
+      console.error('🚫 IP Address not allowed:');
+      console.error('   1. Go to MongoDB Atlas → Network Access');
+      console.error('   2. Add IP address: 0.0.0.0/0 (allow all)');
+      console.error('   3. Or whitelist Render\'s specific IP addresses');
+    }
+    
+    console.error('📖 Full setup guide: backend/MONGODB_SETUP.md');
+    
     // Exit process with failure
     process.exit(1);
   }

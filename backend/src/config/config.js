@@ -18,11 +18,10 @@ const config = {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/novacv',
     testUri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/novacv_test',
     options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
+      family: 4, // Use IPv4, skip trying IPv6
     },
   },
 

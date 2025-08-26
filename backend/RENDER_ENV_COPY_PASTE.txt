@@ -6,7 +6,8 @@ PORT=10000
 API_VERSION=v1
 
 # REQUIRED - Update these with your actual values:
-MONGODB_URI=mongodb+srv://testuser:testpass@cluster0.mongodb.net/novacv-test?retryWrites=true&w=majority
+# Get this from MongoDB Atlas (see MONGODB_SETUP.md)
+MONGODB_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/novacv?retryWrites=true&w=majority
 JWT_SECRET=e08f314680f13c5c42ece3062efc72f01ef9e851efe41ec32e5d9804e5aea293e8a1d08f9cae823d78aa4675e388603db93159de6b80a564005b7bd62a2c564a
 PADDLE_API_KEY=test_paddle_api_key_for_development
 PADDLE_BASIC_PLAN_ID=pri_test_basic_plan_12345

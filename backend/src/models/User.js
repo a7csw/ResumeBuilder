@@ -153,11 +153,10 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
-// Indexes for performance
-userSchema.index({ email: 1 });
-userSchema.index({ 'subscription.paddleSubscriptionId': 1 });
-userSchema.index({ 'subscription.paddleCustomerId': 1 });
+// Indexes for performance (email is already unique, others need manual indexing)
 userSchema.index({ createdAt: -1 });
+userSchema.index({ 'subscription.status': 1 });
+userSchema.index({ lastLogin: -1 });
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {

@@ -142,10 +142,8 @@ const subscriptionSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
-// Indexes for performance
+// Indexes for performance (paddleSubscriptionId, paddleCustomerId, userId already indexed via schema)
 subscriptionSchema.index({ userId: 1, status: 1 });
-subscriptionSchema.index({ paddleSubscriptionId: 1 });
-subscriptionSchema.index({ paddleCustomerId: 1 });
 subscriptionSchema.index({ status: 1, nextBillDate: 1 });
 subscriptionSchema.index({ createdAt: -1 });
 
