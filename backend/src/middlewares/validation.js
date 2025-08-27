@@ -135,8 +135,8 @@ const validateCheckout = [
   body('userId')
     .notEmpty()
     .withMessage('User ID is required')
-    .isMongoId()
-    .withMessage('User ID must be a valid MongoDB ObjectId'),
+    .isUUID()
+    .withMessage('User ID must be a valid UUID'),
 
   body('successUrl')
     .optional()
@@ -150,12 +150,12 @@ const validateCheckout = [
 ];
 
 /**
- * MongoDB ObjectId validation
+ * UUID validation (for Supabase)
  */
-const validateObjectId = (field = 'id') => [
+const validateUUID = (field = 'id') => [
   param(field)
-    .isMongoId()
-    .withMessage(`${field} must be a valid MongoDB ObjectId`),
+    .isUUID()
+    .withMessage(`${field} must be a valid UUID`),
 ];
 
 /**
@@ -324,7 +324,7 @@ module.exports = {
   validateUserUpdate,
   validatePasswordChange,
   validateCheckout,
-  validateObjectId,
+  validateUUID,
   validatePagination,
   validateEmail,
   validateResumeData,

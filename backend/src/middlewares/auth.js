@@ -119,6 +119,7 @@ const optionalAuth = async (req, res, next) => {
 };
 
 module.exports = {
+  authenticate: authenticateToken,
   authenticateToken,
   requireSubscription,
   optionalAuth,

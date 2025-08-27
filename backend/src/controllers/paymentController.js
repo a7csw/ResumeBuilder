@@ -50,6 +50,17 @@ const getSubscription = catchAsync(async (req, res) => {
   try {
     const supabase = getSupabaseClient();
     
+    // Handle case where Supabase is not configured in development
+    if (!supabase) {
+      return res.status(200).json({
+        success: true,
+        message: 'Subscription management handled by Supabase Edge Functions',
+        note: 'Use your existing check-user-plan Edge Function',
+        supabaseConnected: false,
+        development: true
+      });
+    }
+    
     // Example: fetch user plans
     const { data: userPlans, error } = await supabase
       .from('user_plans')
@@ -96,6 +107,17 @@ const cancelSubscription = catchAsync(async (req, res) => {
 const getPaymentHistory = catchAsync(async (req, res) => {
   try {
     const supabase = getSupabaseClient();
+    
+    // Handle case where Supabase is not configured in development
+    if (!supabase) {
+      return res.status(200).json({
+        success: true,
+        message: 'Payment history handled by Supabase Edge Functions',
+        note: 'Query billing_events table for payment history',
+        supabaseConnected: false,
+        development: true
+      });
+    }
     
     // Example: fetch billing events
     const { data: billingEvents, error } = await supabase
@@ -160,6 +182,48 @@ const getCustomerPortal = catchAsync(async (req, res) => {
   });
 });
 
+/**
+ * Update subscription plan
+ * @route PUT /api/v1/payments/subscription/plan
+ * @access Private
+ */
+const updateSubscriptionPlan = catchAsync(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Subscription plan updates handled by Paddle',
+    note: 'Use Paddle API for plan changes',
+    environment: config.payments.paddle.environment
+  });
+});
+
+/**
+ * Get feature access
+ * @route GET /api/v1/payments/features
+ * @access Private
+ */
+const getFeatureAccess = catchAsync(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Feature access determined by subscription plan',
+    note: 'Use Supabase Edge Functions for feature access',
+    availableFeatures: config.subscriptionPlans
+  });
+});
+
+/**
+ * Verify payment
+ * @route POST /api/v1/payments/verify
+ * @access Private
+ */
+const verifyPayment = catchAsync(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Payment verification handled by Paddle',
+    note: 'Use Paddle webhooks for payment verification',
+    environment: config.payments.paddle.environment
+  });
+});
+
 module.exports = {
   getPlans,
   createCheckout,
@@ -168,4 +232,7 @@ module.exports = {
   getPaymentHistory,
   handleWebhook,
   getCustomerPortal,
+  updateSubscriptionPlan,
+  getFeatureAccess,
+  verifyPayment,
 };

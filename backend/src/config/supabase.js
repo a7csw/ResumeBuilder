@@ -13,6 +13,13 @@ let supabase = null;
 
 const initializeSupabase = () => {
   try {
+    // In development, allow missing Supabase config for testing
+    if (config.server.nodeEnv === 'development' && (!config.supabase.url || !config.supabase.serviceRoleKey)) {
+      console.warn('⚠️ Development mode: Supabase not configured, using mock client');
+      supabase = null;
+      return null;
+    }
+
     if (!config.supabase.url || !config.supabase.serviceRoleKey) {
       throw new Error('Missing required Supabase configuration');
     }
@@ -101,6 +108,12 @@ const getSupabaseStatus = async () => {
 const testDatabaseOperations = async () => {
   try {
     const client = getSupabaseClient();
+    
+    // If no client in development, skip test
+    if (!client && config.server.nodeEnv === 'development') {
+      console.log('🧪 Development mode: Skipping database operations test');
+      return true;
+    }
     
     console.log('🧪 Testing Supabase database operations...');
     

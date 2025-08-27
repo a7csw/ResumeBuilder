@@ -70,6 +70,17 @@ const getProfile = catchAsync(async (req, res) => {
   try {
     const supabase = getSupabaseClient();
     
+    // Handle case where Supabase is not configured in development
+    if (!supabase) {
+      return res.status(200).json({
+        success: true,
+        message: 'Profile management handled by Supabase',
+        note: 'Use Supabase client and Edge Functions from frontend',
+        supabaseConnected: false,
+        development: true
+      });
+    }
+    
     // Basic example of fetching profile data
     const { data: profiles, error } = await supabase
       .from('profiles')
@@ -144,6 +155,17 @@ const deleteAccount = catchAsync(async (req, res) => {
 const getDashboard = catchAsync(async (req, res) => {
   try {
     const supabase = getSupabaseClient();
+    
+    // Handle case where Supabase is not configured in development
+    if (!supabase) {
+      return res.status(200).json({
+        success: true,
+        message: 'Dashboard data handled by Supabase Edge Functions',
+        note: 'Use your existing Edge Functions for dashboard data',
+        supabaseConnected: false,
+        development: true
+      });
+    }
     
     // Example: fetch user plans data
     const { data: userPlans, error } = await supabase

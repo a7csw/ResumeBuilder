@@ -113,7 +113,7 @@ router.post('/webhook/paddle',
   // ipWhitelist(['IP1', 'IP2']), // Add Paddle's webhook IPs here
   validateWebhook,
   handleValidationErrors,
-  paymentController.handlePaddleWebhook
+  paymentController.handleWebhook
 );
 
 module.exports = router;
