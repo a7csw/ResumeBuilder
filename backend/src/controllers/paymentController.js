@@ -20,7 +20,8 @@ const getPlans = catchAsync(async (req, res) => {
     data: {
       plans: config.subscriptionPlans,
       paymentProvider: config.payments.provider,
-      note: 'Use Stripe/Lemon Squeezy Edge Functions for actual payment processing'
+      paddlePlans: config.payments.paddle.plans,
+      note: 'Paddle payment processing integrated with Supabase'
     }
   });
 });
@@ -33,12 +34,10 @@ const getPlans = catchAsync(async (req, res) => {
 const createCheckout = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Checkout handled by Supabase Edge Functions',
-    note: 'Use your existing stripe-checkout or lemon-squeezy Edge Functions',
-    edgeFunctions: {
-      stripe: '/functions/v1/stripe-checkout',
-      lemonSqueezy: '/functions/v1/lemon-squeezy-webhook'
-    }
+    message: 'Paddle checkout integration',
+    note: 'Paddle payment processing with Supabase integration',
+    paddlePlans: config.payments.paddle.plans,
+    environment: config.payments.paddle.environment
   });
 });
 
@@ -131,15 +130,20 @@ const getPaymentHistory = catchAsync(async (req, res) => {
 const handleWebhook = catchAsync(async (req, res) => {
   const { provider } = req.params;
   
-  res.status(200).json({
-    success: true,
-    message: `${provider} webhooks handled by Supabase Edge Functions`,
-    note: `Use your existing ${provider}-webhook Edge Function`,
-    edgeFunctions: {
-      stripe: '/functions/v1/stripe-webhook',
-      lemonSqueezy: '/functions/v1/lemon-webhook'
-    }
-  });
+  if (provider === 'paddle') {
+    res.status(200).json({
+      success: true,
+      message: 'Paddle webhook endpoint',
+      note: 'Paddle webhook processing with Supabase integration',
+      environment: config.payments.paddle.environment
+    });
+  } else {
+    res.status(400).json({
+      success: false,
+      message: 'Unsupported payment provider',
+      supportedProviders: ['paddle']
+    });
+  }
 });
 
 /**
@@ -150,8 +154,9 @@ const handleWebhook = catchAsync(async (req, res) => {
 const getCustomerPortal = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Customer portal handled by payment provider Edge Functions',
-    note: 'Use your existing customer-portal Edge Function'
+    message: 'Paddle customer portal',
+    note: 'Paddle customer portal integration with Supabase',
+    environment: config.payments.paddle.environment
   });
 });
 

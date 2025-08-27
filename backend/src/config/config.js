@@ -27,20 +27,19 @@ const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 
-  // Payment Configuration (Stripe/Lemon Squeezy)
+  // Payment Configuration (Paddle)
   payments: {
-    provider: process.env.PAYMENTS_PROVIDER || 'stripe', // 'stripe' or 'lemonsqueezy'
-    // Stripe Configuration
-    stripe: {
-      secretKey: process.env.STRIPE_SECRET_KEY,
-      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-    },
-    // Lemon Squeezy Configuration
-    lemonSqueezy: {
-      apiKey: process.env.LEMON_SQUEEZY_API_KEY,
-      storeId: process.env.LEMON_STORE_ID,
-      webhookSecret: process.env.LEMON_WEBHOOK_SECRET,
+    provider: process.env.PAYMENTS_PROVIDER || 'paddle', // 'paddle'
+    // Paddle Configuration
+    paddle: {
+      apiKey: process.env.PADDLE_API_KEY,
+      environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+      webhookSecret: process.env.PADDLE_WEBHOOK_SECRET,
+      // Price IDs for different plans (modern Paddle uses Price IDs)
+      plans: {
+        basic: process.env.PADDLE_BASIC_PLAN_ID,
+        pro: process.env.PADDLE_PRO_PLAN_ID,
+      },
     },
   },
 
@@ -122,6 +121,9 @@ const requiredEnvVars = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'JWT_SECRET',
+  'PADDLE_API_KEY',
+  'PADDLE_BASIC_PLAN_ID',
+  'PADDLE_PRO_PLAN_ID',
 ];
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);

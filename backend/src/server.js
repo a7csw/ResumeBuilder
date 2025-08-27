@@ -230,8 +230,8 @@ const startServer = async () => {
         if (config.jwt.secret === 'your-fallback-secret-key') {
           logger.warn('Production warning: Using default JWT secret');
         }
-        if (!config.payments.stripe.secretKey && config.payments.provider === 'stripe') {
-          logger.warn('Production warning: Stripe secret key not configured');
+        if (!config.payments.paddle.apiKey) {
+          logger.warn('Production warning: Paddle API key not configured');
         }
       }
     });

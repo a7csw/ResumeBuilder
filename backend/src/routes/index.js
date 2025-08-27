@@ -39,9 +39,13 @@ router.get('/info', (req, res) => {
       },
       supabaseEdgeFunctions: {
         userPlan: '/functions/v1/check-user-plan',
-        stripeCheckout: '/functions/v1/stripe-checkout',
         pdfGeneration: '/functions/v1/generate-resume-pdf',
         aiEnhancement: '/functions/v1/ai-enhance-resume'
+      },
+      paddleIntegration: {
+        checkout: '/api/v1/payments/checkout',
+        webhook: '/api/v1/payments/webhook/paddle',
+        portal: '/api/v1/payments/portal'
       }
     },
   });

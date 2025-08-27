@@ -13,8 +13,11 @@ services:
         value: v1
       - key: PORT
         value: 10000
+      - key: PAYMENTS_PROVIDER
+        value: paddle
       # Required: Add these in Render Dashboard Environment Variables
-      # - MONGODB_URI (required)
+      # - SUPABASE_URL (required)
+      # - SUPABASE_SERVICE_ROLE_KEY (required)
       # - JWT_SECRET (required)
       # - PADDLE_API_KEY (required)
       # - PADDLE_BASIC_PLAN_ID (required)
