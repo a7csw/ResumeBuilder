@@ -14,7 +14,7 @@ import {
   Briefcase,
   GraduationCap
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Index = () => {
   // Demo mode - no backend connections
@@ -242,7 +242,15 @@ const Index = () => {
           <div className="text-3xl font-bold bg-gradient-to-r from-slate-400 via-gray-300 to-slate-400 bg-clip-text text-transparent tracking-tight mb-4">
             NOVA<span className="text-slate-500">E</span>CV
           </div>
-          <p className="text-slate-400">&copy; 2025 NovaCV. All rights reserved.</p>
+          <p className="text-slate-400 mb-4">&copy; 2025 NovaCV. All rights reserved.</p>
+          <div className="flex justify-center space-x-6">
+            <Link 
+              to="/terms" 
+              className="text-slate-400 hover:text-white transition-colors duration-300 text-sm"
+            >
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
