@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import NavigationHeader from "@/components/NavigationHeader";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Shield, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Terms = () => {
@@ -21,11 +21,11 @@ const Terms = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 dark:text-slate-200">
-              Terms of Service
+              Legal Documents
             </h1>
             
             <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-              Last updated: {new Date().toLocaleDateString()}
+              Complete legal information for NOVAECV
             </p>
             
             {/* Back to Home Button */}
@@ -41,44 +41,85 @@ const Terms = () => {
             </Link>
           </div>
 
-          {/* Content Section */}
-          <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
-            <div className="space-y-6 text-lg text-slate-600 dark:text-slate-300">
-              <p>
-                Welcome to NovaECV's Terms of Service. This page outlines the terms and conditions that govern your use of our AI-powered resume builder platform.
-              </p>
-              
-              <p>
-                By accessing and using NovaECV, you agree to be bound by these terms. Our service is designed to help you create professional, ATS-optimized resumes with the power of artificial intelligence.
-              </p>
-              
-              <p>
-                We are committed to providing a secure, reliable, and user-friendly platform for resume creation. Our terms ensure fair usage while protecting both our users and our service.
-              </p>
-              
-              <div className="bg-slate-50 dark:bg-slate-700/50 p-6 rounded-xl">
-                <h2 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-200">
-                  Key Points:
+          {/* Legal Documents Grid */}
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            {/* Terms & Conditions */}
+            <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
+                  Terms & Conditions
                 </h2>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>You retain ownership of your resume content</li>
-                  <li>We process payments securely through Paddle</li>
-                  <li>AI-generated content should be reviewed before use</li>
-                  <li>Fair usage policies apply to prevent abuse</li>
-                  <li>Your privacy is protected as outlined in our Privacy Policy</li>
-                </ul>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">
+                  Complete terms and conditions governing your use of NOVAECV, including service description, user responsibilities, and legal obligations.
+                </p>
+                <Link to="/terms-conditions">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    Read Terms & Conditions
+                  </Button>
+                </Link>
               </div>
-              
-              <p>
-                For the complete Terms of Service, please refer to our detailed legal documentation. If you have any questions about these terms, please contact our support team.
-              </p>
+            </div>
+
+            {/* Privacy Policy */}
+            <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 dark:bg-green-900/30 rounded-full">
+                  <Shield className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
+                  Privacy Policy
+                </h2>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">
+                  How we collect, use, and protect your personal information, including data handling practices and your privacy rights.
+                </p>
+                <Link to="/privacy-policy">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Read Privacy Policy
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Refund Policy */}
+            <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                  <RefreshCw className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
+                  Refund Policy
+                </h2>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">
+                  Our refund terms and conditions, including eligibility criteria, process, and timeline for refund requests.
+                </p>
+                <Link to="/refund-policy">
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                    Read Refund Policy
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
+
+          {/* Quick Summary */}
+          <section className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
+            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">
+              Quick Summary
+            </h2>
+            <div className="space-y-4 text-lg text-slate-600 dark:text-slate-300">
+              <p><strong>Service Information:</strong> NOVAECV is an AI-powered resume builder operated by Abdulrahman Rafid Sabri Al-Faiadi, an individual developer.</p>
+              <p><strong>Contact:</strong> For any legal questions, please contact us at <a href="mailto:alfaiadiabood@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">alfaiadiabood@gmail.com</a></p>
+              <p><strong>Response Time:</strong> We aim to respond to all inquiries within 48 hours.</p>
+            </div>
+          </section>
 
           {/* Footer Note */}
           <div className="mt-12 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              By using NovaECV, you acknowledge that you have read and agree to these Terms of Service.
+              By using NOVAECV, you agree to our Terms & Conditions, Privacy Policy, and Refund Policy.
             </p>
           </div>
         </div>
