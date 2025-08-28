@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { useNameLock } from "@/hooks/useNameLock";
+import LockedNameField from "@/components/LockedNameField";
 
 interface ResumeData {
   personalInfo: {
@@ -81,6 +83,34 @@ const EnhancedResumeBuilder = ({
   const [newSkill, setNewSkill] = useState("");
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  
+  // User state
+  const [user, setUser] = useState<any>(null);
+  
+  // Name lock status
+  const { isNameLocked, loading: nameLockLoading } = useNameLock(user?.id);
+  
+  // Check authentication and load user data
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          setUser(session.user);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // All the existing functions from ResumeBuilder...
   const addExperience = () => {
@@ -370,32 +400,28 @@ const EnhancedResumeBuilder = ({
         </CardHeader>
         <CardContent className="space-y-4 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-sm font-semibold">First Name</Label>
-              <Input
-                id="firstName"
-                placeholder="John"
-                value={resumeData.personalInfo.firstName}
-                onChange={(e) => setResumeData(prev => ({
-                  ...prev,
-                  personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                }))}
-                className="transition-smooth focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-sm font-semibold">Last Name</Label>
-              <Input
-                id="lastName"
-                placeholder="Doe"
-                value={resumeData.personalInfo.lastName}
-                onChange={(e) => setResumeData(prev => ({
-                  ...prev,
-                  personalInfo: { ...prev.personalInfo, lastName: e.target.value }
-                }))}
-                className="transition-smooth focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-            </div>
+            <LockedNameField
+              id="firstName"
+              label="First Name"
+              value={resumeData.personalInfo.firstName}
+              placeholder="John"
+              isLocked={isNameLocked}
+              onChange={(value) => setResumeData(prev => ({
+                ...prev,
+                personalInfo: { ...prev.personalInfo, firstName: value }
+              }))}
+            />
+            <LockedNameField
+              id="lastName"
+              label="Last Name"
+              value={resumeData.personalInfo.lastName}
+              placeholder="Doe"
+              isLocked={isNameLocked}
+              onChange={(value) => setResumeData(prev => ({
+                ...prev,
+                personalInfo: { ...prev.personalInfo, lastName: value }
+              }))}
+            />
             <div className="space-y-2">
               <Label htmlFor="title" className="text-sm font-semibold">Professional Title</Label>
               <Input

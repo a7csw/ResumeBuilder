@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import NavigationHeader from "@/components/NavigationHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useNameLock } from "@/hooks/useNameLock";
+import LockedNameField from "@/components/LockedNameField";
 import { 
   Plus, 
   Trash2, 
@@ -63,8 +66,36 @@ const ResumeForm = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   
+  // User state
+  const [user, setUser] = useState<any>(null);
+  
   // User Type State (overrides URL param)
   const [selectedUserType, setSelectedUserType] = useState(type || "professional");
+  
+  // Name lock status
+  const { isNameLocked, firstName, lastName, loading: nameLockLoading } = useNameLock(user?.id);
+  
+  // Check authentication and load user data
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          setUser(session.user);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
   
   // Personal Information
   const [personalInfo, setPersonalInfo] = useState({
@@ -400,26 +431,24 @@ const ResumeForm = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name *</Label>
-                <Input
-                  id="firstName"
-                  value={personalInfo.firstName}
-                  onChange={(e) => setPersonalInfo({...personalInfo, firstName: e.target.value})}
-                  className="mt-1 border-2 focus:border-slate-500 transition-colors"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  value={personalInfo.lastName}
-                  onChange={(e) => setPersonalInfo({...personalInfo, lastName: e.target.value})}
-                  className="mt-1 border-2 focus:border-slate-500 transition-colors"
-                  required
-                />
-              </div>
+              <LockedNameField
+                id="firstName"
+                label="First Name"
+                value={personalInfo.firstName}
+                placeholder="John"
+                isLocked={isNameLocked}
+                required
+                onChange={(value) => setPersonalInfo({...personalInfo, firstName: value})}
+              />
+              <LockedNameField
+                id="lastName"
+                label="Last Name"
+                value={personalInfo.lastName}
+                placeholder="Doe"
+                isLocked={isNameLocked}
+                required
+                onChange={(value) => setPersonalInfo({...personalInfo, lastName: value})}
+              />
               <div>
                 <Label htmlFor="email">Email *</Label>
                 <Input

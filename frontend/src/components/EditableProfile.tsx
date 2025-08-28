@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNameLock } from "@/hooks/useNameLock";
+import LockedNameField from "@/components/LockedNameField";
+import { checkNameChangeAllowed } from "@/lib/nameValidation";
 import { User, Mail, Calendar, Edit, Save, X, Key } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -24,6 +27,9 @@ const EditableProfile = ({ user }: EditableProfileProps) => {
   const [loading, setLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { toast } = useToast();
+  
+  // Name lock status
+  const { isNameLocked, loading: nameLockLoading } = useNameLock(user?.id);
 
   useEffect(() => {
     loadProfile();
@@ -52,6 +58,24 @@ const EditableProfile = ({ user }: EditableProfileProps) => {
   const handleSave = async () => {
     setLoading(true);
     try {
+      // Validate name change before saving
+      const isAllowed = await checkNameChangeAllowed(
+        profile.first_name,
+        profile.last_name,
+        (message) => {
+          toast({
+            title: "Name Change Not Allowed",
+            description: message,
+            variant: "destructive",
+          });
+        }
+      );
+
+      if (!isAllowed) {
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -160,26 +184,22 @@ const EditableProfile = ({ user }: EditableProfileProps) => {
 
           {/* Editable Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-sm font-semibold">First Name</Label>
-              <Input
-                id="firstName"
-                value={profile.first_name}
-                onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
-                disabled={!isEditing}
-                className={`transition-smooth ${isEditing ? 'focus:ring-2 focus:ring-primary/20 focus:border-primary' : 'bg-muted/50'}`}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-sm font-semibold">Last Name</Label>
-              <Input
-                id="lastName"
-                value={profile.last_name}
-                onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
-                disabled={!isEditing}
-                className={`transition-smooth ${isEditing ? 'focus:ring-2 focus:ring-primary/20 focus:border-primary' : 'bg-muted/50'}`}
-              />
-            </div>
+            <LockedNameField
+              id="firstName"
+              label="First Name"
+              value={profile.first_name}
+              placeholder="John"
+              isLocked={isNameLocked}
+              onChange={isEditing ? (value) => setProfile(prev => ({ ...prev, first_name: value })) : undefined}
+            />
+            <LockedNameField
+              id="lastName"
+              label="Last Name"
+              value={profile.last_name}
+              placeholder="Doe"
+              isLocked={isNameLocked}
+              onChange={isEditing ? (value) => setProfile(prev => ({ ...prev, last_name: value })) : undefined}
+            />
           </div>
 
           {isEditing && (
