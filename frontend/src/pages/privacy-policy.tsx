@@ -2,8 +2,14 @@ import { Button } from "@/components/ui/button";
 import NavigationHeader from "@/components/NavigationHeader";
 import { ArrowLeft, Shield, Eye, Lock, Database, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { initPageSEO } from "@/lib/seo";
 
 const PrivacyPolicy = () => {
+  useEffect(() => {
+    initPageSEO('privacyPolicy');
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
       <NavigationHeader />

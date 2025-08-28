@@ -215,6 +215,24 @@ export const PAGE_SEO: Record<string, Partial<SEOData>> = {
     title: 'My Profile - Manage Your Account | ResumeAI',
     description: 'Manage your ResumeAI account, subscription, and personal information.',
   },
+
+  termsConditions: {
+    title: 'Terms & Conditions | NOVAECV',
+    description: 'Read our comprehensive terms and conditions for using NOVAECV AI-powered resume builder service.',
+    keywords: ['terms of service', 'terms and conditions', 'legal terms', 'NOVAECV', 'resume builder'],
+  },
+
+  privacyPolicy: {
+    title: 'Privacy Policy | NOVAECV', 
+    description: 'Learn how NOVAECV protects your privacy and handles your personal data in our resume builder service.',
+    keywords: ['privacy policy', 'data protection', 'GDPR', 'privacy rights', 'NOVAECV'],
+  },
+
+  refundPolicy: {
+    title: 'Refund Policy | NOVAECV',
+    description: 'Understand our refund policy, eligibility criteria, and process for NOVAECV resume builder service.',
+    keywords: ['refund policy', 'refunds', 'money back', 'cancellation', 'NOVAECV'],
+  },
 };
 
 /**

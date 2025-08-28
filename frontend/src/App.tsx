@@ -27,8 +27,12 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
-const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const RefundPolicy = lazy(() => import("./pages/refund-policy"));
 const Status = lazy(() => import("./pages/Status"));
+
+// Import new legal pages
+const TermsConditions = lazy(() => import("./pages/terms-conditions"));
+const PrivacyPolicy = lazy(() => import("./pages/privacy-policy"));
 
 // Loading component for lazy-loaded pages
 const PageLoader = () => (
@@ -74,6 +78,9 @@ const App = () => (
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund-policy" element={<RefundPolicy />} />
                 <Route path="/status" element={<Status />} />
+                {/* New legal pages routes */}
+                <Route path="/terms-conditions" element={<TermsConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
