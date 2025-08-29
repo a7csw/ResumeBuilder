@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import NavigationHeader from "@/components/NavigationHeader";
-import { ArrowLeft, FileText, Shield, RefreshCw } from "lucide-react";
+import { ArrowLeft, Sparkles, Users, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Terms = () => {
@@ -16,16 +16,16 @@ const Terms = () => {
           {/* Header Section */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full">
-              <FileText className="w-4 h-4" />
-              Legal Information
+              <Sparkles className="w-4 h-4" />
+              About This Project
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800 dark:text-slate-200">
-              Legal Documents
+              Free Resume Builder
             </h1>
             
             <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-              Complete legal information for NOVAECV
+              A completely free, open-access AI-powered resume builder
             </p>
             
             {/* Back to Home Button */}
@@ -41,87 +41,105 @@ const Terms = () => {
             </Link>
           </div>
 
-          {/* Legal Documents Grid */}
+          {/* Features Grid */}
           <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            {/* Terms & Conditions */}
+            {/* Free AI Generation */}
             <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                  <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
-                  Terms & Conditions
+                  AI-Powered
                 </h2>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">
-                  Complete terms and conditions governing your use of NOVAECV, including service description, user responsibilities, and legal obligations.
+                <p className="text-slate-600 dark:text-slate-300">
+                  Generate professional resume content using advanced AI technology. Completely free with unlimited usage.
                 </p>
-                <Link to="/terms-conditions">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Read Terms & Conditions
-                  </Button>
-                </Link>
               </div>
             </div>
-
-            {/* Privacy Policy */}
+            
+            {/* All Templates Free */}
             <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 dark:bg-green-900/30 rounded-full">
-                  <Shield className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
-                  Privacy Policy
+                  All Templates
                 </h2>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">
-                  How we collect, use, and protect your personal information, including data handling practices and your privacy rights.
+                <p className="text-slate-600 dark:text-slate-300">
+                  Access to all professional resume templates. No premium restrictions or watermarks.
                 </p>
-                <Link to="/privacy-policy">
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                    Read Privacy Policy
-                  </Button>
-                </Link>
               </div>
             </div>
-
-            {/* Refund Policy */}
+            
+            {/* Unlimited Export */}
             <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                  <RefreshCw className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                  <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200">
-                  Refund Policy
+                  Unlimited Export
                 </h2>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">
-                  Our refund terms and conditions, including eligibility criteria, process, and timeline for refund requests.
+                <p className="text-slate-600 dark:text-slate-300">
+                  Download your resumes in PDF format as many times as you want. No limits or restrictions.
                 </p>
-                <Link to="/refund-policy">
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-                    Read Refund Policy
+              </div>
+            </div>
+          </div>
+          
+          {/* About Section */}
+          <section className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
+            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">
+              About This Project
+            </h2>
+            <div className="space-y-4 text-lg text-slate-600 dark:text-slate-300">
+              <p>
+                This is a free, open-access resume builder designed to help everyone create professional resumes without any cost barriers.
+              </p>
+              <p>
+                <strong>Key Features:</strong>
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>AI-powered content generation</li>
+                <li>Multiple professional templates</li>
+                <li>PDF export functionality</li>
+                <li>No payment required</li>
+                <li>No usage limits</li>
+                <li>No watermarks</li>
+                <li>Clean, ad-free experience</li>
+              </ul>
+            </div>
+          </section>
+          
+          {/* Usage Guide */}
+          <section className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
+            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">
+              How to Use
+            </h2>
+            <div className="space-y-4 text-lg text-slate-600 dark:text-slate-300">
+              <ol className="list-decimal list-inside space-y-3 ml-4">
+                <li>Create an account or sign in</li>
+                <li>Fill out your resume information</li>
+                <li>Use AI to enhance your content (optional)</li>
+                <li>Choose from any available template</li>
+                <li>Download your professional resume as PDF</li>
+                <li>Create as many resumes as you need</li>
+              </ol>
+              <div className="mt-6 text-center">
+                <Link to="/form-selection">
+                  <Button 
+                    size="lg" 
+                    className="px-8 py-3 text-lg bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 transition-all duration-300 hover:scale-105"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Start Building Your Resume
                   </Button>
                 </Link>
               </div>
             </div>
-          </div>
-
-          {/* Quick Summary */}
-          <section className="bg-white dark:bg-slate-800/50 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
-            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">
-              Quick Summary
-            </h2>
-            <div className="space-y-4 text-lg text-slate-600 dark:text-slate-300">
-              <p><strong>Service Information:</strong> NOVAECV is an AI-powered resume builder operated by Abdulrahman Rafid Sabri Al-Faiadi, an individual developer.</p>
-              <p><strong>Contact:</strong> For any legal questions, please contact us at <a href="mailto:alfaiadiabood@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">alfaiadiabood@gmail.com</a></p>
-              <p><strong>Response Time:</strong> We aim to respond to all inquiries within 48 hours.</p>
-            </div>
           </section>
-
-          {/* Footer Note */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              By using NOVAECV, you agree to our Terms & Conditions, Privacy Policy, and Refund Policy.
-            </p>
-          </div>
         </div>
       </div>
     </div>

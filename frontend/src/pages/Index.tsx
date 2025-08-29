@@ -40,32 +40,29 @@ const Index = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full">
               <Star className="w-4 h-4" />
-              Trusted by 10,000+ professionals
+              100% Free - No Limits
             </div>
             
             {/* Main Heading */}
             <div className="flex items-center justify-center mb-8">
                 <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
                   <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                    NOV
+                    Resume
                   </span>
-                  <span className="text-slate-400 dark:text-slate-500">A</span>
+                  <span className="text-slate-400 dark:text-slate-500"> </span>
                   <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                    E
-                  </span>
-                  <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                    CV
+                    Builder
                   </span>
                 </h1>
               </div>
               
               <h2 className="text-3xl md:text-5xl font-bold mb-8 text-slate-800 dark:text-slate-200">
-                AI-Powered Resume Builder
+                Free & AI-Powered
               </h2>
             
             {/* Subheading */}
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto">
-              Transform your career story into a stunning, ATS-optimized resume with the power of AI. Professional plans starting at $5. Join thousands who've landed their dream jobs.
+              Transform your career story into a stunning, ATS-optimized resume with the power of AI. Completely free with unlimited usage and no watermarks.
             </p>
             
             {/* CTA Button */}
@@ -221,7 +218,7 @@ const Index = () => {
               Ready to Build Your Dream Resume?
             </h2>
             <p className="text-xl text-slate-200 max-w-2xl mx-auto">
-              Join thousands of professionals who've landed their dream jobs with our AI-powered resume builder
+              Create professional resumes with AI assistance - completely free and unlimited
             </p>
             <Button 
               onClick={handleBuildResume}
@@ -240,15 +237,15 @@ const Index = () => {
       <footer className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-900 text-white py-12 px-6">
         <div className="container mx-auto text-center">
           <div className="text-3xl font-bold bg-gradient-to-r from-slate-400 via-gray-300 to-slate-400 bg-clip-text text-transparent tracking-tight mb-4">
-            NOVA<span className="text-slate-500">E</span>CV
+            Free Resume Builder
           </div>
-          <p className="text-slate-400 mb-4">&copy; 2025 NovaCV. All rights reserved.</p>
+          <p className="text-slate-400 mb-4">Create professional resumes with AI assistance - completely free</p>
           <div className="flex justify-center space-x-6">
             <Link 
               to="/terms" 
               className="text-slate-400 hover:text-white transition-colors duration-300 text-sm"
             >
-              Terms of Service
+              About
             </Link>
           </div>
         </div>
