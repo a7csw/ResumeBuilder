@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import NavigationHeader from "@/components/NavigationHeader";
 import ProfileHeader from "@/components/ProfileHeader";
 import ProfileInformation from "@/components/ProfileInformation";
-import ProfileSubscriptionCard from "@/components/ProfileSubscriptionCard";
+
 import ProfileResumesCard from "@/components/ProfileResumesCard";
 import { useNavigate } from "react-router-dom";
 import { useUserPlan } from "@/hooks/useUserPlan";
@@ -70,9 +70,6 @@ const Profile = () => {
           
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Subscription Card */}
-            <ProfileSubscriptionCard userPlan={userPlan} />
-            
             {/* My Resumes Card */}
             <ProfileResumesCard userPlan={userPlan} />
           </div>

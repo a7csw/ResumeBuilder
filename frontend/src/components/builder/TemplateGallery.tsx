@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import TemplatePreview from '@/components/TemplatePreview';
 import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates } from '@/lib/templatesRegistry';
 import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
-import PremiumFeatureWrapper from '@/components/premium/PremiumFeatureWrapper';
+
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
 import { cn } from '@/lib/utils';
 
@@ -193,46 +193,22 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
         </div>
       </div>
       
-      {/* Basic Templates Section */}
+      {/* All Templates Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-600" />
-          <h3 className="text-xl font-semibold">Free Templates</h3>
+          <h3 className="text-xl font-semibold">All Templates</h3>
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            Included in Basic Plan
+            Completely Free
           </Badge>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {basicTemplates().map((template) => (
+          {TEMPLATES_REGISTRY.map((template) => (
             <TemplateCard
               key={template.id}
               template={template}
               onPreview={handleOpenPreview}
               isSelected={selectedTemplateId === template.id}
-            />
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Premium Templates Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Crown className="w-5 h-5 text-purple-600" />
-          <h3 className="text-xl font-semibold">Premium Templates</h3>
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            Premium Plan Required
-          </Badge>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {premiumTemplates().map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onPreview={handleOpenPreview}
-              isSelected={selectedTemplateId === template.id}
-              isPremium={true}
             />
           ))}
         </div>
@@ -245,12 +221,6 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span>Preview: {findTemplateMeta(activeTemplateId)?.name}</span>
-                {findTemplateMeta(activeTemplateId)?.plan === 'premium' && (
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                    <Crown className="w-3 h-3 mr-1" />
-                    Premium
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={() => changeTemplate(-1)} aria-label="Previous template">
