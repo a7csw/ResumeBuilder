@@ -15,24 +15,13 @@ import Index from "./pages/Index";
 const Auth = lazy(() => import("./pages/Auth"));
 const FormSelection = lazy(() => import("./pages/FormSelection"));
 const ResumeForm = lazy(() => import("./pages/ResumeForm"));
-const PlanSelection = lazy(() => import("./pages/PlanSelection"));
 const AIGeneration = lazy(() => import("./pages/AIGeneration"));
 const ResumePreview = lazy(() => import("./pages/ResumePreview"));
 const Profile = lazy(() => import("./pages/Profile"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
-const SubscriptionDetails = lazy(() => import("./pages/SubscriptionDetails"));
 const MyResumes = lazy(() => import("./pages/MyResumes"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Privacy = lazy(() => import("./pages/Privacy"));
-const RefundPolicy = lazy(() => import("./pages/refund-policy"));
 const Status = lazy(() => import("./pages/Status"));
-
-// Import new legal pages
-const TermsConditions = lazy(() => import("./pages/terms-conditions"));
-const PrivacyPolicy = lazy(() => import("./pages/privacy-policy"));
 
 // Loading component for lazy-loaded pages
 const PageLoader = () => (
@@ -65,22 +54,12 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/form-selection" element={<FormSelection />} />
                 <Route path="/form/:type" element={<ResumeForm />} />
-                <Route path="/plan-selection" element={<PlanSelection />} />
                 <Route path="/ai-generation" element={<AIGeneration />} />
                 <Route path="/resume-preview" element={<ResumePreview />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/subscription-details" element={<SubscriptionDetails />} />
                 <Route path="/my-resumes" element={<MyResumes />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/refund-policy" element={<RefundPolicy />} />
                 <Route path="/status" element={<Status />} />
-                {/* New legal pages routes */}
-                <Route path="/terms-conditions" element={<TermsConditions />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { bypassPayments } from '@/lib/env';
 
 export interface UserPlanData {
-  plan: 'free' | 'basic' | 'ai' | 'pro' | 'TEST';
+  plan: 'free';
   isActive: boolean;
   expiresAt: string | null;
   aiUsageCount: number;
   aiUsageLimit: number | null;
   exportCount: number;
   exportLimit: number | null;
-  canRefund?: boolean;
-  startedFillingAt?: string | null;
-  firstExportAt?: string | null;
 }
 
 export interface PlanCapabilities {
@@ -38,9 +34,10 @@ export function useEnhancedUserPlan() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const [userPlan, setUserPlan] = useState<UserPlanData>({
+  // Always provide free access to all features
+  const [userPlan] = useState<UserPlanData>({
     plan: 'free',
-    isActive: false,
+    isActive: true,
     expiresAt: null,
     aiUsageCount: 0,
     aiUsageLimit: null,
@@ -48,146 +45,37 @@ export function useEnhancedUserPlan() {
     exportLimit: null,
   });
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error] = useState<string>('');
 
+  // All features are now free and unlimited
   const capabilities: PlanCapabilities = {
-    canUseAI: bypassPayments() || userPlan.plan === 'ai' || userPlan.plan === 'pro',
-    canExport: bypassPayments() || userPlan.plan !== 'free',
-    canAccessTemplate: (templateId: string) => {
-      if (bypassPayments()) return true;
-      const premiumTemplates = ['modern', 'creative', 'technical', 'graduate', 'internship'];
-      if (!premiumTemplates.includes(templateId)) return true;
-      return userPlan.plan === 'ai' || userPlan.plan === 'pro';
-    },
-    hasUnlimitedAI: bypassPayments() || userPlan.plan === 'pro',
-    hasUnlimitedExport: bypassPayments() || userPlan.plan === 'pro',
+    canUseAI: true,
+    canExport: true,
+    canAccessTemplate: () => true, // All templates are free
+    hasUnlimitedAI: true,
+    hasUnlimitedExport: true,
   };
 
-  const fetchUserPlan = async () => {
-    // In test mode, grant full access without checking backend
-    if (bypassPayments()) {
-      setUserPlan({
-        plan: 'pro',
-        isActive: true,
-        expiresAt: null,
-        aiUsageCount: 0,
-        aiUsageLimit: null,
-        exportCount: 0,
-        exportLimit: null,
-      });
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('enhanced-check-user-plan');
-      
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setUserPlan({
-          plan: data.plan,
-          isActive: data.isActive,
-          expiresAt: data.expiresAt,
-          aiUsageCount: data.ai_calls_used || 0,
-          aiUsageLimit: data.ai_calls_limit,
-          exportCount: 0,
-          exportLimit: 0,
-          canRefund: data.canRefund,
-          startedFillingAt: data.startedFillingAt,
-          firstExportAt: data.firstExportAt,
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching user plan:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch plan');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserPlan();
-  }, [user]);
-
+  // Simplified functions that don't track usage since everything is free
   const incrementAIUsage = async (): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { error } = await supabase
-        .from('user_plans')
-        .update({ 
-          ai_calls_used: (userPlan.aiUsageCount || 0) + 1 
-        })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (error) throw error;
-
-      setUserPlan(prev => ({
-        ...prev,
-        aiUsageCount: (prev.aiUsageCount || 0) + 1
-      }));
-
-      return true;
-    } catch (err) {
-      console.error('Error incrementing AI usage:', err);
-      return false;
-    }
+    // Always return true since AI is unlimited and free
+    return true;
   };
 
   const incrementExportCount = async (): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { error } = await supabase
-        .from('user_plans')
-        .update({ 
-          ai_calls_used: (userPlan.exportCount || 0) + 1 
-        })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (error) throw error;
-
-      setUserPlan(prev => ({
-        ...prev,
-        exportCount: (prev.exportCount || 0) + 1
-      }));
-
-      return true;
-    } catch (err) {
-      console.error('Error incrementing export count:', err);
-      return false;
-    }
+    // Always return true since exports are unlimited and free
+    return true;
   };
 
   const refreshPlan = async () => {
-    setLoading(true);
-    setError('');
-    await fetchUserPlan();
+    // No-op since everything is free
   };
 
-  // Add missing methods for backward compatibility
-  const canUseFeature = (feature: 'ai' | 'export' | 'templates') => {
-    switch (feature) {
-      case 'ai': return capabilities.canUseAI;
-      case 'export': return capabilities.canExport;
-      case 'templates': return capabilities.canAccessTemplate('');
-      default: return false;
-    }
-  };
-
-  const canAccessTemplate = (templateId: string) => capabilities.canAccessTemplate(templateId);
-  
-  const getUpgradeMessage = (feature: string) => {
-    if (feature === 'ai') return 'AI features require an AI or Pro plan';
-    if (feature === 'export') return 'PDF export requires a paid plan';
-    return 'This feature requires an upgrade';
-  };
+  // All features are available to everyone
+  const canUseFeature = () => true;
+  const canAccessTemplate = () => true;
+  const getUpgradeMessage = () => ''; // No upgrade needed
 
   return {
     userPlan: {
