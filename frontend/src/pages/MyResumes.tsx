@@ -449,32 +449,7 @@ const MyResumes = () => {
           </>
         )}
 
-        {/* Upgrade banner for non-pro users */}
-        {!canEdit() && resumes.length > 0 && (
-          <Card className="mt-8 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border-amber-200 dark:border-amber-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                  <div>
-                    <h3 className="font-semibold text-amber-900 dark:text-amber-100">
-                      Unlock Full Editing Power
-                    </h3>
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
-                      Upgrade to Pro to edit, duplicate, and create unlimited resumes
-                    </p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => navigate('/pricing')}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  Upgrade to Pro
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
       </div>
     </div>
   );

@@ -332,7 +332,24 @@ const ResumeForm = () => {
     ));
   };
 
+  // Form validation
+  const isFormValid = () => {
+    const hasRequiredPersonalInfo = 
+      personalInfo.firstName.trim() !== "" &&
+      personalInfo.lastName.trim() !== "" &&
+      personalInfo.email.trim() !== "" &&
+      personalInfo.phone.trim() !== "";
+    
+    const hasAtLeastOneSkill = skills.some(skill => skill.name.trim() !== "");
+    
+    return hasRequiredPersonalInfo && hasAtLeastOneSkill;
+  };
+
   const handleSubmit = () => {
+    if (!isFormValid()) {
+      return;
+    }
+    
     const formData = {
       type: selectedUserType,
       personalInfo,
@@ -342,8 +359,8 @@ const ResumeForm = () => {
       skills: skills.filter(skill => skill.name.trim() !== "")
     };
     
-    // Navigate to plan selection
-    navigate("/plan-selection", { state: { formData } });
+    // Navigate to resume generated page
+    navigate("/resume-generated", { state: { formData } });
   };
 
   return (
@@ -853,17 +870,30 @@ const ResumeForm = () => {
           <div className="text-center py-8 animate-fade-in-up delay-1200">
             <Button
               onClick={handleSubmit}
+              disabled={!isFormValid()}
               size="lg"
-              className="px-12 py-6 text-lg bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              className={`px-12 py-6 text-lg shadow-xl hover:shadow-2xl transform transition-all duration-300 ${
+                isFormValid() 
+                  ? "bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 hover:scale-105" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Generate Your Resume
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3">
-              ✨ Your resume will be enhanced with AI optimization and industry insights
-            </p>
+            {!isFormValid() && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-3">
+                ⚠️ Please fill in all required fields (First Name, Last Name, Email, Phone, and at least one Skill)
+              </p>
+            )}
+            
+            {isFormValid() && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-3">
+                ✨ Your resume will be enhanced with AI optimization and industry insights
+              </p>
+            )}
           </div>
         </div>
       </div>

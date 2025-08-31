@@ -47,11 +47,7 @@ const Index = () => {
             <div className="flex items-center justify-center mb-8">
                 <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
                   <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                    Resume
-                  </span>
-                  <span className="text-slate-400 dark:text-slate-500"> </span>
-                  <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                    Builder
+                    NOVAECV
                   </span>
                 </h1>
               </div>

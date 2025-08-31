@@ -361,29 +361,10 @@ const EnhancedResumeBuilder = ({
                   Download PDF
                 </Button>
               ) : (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="bg-gradient-primary hover:opacity-90">
-                      <Lock className="w-4 h-4 mr-1" />
-                      Unlock Download
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Unlock Download Feature</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        To download your resume as PDF, upgrade to our Basic plan for just $3. 
-                        Get access to all premium templates and download capabilities.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => window.open('/pricing', '_blank')}>
-                        Upgrade Now
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button className="bg-gradient-primary hover:opacity-90">
+                  <Download className="w-4 h-4 mr-1" />
+                  Download PDF
+                </Button>
               )}
             </div>
           </div>

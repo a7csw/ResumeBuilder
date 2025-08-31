@@ -25,7 +25,6 @@ const NavigationHeader = ({
   const location = useLocation();
 
   const navigationItems = [
-    { href: "/pricing", label: "Pricing", requiresAuth: false },
   ];
 
   const isActiveRoute = (href: string) => location.pathname === href;

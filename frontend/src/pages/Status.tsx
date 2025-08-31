@@ -221,7 +221,7 @@ const Status = () => {
                 <div>/auth - Authentication</div>
                 <div>/templates - Resume Templates</div>
                 <div>/builder - Resume Builder</div>
-                <div>/pricing - Subscription Plans</div>
+
                 <div>/profile - User Profile</div>
                 <div>/api/enhanced-check-user-plan - Plan Verification</div>
                 <div>/api/enhanced-create-payment - Payment Processing</div>

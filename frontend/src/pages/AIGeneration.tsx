@@ -270,17 +270,7 @@ const AIGeneration = () => {
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                   
-                  {selectedPlan === "basic" && (
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="px-8 py-6 text-lg border-2 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/20"
-                      onClick={() => navigate("/plan-selection", { state: { formData } })}
-                    >
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      Upgrade to Pro
-                    </Button>
-                  )}
+
                 </div>
               </div>
             )}

@@ -32,14 +32,7 @@ export const Footer: React.FC = () => {
                   Templates
                 </Link>
               </li>
-              <li>
-                <Link 
-                  to="/pricing" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
+
               <li>
                 <Link 
                   to="/status" 
@@ -74,43 +67,14 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Legal */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm uppercase tracking-wider">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link 
-                  to="/terms" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/privacy" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/refund-policy" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Refund Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
+
         </div>
 
         {/* Bottom section */}
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © {currentYear} ResumeAI. All rights reserved.
+              © {currentYear} NOVAECV. All rights reserved.
             </div>
             
             {/* Social links */}

@@ -340,7 +340,6 @@ const ResumePreview = () => {
                   <Button
                     onClick={() => handleDownload(downloadFormat)}
                     className="w-full bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700"
-                    disabled={selectedPlan === "free" && downloadFormat === "word"}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download {downloadFormat.toUpperCase()}
@@ -348,47 +347,7 @@ const ResumePreview = () => {
                 </CardContent>
               </Card>
 
-              {/* Plan Upgrade (for free users) */}
-              {selectedPlan === "free" && (
-                <Card className="border-2 border-dashed border-slate-200 dark:border-slate-700">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800/50 dark:to-gray-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Crown className="w-8 h-8 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2">Upgrade to Pro</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                      Get AI enhancements, premium templates, and more download formats
-                    </p>
-                    
-                    <ul className="text-left space-y-2 mb-4">
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        Word document downloads
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        AI content optimization
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        20+ premium templates
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        Remove watermark
-                      </li>
-                    </ul>
-                    
-                    <Button 
-                      className="w-full bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700"
-                      onClick={() => navigate("/plan-selection", { state: { formData: resumeData } })}
-                    >
-                      Upgrade Now - $7/month
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+
 
               {/* Actions */}
               <Card>
