@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,12 +65,19 @@ interface Project {
 const ResumeForm = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // User state
   const [user, setUser] = useState<any>(null);
   
   // User Type State (overrides URL param)
-  const [selectedUserType, setSelectedUserType] = useState(type || "professional");
+  const [selectedUserType, setSelectedUserType] = useState(
+    isEditMode && editData?.type ? editData.type : (type || "professional")
+  );
+  
+  // Check if we're in edit mode
+  const isEditMode = location.state?.editMode || false;
+  const editData = location.state?.formData || null;
   
   // Name lock status
   const { isNameLocked, firstName, lastName, loading: nameLockLoading } = useNameLock(user?.id);
@@ -98,59 +105,69 @@ const ResumeForm = () => {
   }, []);
   
   // Personal Information
-  const [personalInfo, setPersonalInfo] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    location: "",
-    linkedin: "",
-    website: "",
-    summary: ""
-  });
+  const [personalInfo, setPersonalInfo] = useState(
+    isEditMode && editData?.personalInfo ? editData.personalInfo : {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: "",
+      website: "",
+      summary: ""
+    }
+  );
 
   // Experience
-  const [experiences, setExperiences] = useState<Experience[]>([
-    {
-      id: "1",
-      title: "",
-      company: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: ""
-    }
-  ]);
+  const [experiences, setExperiences] = useState<Experience[]>(
+    isEditMode && editData?.experiences && editData.experiences.length > 0 ? editData.experiences : [
+      {
+        id: "1",
+        title: "",
+        company: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: ""
+      }
+    ]
+  );
 
   // Education
-  const [education, setEducation] = useState<Education[]>([
-    {
-      id: "1",
-      degree: "",
-      school: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      gpa: ""
-    }
-  ]);
+  const [education, setEducation] = useState<Education[]>(
+    isEditMode && editData?.education && editData.education.length > 0 ? editData.education : [
+      {
+        id: "1",
+        degree: "",
+        school: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        gpa: ""
+      }
+    ]
+  );
 
   // Projects
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      title: "",
-      description: "",
-      technologies: "",
-      link: ""
-    }
-  ]);
+  const [projects, setProjects] = useState<Project[]>(
+    isEditMode && editData?.projects && editData.projects.length > 0 ? editData.projects : [
+      {
+        id: "1",
+        title: "",
+        description: "",
+        technologies: "",
+        link: ""
+      }
+    ]
+  );
 
   // Skills with rating
-  const [skills, setSkills] = useState<Skill[]>([
-    { id: "1", name: "", rating: 0 }
-  ]);
+  const [skills, setSkills] = useState<Skill[]>(
+    isEditMode && editData?.skills && editData.skills.length > 0 ? editData.skills : [
+      { id: "1", name: "", rating: 0 }
+    ]
+  );
 
   const getUserTypeConfig = () => {
     switch (selectedUserType) {
@@ -372,7 +389,7 @@ const ResumeForm = () => {
         <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full">
             <Star className="w-4 h-4" />
-            Step 2 of 3
+            {isEditMode ? "Editing Resume" : "Step 2 of 3"}
           </div>
           
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -383,10 +400,10 @@ const ResumeForm = () => {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-                {config.title}
+                {isEditMode ? `Edit ${config.title}` : config.title}
               </h1>
               <p className="text-slate-600 dark:text-slate-300">
-                {config.subtitle}
+                {isEditMode ? "Update your existing resume" : config.subtitle}
               </p>
             </div>
           </div>
@@ -879,7 +896,7 @@ const ResumeForm = () => {
               }`}
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Generate Your Resume
+              {isEditMode ? "Update Resume" : "Generate Your Resume"}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             

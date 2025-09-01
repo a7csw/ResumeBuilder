@@ -105,13 +105,139 @@ const ResumePreview = () => {
         document.body.appendChild(successToast);
         setTimeout(() => document.body.removeChild(successToast), 3000);
         
-      } else {
-        // Word format not implemented for free version
-        const warningToast = document.createElement('div');
-        warningToast.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg z-50';
-        warningToast.textContent = 'Word format not available. Please use PDF format.';
-        document.body.appendChild(warningToast);
-        setTimeout(() => document.body.removeChild(warningToast), 3000);
+      } else if (format === "word") {
+        // Generate Word document
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell } = await import('docx');
+        
+        // Show loading toast
+        const loadingToast = document.createElement('div');
+        loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg z-50';
+        loadingToast.textContent = 'Generating Word document...';
+        document.body.appendChild(loadingToast);
+
+        // Create Word document
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              // Header
+              new Paragraph({
+                text: `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`,
+                heading: HeadingLevel.HEADING_1,
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 200 }
+              }),
+              
+              // Contact Info
+              new Paragraph({
+                children: [
+                  new TextRun({ text: personalInfo.email || '', break: 1 }),
+                  new TextRun({ text: personalInfo.phone || '', break: 1 }),
+                  ...(personalInfo.location ? [new TextRun({ text: personalInfo.location, break: 1 })] : []),
+                  ...(personalInfo.linkedin ? [new TextRun({ text: personalInfo.linkedin, break: 1 })] : [])
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 300 }
+              }),
+
+              // Summary
+              ...(personalInfo.summary ? [
+                new Paragraph({
+                  text: "PROFESSIONAL SUMMARY",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  text: personalInfo.summary,
+                  spacing: { after: 300 }
+                })
+              ] : []),
+
+              // Experience
+              ...(experiences.length > 0 && experiences[0].title ? [
+                new Paragraph({
+                  text: "PROFESSIONAL EXPERIENCE",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                ...experiences.map(exp => [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: exp.title, bold: true }),
+                      new TextRun({ text: ` - ${exp.company}`, break: 1 }),
+                      new TextRun({ text: `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`, break: 1 })
+                    ],
+                    spacing: { after: 100 }
+                  }),
+                  ...(exp.description ? [
+                    new Paragraph({
+                      text: exp.description,
+                      spacing: { after: 200 }
+                    })
+                  ] : [])
+                ]).flat()
+              ] : []),
+
+              // Education
+              ...(education.length > 0 && education[0].degree ? [
+                new Paragraph({
+                  text: "EDUCATION",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                ...education.map(edu => [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: edu.degree, bold: true }),
+                      new TextRun({ text: ` - ${edu.school}`, break: 1 }),
+                      new TextRun({ text: `${edu.startDate} - ${edu.endDate}`, break: 1 })
+                    ],
+                    spacing: { after: 100 }
+                  }),
+                  ...(edu.gpa ? [
+                    new Paragraph({
+                      text: `GPA: ${edu.gpa}`,
+                      spacing: { after: 200 }
+                    })
+                  ] : [])
+                ]).flat()
+              ] : []),
+
+              // Skills
+              ...(skills.length > 0 ? [
+                new Paragraph({
+                  text: "SKILLS",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  text: skills.map(skill => typeof skill === 'string' ? skill : skill.name).join(', '),
+                  spacing: { after: 200 }
+                })
+              ] : [])
+            ]
+          }]
+        });
+
+        // Generate and download Word document
+        const blob = await Packer.toBlob(doc);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${personalInfo.firstName || 'Resume'}_${personalInfo.lastName || 'NOVAECV'}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        // Remove loading toast and show success
+        document.body.removeChild(loadingToast);
+        
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+        successToast.textContent = 'Word document downloaded successfully!';
+        document.body.appendChild(successToast);
+        setTimeout(() => document.body.removeChild(successToast), 3000);
       }
     } catch (error) {
       console.error('Download error:', error);
@@ -393,21 +519,20 @@ const ResumePreview = () => {
                       </div>
                     </label>
                     
-                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 opacity-50">
+                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800">
                       <input
                         type="radio"
                         name="format"
                         value="word"
                         checked={downloadFormat === "word"}
                         onChange={(e) => setDownloadFormat(e.target.value as "word")}
-                        disabled={true}
                         className="text-slate-600"
                       />
                       <FileText className="w-5 h-5 text-slate-500" />
                       <div>
                         <p className="font-medium">Word Format</p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Coming soon
+                          Easy to edit
                         </p>
                       </div>
                     </label>
