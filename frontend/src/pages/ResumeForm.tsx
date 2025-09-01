@@ -73,17 +73,26 @@ const ResumeForm = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // User Type State (overrides URL param)
-  const [selectedUserType, setSelectedUserType] = useState(
-    isEditMode && editData?.type ? editData.type : (type || "professional")
-  );
-  
   // Check if we're in edit mode
   const isEditMode = location.state?.editMode || false;
   const editData = location.state?.formData || null;
   
-  // Name lock status
-  const { isNameLocked, firstName, lastName, loading: nameLockLoading } = useNameLock(user?.id);
+  // User Type State (overrides URL param)
+  const [selectedUserType, setSelectedUserType] = useState(() => {
+    if (isEditMode && editData?.type) {
+      return editData.type;
+    }
+    return type || "professional";
+  });
+  
+  // Name lock status - only call if user exists
+  const nameLockResult = useNameLock(user?.id);
+  const { isNameLocked, firstName, lastName, loading: nameLockLoading } = nameLockResult || {
+    isNameLocked: false,
+    firstName: null,
+    lastName: null,
+    loading: false
+  };
   
   // Check authentication and load user data
   useEffect(() => {

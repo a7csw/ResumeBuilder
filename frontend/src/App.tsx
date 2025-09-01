@@ -14,7 +14,7 @@ import Index from "./pages/Index";
 // Lazy load all other pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
 const FormSelection = lazy(() => import("./pages/FormSelection"));
-const ResumeForm = lazy(() => import("./pages/ResumeForm"));
+const ResumeForm = lazy(() => import("./pages/ResumeFormSimple"));
 const AIGeneration = lazy(() => import("./pages/AIGeneration"));
 const ResumePreview = lazy(() => import("./pages/ResumePreview"));
 const ResumeGenerated = lazy(() => import("./pages/ResumeGenerated"));
