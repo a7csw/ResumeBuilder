@@ -37,15 +37,12 @@ const ResumeGenerated = () => {
   }, [location.state]);
 
   const handleDownload = () => {
-    toast({
-      title: "Download Started",
-      description: "Your resume is being prepared for download...",
-    });
-    // TODO: Implement actual download logic
+    // Redirect to preview page for download
+    navigate("/resume-preview", { state: { resumeData: formData, selectedPlan: "free" } });
   };
 
   const handleViewResume = () => {
-    navigate("/resume-preview", { state: { formData } });
+    navigate("/resume-preview", { state: { resumeData: formData, selectedPlan: "free" } });
   };
 
   const handleCreateNew = () => {

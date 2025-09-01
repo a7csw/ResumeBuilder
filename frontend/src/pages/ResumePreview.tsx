@@ -21,25 +21,108 @@ const ResumePreview = () => {
   const navigate = useNavigate();
   const resumeRef = useRef<HTMLDivElement>(null);
   
-  const { resumeData, selectedPlan } = location.state || {};
+  const { resumeData, selectedPlan = "free" } = location.state || {};
 
+  // Add error handling for missing data
   if (!resumeData) {
-    navigate("/");
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              No Resume Data Found
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              We couldn't find your resume data. Please try generating your resume again.
+            </p>
+            <Button onClick={() => navigate("/form-selection")}>
+              Start Over
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const { personalInfo, experiences, education, projects, skills, type } = resumeData;
 
   const handleDownload = async (format: "pdf" | "word") => {
-    // Mock download functionality
-    console.log(`Downloading resume as ${format.toUpperCase()}`);
-    
-    // Create a mock download
-    const element = document.createElement("a");
-    const fileName = `${personalInfo.firstName}_${personalInfo.lastName}_Resume.${format === "pdf" ? "pdf" : "docx"}`;
-    
-    // For demo purposes, we'll just show an alert
-    alert(`Your resume would be downloaded as ${fileName}`);
+    try {
+      // Since we're making everything free, we'll use a simple client-side PDF generation
+      if (format === "pdf") {
+        // Use html2canvas and jsPDF for client-side PDF generation
+        const html2canvas = (await import('html2canvas')).default;
+        const jsPDF = (await import('jspdf')).default;
+        
+        const resumeElement = resumeRef.current;
+        if (!resumeElement) {
+          throw new Error("Resume element not found");
+        }
+
+        // Show loading toast
+        const loadingToast = document.createElement('div');
+        loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg z-50';
+        loadingToast.textContent = 'Generating PDF...';
+        document.body.appendChild(loadingToast);
+
+        // Capture the resume as canvas
+        const canvas = await html2canvas(resumeElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+
+        // Create PDF
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Download the PDF
+        const fileName = `${personalInfo.firstName || 'Resume'}_${personalInfo.lastName || 'NOVAECV'}.pdf`;
+        pdf.save(fileName);
+
+        // Remove loading toast and show success
+        document.body.removeChild(loadingToast);
+        
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+        successToast.textContent = 'PDF downloaded successfully!';
+        document.body.appendChild(successToast);
+        setTimeout(() => document.body.removeChild(successToast), 3000);
+        
+      } else {
+        // Word format not implemented for free version
+        const warningToast = document.createElement('div');
+        warningToast.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg z-50';
+        warningToast.textContent = 'Word format not available. Please use PDF format.';
+        document.body.appendChild(warningToast);
+        setTimeout(() => document.body.removeChild(warningToast), 3000);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      
+      // Show error toast
+      const errorToast = document.createElement('div');
+      errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
+      errorToast.textContent = 'Download failed. Please try again.';
+      document.body.appendChild(errorToast);
+      setTimeout(() => document.body.removeChild(errorToast), 3000);
+    }
   };
 
   const handleEdit = () => {
@@ -184,7 +267,7 @@ const ResumePreview = () => {
                 key={index}
                 className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm"
               >
-                {skill}
+                {typeof skill === 'string' ? skill : skill.name}
               </span>
             ))}
           </div>
@@ -204,7 +287,7 @@ const ResumePreview = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
-      <NavigationHeader showBackButton={true} backTo="/ai-generation" />
+      <NavigationHeader showBackButton={true} backTo="/resume-generated" />
       
       <div className="container px-6 py-8 mx-auto">
         <div className="max-w-7xl mx-auto">
@@ -310,28 +393,21 @@ const ResumePreview = () => {
                       </div>
                     </label>
                     
-                    <label className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                      selectedPlan === "free" ? "opacity-50" : ""
-                    }`}>
+                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 opacity-50">
                       <input
                         type="radio"
                         name="format"
                         value="word"
                         checked={downloadFormat === "word"}
                         onChange={(e) => setDownloadFormat(e.target.value as "word")}
-                        disabled={selectedPlan === "free"}
+                        disabled={true}
                         className="text-slate-600"
                       />
                       <FileText className="w-5 h-5 text-slate-500" />
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">Word Format</p>
-                          {selectedPlan === "free" && (
-                            <Crown className="w-4 h-4 text-slate-500" />
-                          )}
-                        </div>
+                        <p className="font-medium">Word Format</p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {selectedPlan === "free" ? "Pro feature" : "Easy to edit"}
+                          Coming soon
                         </p>
                       </div>
                     </label>
