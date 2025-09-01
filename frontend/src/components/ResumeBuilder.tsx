@@ -251,14 +251,6 @@ const ResumeBuilder = ({ userType, buildingMode, isStudent, canUseAI, canExportP
       });
 
       if (error) {
-        if (error.message === 'Payment required') {
-          toast({
-            title: "Payment Required",
-            description: "Please upgrade to a paid plan to export resumes.",
-            variant: "destructive",
-          });
-          return;
-        }
         throw error;
       }
 

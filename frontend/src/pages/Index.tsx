@@ -236,14 +236,7 @@ const Index = () => {
             Free Resume Builder
           </div>
           <p className="text-slate-400 mb-4">Create professional resumes with AI assistance - completely free</p>
-          <div className="flex justify-center space-x-6">
-            <Link 
-              to="/terms" 
-              className="text-slate-400 hover:text-white transition-colors duration-300 text-sm"
-            >
-              About
-            </Link>
-          </div>
+
         </div>
       </footer>
     </div>
