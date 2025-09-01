@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import NavigationHeader from "@/components/NavigationHeader";
+import { safeNavigate } from "@/lib/navigation";
 import { 
   Star, 
   Briefcase, 
@@ -58,7 +59,21 @@ const FormSelection = () => {
 
   const handleContinue = () => {
     if (selectedType) {
-      navigate(`/form/${selectedType}`);
+      try {
+        // Validate the selected type
+        const validTypes = ['professional', 'freelancer', 'student'];
+        if (!validTypes.includes(selectedType)) {
+          console.error('Invalid user type selected:', selectedType);
+          return;
+        }
+        
+        // Use safe navigation
+        safeNavigate(navigate, `/form/${selectedType}`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback to home page
+        window.location.href = '/';
+      }
     }
   };
 

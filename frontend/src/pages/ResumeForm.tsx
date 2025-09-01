@@ -70,6 +70,8 @@ const ResumeForm = () => {
   
   // User state
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // User Type State (overrides URL param)
   const [selectedUserType, setSelectedUserType] = useState(
@@ -86,9 +88,25 @@ const ResumeForm = () => {
   // Check authentication and load user data
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Validate the type parameter
+        if (!type || !['professional', 'freelancer', 'student'].includes(type)) {
+          setError('Invalid resume type. Please select a valid type.');
+          return;
+        }
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUser(session.user);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setError('Failed to load user session. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -103,7 +121,7 @@ const ResumeForm = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [type]);
   
   // Personal Information
   const [personalInfo, setPersonalInfo] = useState(
@@ -383,6 +401,51 @@ const ResumeForm = () => {
     // Navigate to resume generated page
     navigate("/resume-generated", { state: { formData } });
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader showBackButton={true} backTo="/form-selection" />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-slate-600 mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              Loading Resume Form...
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300">
+              Please wait while we prepare your customized form
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader showBackButton={true} backTo="/form-selection" />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              Something went wrong
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              {error}
+            </p>
+            <Button onClick={() => navigate("/form-selection")}>
+              Back to Form Selection
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
