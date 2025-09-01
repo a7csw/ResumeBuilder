@@ -10,6 +10,7 @@ import NavigationHeader from "@/components/NavigationHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useNameLock } from "@/hooks/useNameLock";
 import LockedNameField from "@/components/LockedNameField";
+import { localStorage_, safeNavigate } from "@/lib/navigation";
 import { 
   Plus, 
   Trash2, 
@@ -375,6 +376,9 @@ const ResumeForm = () => {
       projects,
       skills: skills.filter(skill => skill.name.trim() !== "")
     };
+    
+    // Save to localStorage as backup
+    localStorage_.set('resumeFormData', formData);
     
     // Navigate to resume generated page
     navigate("/resume-generated", { state: { formData } });

@@ -53,7 +53,7 @@ const AIGeneration = () => {
 
   useEffect(() => {
     if (!formData) {
-      navigate("/");
+      navigate("/form-selection", { replace: true });
       return;
     }
 

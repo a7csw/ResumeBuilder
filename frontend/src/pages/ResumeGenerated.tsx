@@ -14,6 +14,7 @@ import {
   Share2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { localStorage_, validateResumeData, safeNavigate } from "@/lib/navigation";
 
 const ResumeGenerated = () => {
   const location = useLocation();
@@ -23,9 +24,19 @@ const ResumeGenerated = () => {
   const [isGenerating, setIsGenerating] = useState(true);
 
   useEffect(() => {
-    // Get form data from navigation state
-    if (location.state?.formData) {
-      setFormData(location.state.formData);
+    // Get form data from navigation state or localStorage
+    let data = location.state?.formData;
+    
+    if (!data) {
+      data = localStorage_.get('resumeFormData');
+    }
+    
+    if (data && validateResumeData(data)) {
+      setFormData(data);
+    } else {
+      // If no valid form data is available, redirect to form selection
+      safeNavigate(navigate, "/form-selection", { replace: true });
+      return;
     }
     
     // Simulate generation process
@@ -34,7 +45,7 @@ const ResumeGenerated = () => {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const handleDownload = () => {
     // Redirect to preview page for download
@@ -46,7 +57,7 @@ const ResumeGenerated = () => {
   };
 
   const handleCreateNew = () => {
-    navigate("/form-selection");
+    safeNavigate(navigate, "/form-selection");
   };
 
   if (isGenerating) {

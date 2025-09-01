@@ -21,7 +21,19 @@ const ResumePreview = () => {
   const navigate = useNavigate();
   const resumeRef = useRef<HTMLDivElement>(null);
   
-  const { resumeData, selectedPlan = "free" } = location.state || {};
+  let { resumeData, selectedPlan = "free" } = location.state || {};
+
+  // Try to get data from localStorage if not in navigation state
+  if (!resumeData) {
+    try {
+      const savedData = localStorage.getItem('resumeFormData');
+      if (savedData) {
+        resumeData = JSON.parse(savedData);
+      }
+    } catch (error) {
+      console.warn('Could not load form data from localStorage:', error);
+    }
+  }
 
   // Add error handling for missing data
   if (!resumeData) {

@@ -31,6 +31,15 @@ const PageLoader = () => (
   </div>
 );
 
+// Route wrapper with individual error boundaries
+const RouteWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<PageLoader />}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -49,23 +58,21 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <TestModeBanner />
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/form-selection" element={<FormSelection />} />
-                <Route path="/form/:type" element={<ResumeForm />} />
-                <Route path="/ai-generation" element={<AIGeneration />} />
-                <Route path="/resume-preview" element={<ResumePreview />} />
-                <Route path="/resume-generated" element={<ResumeGenerated />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/my-resumes" element={<MyResumes />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/status" element={<Status />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <Routes>
+              <Route path="/" element={<RouteWrapper><Index /></RouteWrapper>} />
+              <Route path="/auth" element={<RouteWrapper><Auth /></RouteWrapper>} />
+              <Route path="/form-selection" element={<RouteWrapper><FormSelection /></RouteWrapper>} />
+              <Route path="/form/:type" element={<RouteWrapper><ResumeForm /></RouteWrapper>} />
+              <Route path="/ai-generation" element={<RouteWrapper><AIGeneration /></RouteWrapper>} />
+              <Route path="/resume-preview" element={<RouteWrapper><ResumePreview /></RouteWrapper>} />
+              <Route path="/resume-generated" element={<RouteWrapper><ResumeGenerated /></RouteWrapper>} />
+              <Route path="/profile" element={<RouteWrapper><Profile /></RouteWrapper>} />
+              <Route path="/my-resumes" element={<RouteWrapper><MyResumes /></RouteWrapper>} />
+              <Route path="/reset-password" element={<RouteWrapper><ResetPassword /></RouteWrapper>} />
+              <Route path="/status" element={<RouteWrapper><Status /></RouteWrapper>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<RouteWrapper><NotFound /></RouteWrapper>} />
+            </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
