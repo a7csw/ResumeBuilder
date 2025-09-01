@@ -184,6 +184,39 @@ const ResumeFormSimple = () => {
   };
 
   const config = getUserTypeConfig();
+
+  // Star Rating Component
+  const StarRating = ({ value, onChange, skillId }: { value: number; onChange: (rating: number) => void; skillId: string }) => {
+    const [hoverRating, setHoverRating] = useState<number>(0);
+
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            className={`w-6 h-6 transition-colors ${
+              star <= (hoverRating || value)
+                ? 'text-yellow-400 fill-current'
+                : 'text-gray-300 hover:text-yellow-300'
+            }`}
+            onClick={() => onChange(star)}
+            onMouseEnter={() => setHoverRating(star)}
+            onMouseLeave={() => setHoverRating(0)}
+          >
+            <Star className="w-full h-full" />
+          </button>
+        ))}
+        <span className="ml-2 text-sm text-slate-600 dark:text-slate-400 min-w-[80px]">
+          {value === 0 ? 'Not rated' : 
+           value === 1 ? 'Beginner' :
+           value === 2 ? 'Novice' :
+           value === 3 ? 'Intermediate' :
+           value === 4 ? 'Advanced' : 'Expert'}
+        </span>
+      </div>
+    );
+  };
   
   // Check authentication and load user data
   useEffect(() => {
@@ -330,7 +363,7 @@ const ResumeFormSimple = () => {
     ));
   };
 
-  // Form validation
+  // Form validation based on user type
   const isFormValid = () => {
     const hasRequiredPersonalInfo = 
       personalInfo.firstName.trim() !== "" &&
@@ -340,7 +373,21 @@ const ResumeFormSimple = () => {
     
     const hasAtLeastOneSkill = skills.some(skill => skill.name.trim() !== "");
     
-    return hasRequiredPersonalInfo && hasAtLeastOneSkill;
+    // User type specific validations
+    let userTypeValidation = true;
+    
+    if (selectedUserType === "student") {
+      // Students require education
+      userTypeValidation = education.some(edu => edu.degree.trim() !== "" && edu.school.trim() !== "");
+    } else if (selectedUserType === "professional") {
+      // Professionals require experience
+      userTypeValidation = experiences.some(exp => exp.title.trim() !== "" && exp.company.trim() !== "");
+    } else if (selectedUserType === "freelancer") {
+      // Freelancers require projects
+      userTypeValidation = projects.some(proj => proj.title.trim() !== "" && proj.description.trim() !== "");
+    }
+    
+    return hasRequiredPersonalInfo && hasAtLeastOneSkill && userTypeValidation;
   };
 
   const handleSubmit = () => {
@@ -571,6 +618,7 @@ const ResumeFormSimple = () => {
               <CardTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
                 Professional Experience
+                {selectedUserType === "professional" && <span className="text-red-500">*</span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -664,6 +712,7 @@ const ResumeFormSimple = () => {
               <CardTitle className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5" />
                 Education
+                {selectedUserType === "student" && <span className="text-red-500">*</span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -747,6 +796,7 @@ const ResumeFormSimple = () => {
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-5 h-5" />
                 Projects
+                {selectedUserType === "freelancer" && <span className="text-red-500">*</span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -818,44 +868,45 @@ const ResumeFormSimple = () => {
                 <span className="text-red-500">*</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {skills.map((skill, index) => (
-                <div key={skill.id} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <Label>Skill Name</Label>
-                    <Input
-                      value={skill.name}
-                      onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
-                      placeholder="JavaScript"
-                      required
-                    />
-                  </div>
-                  <div className="w-32">
-                    <Label>Proficiency</Label>
-                    <select
-                      value={skill.rating}
-                      onChange={(e) => updateSkill(skill.id, 'rating', parseInt(e.target.value))}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value={0}>Beginner</option>
-                      <option value={1}>Novice</option>
-                      <option value={2}>Intermediate</option>
-                      <option value={3}>Advanced</option>
-                      <option value={4}>Expert</option>
-                    </select>
-                  </div>
-                  {skills.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeSkill(skill.id)}
-                      className="text-red-600 hover:text-red-700 mt-6"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+                         <CardContent className="space-y-6">
+               {skills.map((skill, index) => (
+                 <div key={skill.id} className="p-4 border rounded-lg">
+                   <div className="flex items-start justify-between mb-4">
+                     <h4 className="font-medium">Skill {index + 1}</h4>
+                     {skills.length > 1 && (
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => removeSkill(skill.id)}
+                         className="text-red-600 hover:text-red-700"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </Button>
+                     )}
+                   </div>
+                   <div className="space-y-4">
+                     <div>
+                       <Label>Skill Name</Label>
+                       <Input
+                         value={skill.name}
+                         onChange={(e) => updateSkill(skill.id, 'name', e.target.value)}
+                         placeholder="JavaScript, React, Node.js, etc."
+                         required
+                       />
+                     </div>
+                     <div>
+                       <Label>Proficiency Level</Label>
+                       <div className="mt-2">
+                         <StarRating
+                           value={skill.rating}
+                           onChange={(rating) => updateSkill(skill.id, 'rating', rating)}
+                           skillId={skill.id}
+                         />
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               ))}
               <Button onClick={addSkill} variant="outline" className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Skill
@@ -882,11 +933,14 @@ const ResumeFormSimple = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             
-            {!isFormValid() && (
-              <p className="text-sm text-red-500 mt-4">
-                Please fill in all required fields (First Name, Last Name, Email, Phone, and at least one Skill)
-              </p>
-            )}
+                         {!isFormValid() && (
+               <p className="text-sm text-red-500 mt-4">
+                 Please fill in all required fields: Personal Information (First Name, Last Name, Email, Phone), at least one Skill
+                 {selectedUserType === "student" && ", and Education"}
+                 {selectedUserType === "professional" && ", and Professional Experience"}
+                 {selectedUserType === "freelancer" && ", and Projects"}
+               </p>
+             )}
           </div>
         </div>
       </div>
