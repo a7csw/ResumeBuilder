@@ -367,9 +367,13 @@ const ResumeFormSimple = () => {
   const getValidationErrors = (): string[] => {
     const errors: string[] = [];
 
+    // Use locked names if present
+    const effectiveFirstName = (personalInfo.firstName || firstName || "").trim();
+    const effectiveLastName = (personalInfo.lastName || lastName || "").trim();
+
     // Personal info
-    if (personalInfo.firstName.trim() === "") errors.push("First Name");
-    if (personalInfo.lastName.trim() === "") errors.push("Last Name");
+    if (effectiveFirstName === "") errors.push("First Name");
+    if (effectiveLastName === "") errors.push("Last Name");
     if (personalInfo.email.trim() === "") errors.push("Email");
     if (personalInfo.phone.trim() === "") errors.push("Phone");
 
@@ -401,19 +405,27 @@ const ResumeFormSimple = () => {
     if (!isFormValid()) {
       return;
     }
-    
+
+    // Use locked names on submit if present
+    const effectiveFirstName = (personalInfo.firstName || firstName || "").trim();
+    const effectiveLastName = (personalInfo.lastName || lastName || "").trim();
+
     const formData = {
       type: selectedUserType,
-      personalInfo,
+      personalInfo: {
+        ...personalInfo,
+        firstName: effectiveFirstName,
+        lastName: effectiveLastName,
+      },
       experiences,
       education,
       projects,
       skills: skills.filter(skill => skill.name.trim() !== "")
     };
-    
+
     // Save to localStorage as backup
     localStorage_.set('resumeFormData', formData);
-    
+
     // Navigate to resume generated page
     navigate("/resume-generated", { state: { formData } });
   };
