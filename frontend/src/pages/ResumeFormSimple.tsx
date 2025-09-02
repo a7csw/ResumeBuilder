@@ -364,31 +364,38 @@ const ResumeFormSimple = () => {
   };
 
   // Form validation based on user type
-  const isFormValid = () => {
-    const hasRequiredPersonalInfo = 
-      personalInfo.firstName.trim() !== "" &&
-      personalInfo.lastName.trim() !== "" &&
-      personalInfo.email.trim() !== "" &&
-      personalInfo.phone.trim() !== "";
-    
-    const hasAtLeastOneSkill = skills.some(skill => skill.name.trim() !== "");
-    
-    // User type specific validations
-    let userTypeValidation = true;
-    
+  const getValidationErrors = (): string[] => {
+    const errors: string[] = [];
+
+    // Personal info
+    if (personalInfo.firstName.trim() === "") errors.push("First Name");
+    if (personalInfo.lastName.trim() === "") errors.push("Last Name");
+    if (personalInfo.email.trim() === "") errors.push("Email");
+    if (personalInfo.phone.trim() === "") errors.push("Phone");
+
+    // Skills
+    const hasSkill = skills.some(s => s.name.trim() !== "");
+    if (!hasSkill) errors.push("At least one Skill");
+
+    // User-type specific
     if (selectedUserType === "student") {
-      // Students require education
-      userTypeValidation = education.some(edu => edu.degree.trim() !== "" && edu.school.trim() !== "");
-    } else if (selectedUserType === "professional") {
-      // Professionals require experience
-      userTypeValidation = experiences.some(exp => exp.title.trim() !== "" && exp.company.trim() !== "");
-    } else if (selectedUserType === "freelancer") {
-      // Freelancers require projects
-      userTypeValidation = projects.some(proj => proj.title.trim() !== "" && proj.description.trim() !== "");
+      const hasEdu = education.some(e => e.degree.trim() !== "" && e.school.trim() !== "");
+      if (!hasEdu) errors.push("Education (Degree and School)");
+      // Note: Start/End dates are optional by design
     }
-    
-    return hasRequiredPersonalInfo && hasAtLeastOneSkill && userTypeValidation;
+    if (selectedUserType === "professional") {
+      const hasExp = experiences.some(e => e.title.trim() !== "" && e.company.trim() !== "");
+      if (!hasExp) errors.push("Professional Experience (Title and Company)");
+    }
+    if (selectedUserType === "freelancer") {
+      const hasProj = projects.some(p => p.title.trim() !== "" && p.description.trim() !== "");
+      if (!hasProj) errors.push("Projects (Title and Description)");
+    }
+
+    return errors;
   };
+
+  const isFormValid = () => getValidationErrors().length === 0;
 
   const handleSubmit = () => {
     if (!isFormValid()) {
@@ -733,7 +740,7 @@ const ResumeFormSimple = () => {
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Degree</Label>
+                      <Label>Degree {selectedUserType === "student" && <span className="text-red-500">*</span>}</Label>
                       <Input
                         value={edu.degree}
                         onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
@@ -741,7 +748,7 @@ const ResumeFormSimple = () => {
                       />
                     </div>
                     <div>
-                      <Label>School</Label>
+                      <Label>School {selectedUserType === "student" && <span className="text-red-500">*</span>}</Label>
                       <Input
                         value={edu.school}
                         onChange={(e) => updateEducation(edu.id, 'school', e.target.value)}
@@ -749,7 +756,7 @@ const ResumeFormSimple = () => {
                       />
                     </div>
                     <div>
-                      <Label>Location</Label>
+                      <Label>Location (Optional)</Label>
                       <Input
                         value={edu.location}
                         onChange={(e) => updateEducation(edu.id, 'location', e.target.value)}
@@ -757,7 +764,7 @@ const ResumeFormSimple = () => {
                       />
                     </div>
                     <div>
-                      <Label>Start Date</Label>
+                      <Label>Start Date (Optional)</Label>
                       <Input
                         type="month"
                         value={edu.startDate}
@@ -765,7 +772,7 @@ const ResumeFormSimple = () => {
                       />
                     </div>
                     <div>
-                      <Label>End Date</Label>
+                      <Label>End Date (Optional)</Label>
                       <Input
                         type="month"
                         value={edu.endDate}
@@ -935,10 +942,7 @@ const ResumeFormSimple = () => {
             
                          {!isFormValid() && (
                <p className="text-sm text-red-500 mt-4">
-                 Please fill in all required fields: Personal Information (First Name, Last Name, Email, Phone), at least one Skill
-                 {selectedUserType === "student" && ", and Education"}
-                 {selectedUserType === "professional" && ", and Professional Experience"}
-                 {selectedUserType === "freelancer" && ", and Projects"}
+                 Please fill in all required fields: {getValidationErrors().join(', ')}
                </p>
              )}
           </div>
