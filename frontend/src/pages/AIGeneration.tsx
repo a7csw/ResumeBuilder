@@ -77,18 +77,11 @@ const AIGeneration = () => {
   }, [formData, navigate, steps]);
 
   const handleViewResume = () => {
-    // Generate mock resume data
-    const mockResumeData = {
-      ...formData,
-      plan: selectedPlan,
-      generatedAt: new Date().toISOString(),
-      aiEnhanced: selectedPlan === "pro"
-    };
-
-    navigate("/resume-preview", { 
+    // Navigate to resume generated page
+    navigate("/resume-generated", { 
       state: { 
-        resumeData: mockResumeData,
-        selectedPlan 
+        formData: formData,
+        selectedPlan: "free" 
       } 
     });
   };

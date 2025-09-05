@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,7 +24,33 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   const [open, setOpen] = useState(false);
   const [activeTemplateId, setActiveTemplateId] = useState(selectedTemplateId);
   const [activeColor, setActiveColor] = useState(selectedColor || 'indigo');
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const { downloadPdf, isDownloading } = useDownloadPdf();
+
+  // Debounced template selection to prevent flickering
+  const [debouncedTemplateId, setDebouncedTemplateId] = useState(selectedTemplateId);
+  const [debouncedColor, setDebouncedColor] = useState(selectedColor || 'indigo');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTemplateId(activeTemplateId);
+      setDebouncedColor(activeColor);
+    }, 150); // 150ms debounce
+
+    return () => clearTimeout(timer);
+  }, [activeTemplateId, activeColor]);
+
+  // Handle template selection with loading state
+  const handleTemplateSelect = useCallback((templateId: string, color: string) => {
+    setIsPreviewLoading(true);
+    setActiveTemplateId(templateId);
+    setActiveColor(color);
+    
+    // Simulate loading time for smooth transition
+    setTimeout(() => {
+      setIsPreviewLoading(false);
+    }, 200);
+  }, []);
 
   const basicCount = basicTemplates().length;
   const premiumCount = premiumTemplates().length;
@@ -71,8 +97,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
     const idx = templates.findIndex(t => t.id === activeTemplateId);
     const nextIdx = (idx + dir + templates.length) % templates.length;
     const next = templates[nextIdx];
-    setActiveTemplateId(next.id);
-    setActiveColor(next.colors[0]?.id || 'indigo');
+    handleTemplateSelect(next.id, next.colors[0]?.id || 'indigo');
   };
 
   const handleExport = async () => {
@@ -237,13 +262,19 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
             <div className="lg:col-span-3">
               <ScrollArea className="h-full">
                 <div className="border rounded-lg p-6 bg-white">
-                  <TemplatePreview 
-                    resumeData={resumeData}
-                    userType={mode}
-                    templateId={activeTemplateId}
-                    colorVariant={activeColor}
-                    isPreview={false}
-                  />
+                  {isPreviewLoading ? (
+                    <div className="flex items-center justify-center h-96">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+                    </div>
+                  ) : (
+                    <TemplatePreview 
+                      resumeData={resumeData}
+                      userType={mode}
+                      templateId={debouncedTemplateId}
+                      colorVariant={debouncedColor}
+                      isPreview={false}
+                    />
+                  )}
                 </div>
               </ScrollArea>
             </div>
@@ -263,7 +294,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
                         "flex flex-col items-center gap-1 p-2 rounded-lg border transition-all",
                         activeColor === c.id ? 'ring-2 ring-primary border-primary bg-primary/5' : 'hover:border-muted-foreground'
                       )}
-                      onClick={() => setActiveColor(c.id)}
+                      onClick={() => handleTemplateSelect(activeTemplateId, c.id)}
                       aria-label={`Color ${c.label}`}
                     >
                       <div 
