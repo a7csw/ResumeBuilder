@@ -960,12 +960,12 @@ const ResumeForm = () => {
           </Card>
 
           {/* Submit Button */}
-          <div className="text-center py-8 animate-fade-in-up delay-1200">
+          <div className="text-center py-8 px-4 sm:px-0 animate-fade-in-up delay-1200">
             <Button
               onClick={handleSubmit}
               disabled={!isFormValid()}
               size="lg"
-              className={`px-12 py-6 text-lg shadow-xl hover:shadow-2xl transform transition-all duration-300 ${
+              className={`w-full sm:w-auto px-8 sm:px-12 py-6 text-lg shadow-xl hover:shadow-2xl transform transition-all duration-300 ${
                 isFormValid() 
                   ? "bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 hover:scale-105" 
                   : "bg-gray-400 cursor-not-allowed"

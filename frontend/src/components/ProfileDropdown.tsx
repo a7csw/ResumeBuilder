@@ -83,10 +83,21 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
   };
 
   const getDisplayName = () => {
-    if (profile?.first_name) {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    } else if (profile?.first_name) {
       return profile.first_name;
     }
     return user.email?.split('@')[0] || "User";
+  };
+
+  const getFullDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    } else if (profile?.first_name) {
+      return profile.first_name;
+    }
+    return user.email || "User";
   };
 
   if (loading) {
@@ -101,14 +112,18 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2 transition-smooth hover:bg-accent/50">
-          <Avatar className="w-8 h-8">
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2 h-auto p-2 transition-smooth hover:bg-accent/50 max-w-[200px]"
+          title={getFullDisplayName()}
+        >
+          <Avatar className="w-9 h-9 flex-shrink-0">
             <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback className="bg-gradient-to-br from-slate-600 to-gray-600 text-white font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-slate-600 to-gray-600 text-white font-medium text-sm">
               {getInitials()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium">{getDisplayName()}</span>
+          <span className="text-sm font-medium truncate min-w-0">{getDisplayName()}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

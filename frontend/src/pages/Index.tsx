@@ -62,11 +62,11 @@ const Index = () => {
             </p>
             
             {/* CTA Button */}
-            <div>
+            <div className="px-4 sm:px-0">
               <Button 
                 onClick={handleBuildResume}
                 size="lg" 
-                className="px-12 py-6 text-lg bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                className="w-full sm:w-auto px-8 sm:px-12 py-6 text-lg bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Create My Resume
@@ -216,15 +216,17 @@ const Index = () => {
             <p className="text-xl text-slate-200 max-w-2xl mx-auto">
               Create professional resumes with AI assistance - completely free and unlimited
             </p>
-            <Button 
-              onClick={handleBuildResume}
-              size="lg" 
-              variant="outline"
-              className="px-12 py-6 text-lg bg-white text-slate-700 hover:bg-slate-50 border-0 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-            >
-              Start Building Now
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <div className="px-4 sm:px-0">
+              <Button 
+                onClick={handleBuildResume}
+                size="lg" 
+                variant="outline"
+                className="w-full sm:w-auto px-8 sm:px-12 py-6 text-lg bg-white text-slate-700 hover:bg-slate-50 border-0 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              >
+                Start Building Now
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>

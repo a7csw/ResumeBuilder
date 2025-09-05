@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -10,6 +10,7 @@ import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates 
 import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
 
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
+import { usePreventScroll } from '@/hooks/usePreventScroll';
 import { cn } from '@/lib/utils';
 
 interface TemplateGalleryProps {
@@ -30,6 +31,9 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   // Debounced template selection to prevent flickering
   const [debouncedTemplateId, setDebouncedTemplateId] = useState(selectedTemplateId);
   const [debouncedColor, setDebouncedColor] = useState(selectedColor || 'indigo');
+
+  // Prevent background scrolling when dialog is open
+  usePreventScroll(open);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -256,6 +260,9 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
                 </Button>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              Preview and customize your resume template. Use the navigation buttons to browse different templates and select colors on the right.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full overflow-hidden">
