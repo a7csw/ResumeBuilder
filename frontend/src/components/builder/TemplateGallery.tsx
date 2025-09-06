@@ -10,7 +10,7 @@ import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates 
 import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
 
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
-import { usePreventScroll } from '@/hooks/usePreventScroll';
+import { useScrollManager } from '@/hooks/useScrollManager';
 import { cn } from '@/lib/utils';
 
 interface TemplateGalleryProps {
@@ -33,7 +33,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   const [debouncedColor, setDebouncedColor] = useState(selectedColor || 'indigo');
 
   // Prevent background scrolling when dialog is open
-  usePreventScroll(open);
+  useScrollManager(open);
 
   useEffect(() => {
     const timer = setTimeout(() => {

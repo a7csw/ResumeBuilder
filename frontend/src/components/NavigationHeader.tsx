@@ -6,7 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import ProfileDropdown from "@/components/ProfileDropdown";
-import { usePreventScroll } from "@/hooks/usePreventScroll";
+import { useScrollManager } from "@/hooks/useScrollManager";
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
@@ -26,7 +26,7 @@ const NavigationHeader = ({
   const location = useLocation();
 
   // Prevent background scrolling when mobile menu is open
-  usePreventScroll(mobileMenuOpen);
+  useScrollManager(mobileMenuOpen);
 
   const navigationItems = [
   ];
