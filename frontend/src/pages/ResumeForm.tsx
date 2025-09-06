@@ -63,6 +63,13 @@ interface Project {
   link?: string;
 }
 
+interface Certificate {
+  id: string;
+  name: string;
+  issuingOrganization: string;
+  dateIssued: string;
+}
+
 const ResumeForm = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
@@ -195,6 +202,11 @@ const ResumeForm = () => {
     isEditMode && editData?.skills && editData.skills.length > 0 ? editData.skills : [
       { id: "1", name: "", rating: 0 }
     ]
+  );
+
+  // Certificates
+  const [certificates, setCertificates] = useState<Certificate[]>(
+    isEditMode && editData?.certificates && editData.certificates.length > 0 ? editData.certificates : []
   );
 
   const getUserTypeConfig = () => {
@@ -377,6 +389,27 @@ const ResumeForm = () => {
     ));
   };
 
+  // Certificate functions
+  const addCertificate = () => {
+    const newCertificate: Certificate = {
+      id: Date.now().toString(),
+      name: "",
+      issuingOrganization: "",
+      dateIssued: ""
+    };
+    setCertificates([...certificates, newCertificate]);
+  };
+
+  const removeCertificate = (id: string) => {
+    setCertificates(certificates.filter(cert => cert.id !== id));
+  };
+
+  const updateCertificate = (id: string, field: string, value: string) => {
+    setCertificates(certificates.map(cert => 
+      cert.id === id ? { ...cert, [field]: value } : cert
+    ));
+  };
+
   // Form validation
   const isFormValid = () => {
     const hasRequiredPersonalInfo = 
@@ -401,7 +434,8 @@ const ResumeForm = () => {
       experiences,
       education,
       projects,
-      skills: skills.filter(skill => skill.name.trim() !== "")
+      skills: skills.filter(skill => skill.name.trim() !== ""),
+      certificates: certificates.filter(cert => cert.name.trim() !== "")
     };
     
     // Save to localStorage as backup
@@ -886,6 +920,78 @@ const ResumeForm = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Certificates (Optional) */}
+          <Card className="animate-fade-in-up delay-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                Certificates (Optional)
+                <span className="text-slate-500 text-sm">(Optional)</span>
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Add any professional certifications or licenses you have earned
+              </p>
+            </CardHeader>
+            <CardContent>
+              {certificates.map((certificate, index) => (
+                <div key={certificate.id} className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg mb-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-4">
+                    <h5 className="font-medium text-slate-700 dark:text-slate-300">Certificate {index + 1}</h5>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCertificate(certificate.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Certificate Name</Label>
+                      <Input
+                        value={certificate.name}
+                        onChange={(e) => updateCertificate(certificate.id, "name", e.target.value)}
+                        placeholder="e.g., AWS Certified Solutions Architect"
+                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Issuing Organization</Label>
+                      <Input
+                        value={certificate.issuingOrganization}
+                        onChange={(e) => updateCertificate(certificate.id, "issuingOrganization", e.target.value)}
+                        placeholder="e.g., Amazon Web Services"
+                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <Label>Date Issued (Optional)</Label>
+                      <Input
+                        type="date"
+                        value={certificate.dateIssued}
+                        onChange={(e) => updateCertificate(certificate.id, "dateIssued", e.target.value)}
+                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              <Button
+                variant="outline"
+                onClick={addCertificate}
+                className="w-full border-2 border-dashed border-slate-300 hover:border-slate-500 hover:bg-slate-50 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Certificate
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Skills with Star Rating */}
           <Card className="animate-fade-in-up delay-1000">
