@@ -922,7 +922,7 @@ const ResumeForm = () => {
           )}
 
           {/* Certificates (Optional) - Available for all user types */}
-          <Card className="animate-fade-in-up delay-900 border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
+          <Card className="animate-fade-in-up delay-900 border-2 border-red-500 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-t-lg">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg">
