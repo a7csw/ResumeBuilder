@@ -921,74 +921,122 @@ const ResumeForm = () => {
             </Card>
           )}
 
-          {/* Certificates (Optional) */}
-          <Card className="animate-fade-in-up delay-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="w-5 h-5" />
-                Certificates (Optional)
-                <span className="text-slate-500 text-sm">(Optional)</span>
-              </CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Add any professional certifications or licenses you have earned
-              </p>
-            </CardHeader>
-            <CardContent>
-              {certificates.map((certificate, index) => (
-                <div key={certificate.id} className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg mb-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-center mb-4">
-                    <h5 className="font-medium text-slate-700 dark:text-slate-300">Certificate {index + 1}</h5>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCertificate(certificate.id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Certificate Name</Label>
-                      <Input
-                        value={certificate.name}
-                        onChange={(e) => updateCertificate(certificate.id, "name", e.target.value)}
-                        placeholder="e.g., AWS Certified Solutions Architect"
-                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Issuing Organization</Label>
-                      <Input
-                        value={certificate.issuingOrganization}
-                        onChange={(e) => updateCertificate(certificate.id, "issuingOrganization", e.target.value)}
-                        placeholder="e.g., Amazon Web Services"
-                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <Label>Date Issued (Optional)</Label>
-                      <Input
-                        type="date"
-                        value={certificate.dateIssued}
-                        onChange={(e) => updateCertificate(certificate.id, "dateIssued", e.target.value)}
-                        className="mt-1 border-2 focus:border-slate-500 transition-colors"
-                      />
-                    </div>
-                  </div>
+          {/* Certificates (Optional) - Available for all user types */}
+          <Card className="animate-fade-in-up delay-900 border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-t-lg">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg">
+                  <Award className="w-5 h-5 text-white" />
                 </div>
-              ))}
+                <div>
+                  <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-600 dark:from-slate-200 dark:to-gray-300 bg-clip-text text-transparent">
+                    Professional Certifications
+                  </span>
+                  <span className="text-slate-500 text-sm ml-2">(Optional)</span>
+                </div>
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                Showcase your professional certifications, licenses, and specialized training to stand out from other candidates
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Popular:</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">AWS</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">Google Cloud</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">Microsoft</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">PMP</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">CPA</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">CISSP</span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {certificates.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center">
+                    <Award className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    No Certifications Added Yet
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    Add your professional certifications to showcase your expertise
+                  </p>
+                </div>
+              ) : (
+                certificates.map((certificate, index) => (
+                  <div key={certificate.id} className="group p-6 border-2 border-slate-200 dark:border-slate-700 rounded-xl mb-4 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">{index + 1}</span>
+                        </div>
+                        <h5 className="font-semibold text-slate-700 dark:text-slate-300 text-lg">
+                          Certification {index + 1}
+                        </h5>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCertificate(certificate.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Certification Name *
+                        </Label>
+                        <Input
+                          value={certificate.name}
+                          onChange={(e) => updateCertificate(certificate.id, "name", e.target.value)}
+                          placeholder="e.g., AWS Certified Solutions Architect"
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Issuing Organization *
+                        </Label>
+                        <Input
+                          value={certificate.issuingOrganization}
+                          onChange={(e) => updateCertificate(certificate.id, "issuingOrganization", e.target.value)}
+                          placeholder="e.g., Amazon Web Services"
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                      
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Date Issued
+                        </Label>
+                        <Input
+                          type="date"
+                          value={certificate.dateIssued}
+                          onChange={(e) => updateCertificate(certificate.id, "dateIssued", e.target.value)}
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
               
               <Button
                 variant="outline"
                 onClick={addCertificate}
-                className="w-full border-2 border-dashed border-slate-300 hover:border-slate-500 hover:bg-slate-50 transition-colors"
+                className="w-full border-2 border-dashed border-amber-300 dark:border-amber-600 hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all duration-300 group"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Certificate
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-medium text-amber-700 dark:text-amber-300">
+                    Add Professional Certification
+                  </span>
+                </div>
               </Button>
             </CardContent>
           </Card>
