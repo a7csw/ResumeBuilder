@@ -14,8 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import EnhancedResumeBuilder from "@/components/EnhancedResumeBuilder";
 import TemplateSpecificForm from "@/components/TemplateSpecificForm";
 import TemplatePreview from "@/components/TemplatePreview";
-import SecurePreviewOverlay from "@/components/premium/SecurePreviewOverlay";
-import PremiumFeatureWrapper from "@/components/premium/PremiumFeatureWrapper";
+
+
 import { useEnhancedUserPlan } from "@/hooks/useEnhancedUserPlan";
 
 const EnhancedBuilder = () => {
@@ -144,9 +144,7 @@ const EnhancedBuilder = () => {
     );
   }
 
-  const isPremiumTemplate = ["modern", "creative", "technical", "graduate", "internship", "executive", "tech-lead", "innovator", "consultant"].includes(templateId);
-  const hasTemplateAccess = canAccessTemplate(templateId);
-  const isLocked = !hasTemplateAccess;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -199,29 +197,18 @@ const EnhancedBuilder = () => {
               <CardTitle className="text-sm">Building Mode</CardTitle>
             </CardHeader>
             <CardContent>
-              <PremiumFeatureWrapper
-                feature="ai"
-                requiredPlan="ai"
-                fallback={
-                  <div className="text-center p-2">
-                    <Sparkles className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">AI features require upgrade</p>
-                  </div>
-                }
-              >
-                <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="manual" className="text-xs">
-                      <PenTool className="h-3 w-3 mr-1" />
-                      Manual
-                    </TabsTrigger>
-                    <TabsTrigger value="ai" className="text-xs">
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      AI Enhanced
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </PremiumFeatureWrapper>
+              <Tabs value={buildingMode} onValueChange={(value: any) => setBuildingMode(value)}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="manual" className="text-xs">
+                    <PenTool className="h-3 w-3 mr-1" />
+                    Manual
+                  </TabsTrigger>
+                  <TabsTrigger value="ai" className="text-xs">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    AI Enhanced
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -272,21 +259,15 @@ const EnhancedBuilder = () => {
               <CardTitle className="text-sm">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="flex gap-2">
-              <PremiumFeatureWrapper
-                feature="export"
-                requiredPlan="basic"
-                className="flex-1"
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => handleExport('pdf')}
+                className="flex-1 text-xs"
               >
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleExport('pdf')}
-                  className="w-full text-xs"
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  PDF
-                </Button>
-              </PremiumFeatureWrapper>
+                <Download className="h-3 w-3 mr-1" />
+                PDF
+              </Button>
               
               <Button 
                 size="sm" 
@@ -301,24 +282,7 @@ const EnhancedBuilder = () => {
           </Card>
         </div>
 
-        {/* Template Access Warning */}
-        {!hasTemplateAccess && (
-          <div className="mb-8 p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Crown className="h-5 w-5 text-orange-500" />
-              <div>
-                <h3 className="font-semibold text-orange-900">Premium Template Access Required</h3>
-                <p className="text-sm text-orange-700">
-                  This template requires {isPremiumTemplate ? 'AI or Pro' : 'Basic'} plan access. 
-                  Upgrade to unlock full template features and export capabilities.
-                </p>
-              </div>
-              <Button asChild size="sm" className="ml-auto">
-                <Link to="/pricing">Upgrade Now</Link>
-              </Button>
-            </div>
-          </div>
-        )}
+
 
         {/* Main Content */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -345,7 +309,7 @@ const EnhancedBuilder = () => {
 
           {/* Template Preview */}
           <div className="sticky top-24 relative" id="template-preview-wrapper">
-            <div className={isLocked ? 'blur-xl grayscale opacity-95 transition-smooth' : 'transition-smooth'}>
+            <div className="transition-smooth">
               <TemplatePreview 
                 resumeData={resumeData}
                 userType={userType}
@@ -353,15 +317,7 @@ const EnhancedBuilder = () => {
               />
             </div>
             
-            <div className="absolute inset-0">
-              <SecurePreviewOverlay
-                requiredPlanLabel={isPremiumTemplate ? 'AI or Pro Plan' : 'Basic Plan'}
-                watermarkText="ResumeBuilder Pro"
-                onUpgrade={() => navigate('/pricing')}
-                templateName={templateId}
-                isPremium={isLocked}
-              />
-            </div>
+
           </div>
         </div>
       </div>

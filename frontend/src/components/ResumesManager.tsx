@@ -181,9 +181,6 @@ const ResumesManager = () => {
           <h2 className="text-2xl font-bold">My Resumes</h2>
           <p className="text-muted-foreground">
             Manage your saved resumes
-            {!bypassPayments() && !canEdit() && (
-              <span className="text-orange-600"> • Pro plan required for editing</span>
-            )}
           </p>
         </div>
         <Button onClick={() => navigate('/builder')} className="flex items-center gap-2">

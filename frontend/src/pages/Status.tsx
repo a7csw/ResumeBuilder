@@ -14,8 +14,7 @@ const Status = () => {
     database: 'unknown',
     auth: 'unknown',
     storage: 'unknown',
-    ai: 'unknown',
-    payments: 'unknown'
+    ai: 'unknown'
   });
   const navigate = useNavigate();
 
@@ -39,8 +38,7 @@ const Status = () => {
       database: false,
       auth: false,
       storage: false,
-      ai: false,
-      payments: false
+      ai: false
     };
 
     // Check database
@@ -69,20 +67,13 @@ const Status = () => {
       checks.ai = false;
     }
 
-    // Check payments
-    try {
-      const { error } = await supabase.functions.invoke('enhanced-check-user-plan');
-      checks.payments = !error;
-    } catch (e) {
-      checks.payments = false;
-    }
+
 
     setSystemStatus({
       database: checks.database ? 'operational' : 'error',
       auth: checks.auth ? 'operational' : 'error',
       storage: 'operational', // Assume storage is working if we got this far
-      ai: checks.ai ? 'operational' : 'warning',
-      payments: checks.payments ? 'operational' : 'warning'
+      ai: checks.ai ? 'operational' : 'warning'
     });
   };
 
@@ -221,10 +212,10 @@ const Status = () => {
                 <div>/auth - Authentication</div>
                 <div>/templates - Resume Templates</div>
                 <div>/builder - Resume Builder</div>
-                <div>/pricing - Subscription Plans</div>
+
                 <div>/profile - User Profile</div>
                 <div>/api/enhanced-check-user-plan - Plan Verification</div>
-                <div>/api/enhanced-create-payment - Payment Processing</div>
+
                 <div>/api/ai-enhance-content - AI Features</div>
                 <div>/api/export-resume - PDF Export</div>
                 <div>/api/lemon-webhook - Lemon Squeezy Integration</div>

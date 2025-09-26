@@ -17,29 +17,244 @@ import {
 
 const ResumePreview = () => {
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "word">("pdf");
+  const [isDownloading, setIsDownloading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const resumeRef = useRef<HTMLDivElement>(null);
   
-  const { resumeData, selectedPlan } = location.state || {};
+  let { resumeData, selectedPlan = "free" } = location.state || {};
 
+  // Try to get data from localStorage if not in navigation state
   if (!resumeData) {
-    navigate("/");
-    return null;
+    try {
+      const savedData = localStorage.getItem('resumeFormData');
+      if (savedData) {
+        resumeData = JSON.parse(savedData);
+      }
+    } catch (error) {
+      console.warn('Could not load form data from localStorage:', error);
+    }
   }
 
-  const { personalInfo, experiences, education, projects, skills, type } = resumeData;
+  // Add error handling for missing data
+  if (!resumeData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              No Resume Data Found
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              We couldn't find your resume data. Please try generating your resume again.
+            </p>
+            <Button onClick={() => navigate("/form-selection")}>
+              Start Over
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { personalInfo, experiences, education, projects, skills, certificates = [], type } = resumeData;
 
   const handleDownload = async (format: "pdf" | "word") => {
-    // Mock download functionality
-    console.log(`Downloading resume as ${format.toUpperCase()}`);
-    
-    // Create a mock download
-    const element = document.createElement("a");
-    const fileName = `${personalInfo.firstName}_${personalInfo.lastName}_Resume.${format === "pdf" ? "pdf" : "docx"}`;
-    
-    // For demo purposes, we'll just show an alert
-    alert(`Your resume would be downloaded as ${fileName}`);
+    try {
+      setIsDownloading(true);
+      
+      // Since we're making everything free, we'll use a simple client-side PDF generation
+      if (format === "pdf") {
+        // Use html2canvas and jsPDF for client-side PDF generation
+        const html2canvas = (await import('html2canvas')).default;
+        const jsPDF = (await import('jspdf')).default;
+        
+        const resumeElement = resumeRef.current;
+        if (!resumeElement) {
+          throw new Error("Resume element not found");
+        }
+
+        // Capture the resume as canvas
+        const canvas = await html2canvas(resumeElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+
+        // Create PDF
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Download the PDF
+        const fileName = `${personalInfo.firstName || 'Resume'}_${personalInfo.lastName || 'NOVAECV'}.pdf`;
+        pdf.save(fileName);
+        
+      } else if (format === "word") {
+        // Generate Word document
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell } = await import('docx');
+
+        // Create Word document
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              // Header
+              new Paragraph({
+                text: `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`,
+                heading: HeadingLevel.HEADING_1,
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 200 }
+              }),
+              
+              // Contact Info
+              new Paragraph({
+                children: [
+                  new TextRun({ text: personalInfo.email || '', break: 1 }),
+                  new TextRun({ text: personalInfo.phone || '', break: 1 }),
+                  ...(personalInfo.location ? [new TextRun({ text: personalInfo.location, break: 1 })] : []),
+                  ...(personalInfo.linkedin ? [new TextRun({ text: personalInfo.linkedin, break: 1 })] : [])
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 300 }
+              }),
+
+              // Summary
+              ...(personalInfo.summary ? [
+                new Paragraph({
+                  text: "PROFESSIONAL SUMMARY",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  text: personalInfo.summary,
+                  spacing: { after: 300 }
+                })
+              ] : []),
+
+              // Experience
+              ...(experiences.length > 0 && experiences[0].title ? [
+                new Paragraph({
+                  text: "PROFESSIONAL EXPERIENCE",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                ...experiences.map(exp => [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: exp.title, bold: true }),
+                      new TextRun({ text: ` - ${exp.company}`, break: 1 }),
+                      new TextRun({ text: `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`, break: 1 })
+                    ],
+                    spacing: { after: 100 }
+                  }),
+                  ...(exp.description ? [
+                    new Paragraph({
+                      text: exp.description,
+                      spacing: { after: 200 }
+                    })
+                  ] : [])
+                ]).flat()
+              ] : []),
+
+              // Education
+              ...(education.length > 0 && education[0].degree ? [
+                new Paragraph({
+                  text: "EDUCATION",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                ...education.map(edu => [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: edu.degree, bold: true }),
+                      new TextRun({ text: ` - ${edu.school}`, break: 1 }),
+                      new TextRun({ text: `${edu.startDate} - ${edu.endDate}`, break: 1 })
+                    ],
+                    spacing: { after: 100 }
+                  }),
+                  ...(edu.gpa ? [
+                    new Paragraph({
+                      text: `GPA: ${edu.gpa}`,
+                      spacing: { after: 200 }
+                    })
+                  ] : [])
+                ]).flat()
+              ] : []),
+
+              // Certificates
+              ...(certificates && certificates.length > 0 && certificates[0].name ? [
+                new Paragraph({
+                  text: "CERTIFICATES",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                ...certificates.map(cert => [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: cert.name, bold: true }),
+                      new TextRun({ text: ` - ${cert.issuingOrganization}`, break: 1 }),
+                      ...(cert.dateIssued ? [
+                        new TextRun({ text: new Date(cert.dateIssued).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long' 
+                        }), break: 1 })
+                      ] : [])
+                    ],
+                    spacing: { after: 200 }
+                  })
+                ]).flat()
+              ] : []),
+
+              // Skills
+              ...(skills.length > 0 ? [
+                new Paragraph({
+                  text: "SKILLS",
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  text: skills.map(skill => typeof skill === 'string' ? skill : skill.name).join(', '),
+                  spacing: { after: 200 }
+                })
+              ] : [])
+            ]
+          }]
+        });
+
+        // Generate and download Word document
+        const blob = await Packer.toBlob(doc);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${personalInfo.firstName || 'Resume'}_${personalInfo.lastName || 'NOVAECV'}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Download failed. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleEdit = () => {
@@ -52,16 +267,16 @@ const ResumePreview = () => {
   };
 
   const MockResume = () => (
-    <div className="bg-white p-8 shadow-lg" ref={resumeRef}>
+    <div className="bg-white p-4 sm:p-6 lg:p-8 shadow-lg max-w-4xl mx-auto" ref={resumeRef}>
       {/* Header */}
       <div className="border-b-2 border-slate-900 pb-4 mb-6">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 break-words">
           {personalInfo.firstName} {personalInfo.lastName}
         </h1>
-        <div className="text-slate-600 space-y-1">
-          <p>{personalInfo.email} • {personalInfo.phone}</p>
-          {personalInfo.location && <p>{personalInfo.location}</p>}
-          {personalInfo.linkedin && <p>{personalInfo.linkedin}</p>}
+        <div className="text-slate-600 space-y-1 text-sm sm:text-base">
+          <p className="break-words">{personalInfo.email} • {personalInfo.phone}</p>
+          {personalInfo.location && <p className="break-words">{personalInfo.location}</p>}
+          {personalInfo.linkedin && <p className="break-words">{personalInfo.linkedin}</p>}
         </div>
       </div>
 
@@ -88,11 +303,11 @@ const ResumePreview = () => {
           </h2>
           {experiences.map((exp, index) => (
             <div key={exp.id} className="mb-4">
-              <div className="flex justify-between items-start mb-1">
-                <h3 className="text-lg font-semibold text-slate-900">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 gap-1">
+                <h3 className="text-lg font-semibold text-slate-900 break-words">
                   {exp.title}
                 </h3>
-                <span className="text-slate-600 text-sm">
+                <span className="text-slate-600 text-sm whitespace-nowrap">
                   {exp.startDate} - {exp.current ? "Present" : exp.endDate}
                 </span>
               </div>
@@ -135,6 +350,37 @@ const ResumePreview = () => {
                 <span className="text-slate-600 text-sm">
                   {edu.startDate} - {edu.endDate}
                 </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Certificates */}
+      {certificates && certificates.length > 0 && certificates[0].name && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-2 border-b border-slate-300">
+            CERTIFICATES
+          </h2>
+          {certificates.map((cert, index) => (
+            <div key={cert.id} className="mb-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 break-words">
+                    {cert.name}
+                  </h3>
+                  <p className="text-slate-700 font-medium">
+                    {cert.issuingOrganization}
+                  </p>
+                </div>
+                {cert.dateIssued && (
+                  <span className="text-slate-600 text-sm whitespace-nowrap">
+                    {new Date(cert.dateIssued).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long' 
+                    })}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -184,7 +430,7 @@ const ResumePreview = () => {
                 key={index}
                 className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm"
               >
-                {skill}
+                {typeof skill === 'string' ? skill : skill.name}
               </span>
             ))}
           </div>
@@ -192,24 +438,17 @@ const ResumePreview = () => {
       )}
 
       {/* Watermark for free plan */}
-      {selectedPlan === "free" && (
-        <div className="text-center pt-4 border-t border-slate-200">
-          <p className="text-xs text-slate-400">
-            Created with ResumeBuilder - Upgrade to Pro to remove this watermark
-          </p>
-        </div>
-      )}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
-      <NavigationHeader showBackButton={true} backTo="/ai-generation" />
+      <NavigationHeader showBackButton={true} backTo="/resume-generated" />
       
-      <div className="container px-6 py-8 mx-auto">
+      <div className="container px-3 sm:px-6 py-4 sm:py-8 mx-auto">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8 animate-fade-in-up">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 animate-fade-in-up">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -221,7 +460,7 @@ const ResumePreview = () => {
               </Button>
               
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
                   Your Resume Preview
                 </h1>
                                   <div className="flex items-center gap-2 mt-1">
@@ -253,11 +492,11 @@ const ResumePreview = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={handleEdit}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
               >
                 <Edit className="w-4 h-4" />
                 Edit Resume
@@ -265,15 +504,25 @@ const ResumePreview = () => {
               
               <Button
                 onClick={() => handleDownload(downloadFormat)}
-                className="flex items-center gap-2 bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700"
+                disabled={isDownloading}
+                className="flex items-center gap-2 w-full sm:w-auto bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                {isDownloading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
                 <Download className="w-4 h-4" />
                 Download {downloadFormat.toUpperCase()}
+                  </>
+                )}
               </Button>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Resume Preview */}
             <div className="lg:col-span-2">
               <Card className="p-0 overflow-hidden animate-fade-in-up delay-200">
@@ -282,17 +531,17 @@ const ResumePreview = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6 animate-fade-in-up delay-400">
+            <div className="space-y-4 sm:space-y-6 animate-fade-in-up delay-400">
               {/* Download Options */}
               <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Download className="w-5 h-5" />
                     Download Options
                   </h3>
                   
                   <div className="space-y-3 mb-4">
-                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                       <input
                         type="radio"
                         name="format"
@@ -310,28 +559,20 @@ const ResumePreview = () => {
                       </div>
                     </label>
                     
-                    <label className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                      selectedPlan === "free" ? "opacity-50" : ""
-                    }`}>
+                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                       <input
                         type="radio"
                         name="format"
                         value="word"
                         checked={downloadFormat === "word"}
                         onChange={(e) => setDownloadFormat(e.target.value as "word")}
-                        disabled={selectedPlan === "free"}
                         className="text-slate-600"
                       />
                       <FileText className="w-5 h-5 text-slate-500" />
                       <div>
-                        <div className="flex items-center gap-2">
                           <p className="font-medium">Word Format</p>
-                          {selectedPlan === "free" && (
-                            <Crown className="w-4 h-4 text-slate-500" />
-                          )}
-                        </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {selectedPlan === "free" ? "Pro feature" : "Easy to edit"}
+                          Easy to edit
                         </p>
                       </div>
                     </label>
@@ -339,56 +580,25 @@ const ResumePreview = () => {
                   
                   <Button
                     onClick={() => handleDownload(downloadFormat)}
-                    className="w-full bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700"
-                    disabled={selectedPlan === "free" && downloadFormat === "word"}
+                    disabled={isDownloading}
+                    className="w-full bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    {isDownloading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
                     <Download className="w-4 h-4 mr-2" />
                     Download {downloadFormat.toUpperCase()}
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Plan Upgrade (for free users) */}
-              {selectedPlan === "free" && (
-                <Card className="border-2 border-dashed border-slate-200 dark:border-slate-700">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800/50 dark:to-gray-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Crown className="w-8 h-8 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2">Upgrade to Pro</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                      Get AI enhancements, premium templates, and more download formats
-                    </p>
-                    
-                    <ul className="text-left space-y-2 mb-4">
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        Word document downloads
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        AI content optimization
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        20+ premium templates
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-slate-500" />
-                        Remove watermark
-                      </li>
-                    </ul>
-                    
-                    <Button 
-                      className="w-full bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700"
-                      onClick={() => navigate("/plan-selection", { state: { formData: resumeData } })}
-                    >
-                      Upgrade Now - $7/month
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+
 
               {/* Actions */}
               <Card>

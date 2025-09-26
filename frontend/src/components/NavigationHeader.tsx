@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FileText, ArrowLeft, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import { useScrollManager } from "@/hooks/useScrollManager";
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
@@ -24,8 +25,10 @@ const NavigationHeader = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
+  // Prevent background scrolling when mobile menu is open
+  useScrollManager(mobileMenuOpen);
+
   const navigationItems = [
-    { href: "/pricing", label: "Pricing", requiresAuth: false },
   ];
 
   const isActiveRoute = (href: string) => location.pathname === href;
@@ -104,6 +107,12 @@ const NavigationHeader = ({
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+                <SheetDescription>
+                  Navigate through the application
+                </SheetDescription>
+              </SheetHeader>
               <div className="flex flex-col space-y-4 mt-8">
                 {navigationItems.map((item) => {
                   if (item.requiresAuth && !user) return null;

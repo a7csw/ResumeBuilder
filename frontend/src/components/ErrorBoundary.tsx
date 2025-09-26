@@ -27,6 +27,12 @@ class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
+    // Clear any problematic localStorage data
+    try {
+      localStorage.removeItem('resumeFormData');
+    } catch (error) {
+      console.warn('Could not clear localStorage:', error);
+    }
     window.location.href = '/';
   };
 

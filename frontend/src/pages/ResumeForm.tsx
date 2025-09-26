@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import NavigationHeader from "@/components/NavigationHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useNameLock } from "@/hooks/useNameLock";
 import LockedNameField from "@/components/LockedNameField";
+import { localStorage_, safeNavigate } from "@/lib/navigation";
 import { 
   Plus, 
   Trash2, 
@@ -62,25 +63,66 @@ interface Project {
   link?: string;
 }
 
+interface Certificate {
+  id: string;
+  name: string;
+  issuingOrganization: string;
+  dateIssued: string;
+}
+
 const ResumeForm = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // User state
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Check if we're in edit mode
+  const isEditMode = location.state?.editMode || false;
+  const editData = location.state?.formData || null;
   
   // User Type State (overrides URL param)
-  const [selectedUserType, setSelectedUserType] = useState(type || "professional");
+  const [selectedUserType, setSelectedUserType] = useState(() => {
+    if (isEditMode && editData?.type) {
+      return editData.type;
+    }
+    return type || "professional";
+  });
   
-  // Name lock status
-  const { isNameLocked, firstName, lastName, loading: nameLockLoading } = useNameLock(user?.id);
+  // Name lock status - only call if user exists
+  const nameLockResult = useNameLock(user?.id);
+  const { isNameLocked, firstName, lastName, loading: nameLockLoading } = nameLockResult || {
+    isNameLocked: false,
+    firstName: null,
+    lastName: null,
+    loading: false
+  };
   
   // Check authentication and load user data
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Validate the type parameter
+        if (!type || !['professional', 'freelancer', 'student'].includes(type)) {
+          setError('Invalid resume type. Please select a valid type.');
+          return;
+        }
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUser(session.user);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setError('Failed to load user session. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -95,62 +137,77 @@ const ResumeForm = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [type]);
   
   // Personal Information
-  const [personalInfo, setPersonalInfo] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    location: "",
-    linkedin: "",
-    website: "",
-    summary: ""
-  });
+  const [personalInfo, setPersonalInfo] = useState(
+    isEditMode && editData?.personalInfo ? editData.personalInfo : {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: "",
+      website: "",
+      summary: ""
+    }
+  );
 
   // Experience
-  const [experiences, setExperiences] = useState<Experience[]>([
-    {
-      id: "1",
-      title: "",
-      company: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: ""
-    }
-  ]);
+  const [experiences, setExperiences] = useState<Experience[]>(
+    isEditMode && editData?.experiences && editData.experiences.length > 0 ? editData.experiences : [
+      {
+        id: "1",
+        title: "",
+        company: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: ""
+      }
+    ]
+  );
 
   // Education
-  const [education, setEducation] = useState<Education[]>([
-    {
-      id: "1",
-      degree: "",
-      school: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      gpa: ""
-    }
-  ]);
+  const [education, setEducation] = useState<Education[]>(
+    isEditMode && editData?.education && editData.education.length > 0 ? editData.education : [
+      {
+        id: "1",
+        degree: "",
+        school: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        gpa: ""
+      }
+    ]
+  );
 
   // Projects
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      title: "",
-      description: "",
-      technologies: "",
-      link: ""
-    }
-  ]);
+  const [projects, setProjects] = useState<Project[]>(
+    isEditMode && editData?.projects && editData.projects.length > 0 ? editData.projects : [
+      {
+        id: "1",
+        title: "",
+        description: "",
+        technologies: "",
+        link: ""
+      }
+    ]
+  );
 
   // Skills with rating
-  const [skills, setSkills] = useState<Skill[]>([
-    { id: "1", name: "", rating: 0 }
-  ]);
+  const [skills, setSkills] = useState<Skill[]>(
+    isEditMode && editData?.skills && editData.skills.length > 0 ? editData.skills : [
+      { id: "1", name: "", rating: 0 }
+    ]
+  );
+
+  // Certificates
+  const [certificates, setCertificates] = useState<Certificate[]>(
+    isEditMode && editData?.certificates && editData.certificates.length > 0 ? editData.certificates : []
+  );
 
   const getUserTypeConfig = () => {
     switch (selectedUserType) {
@@ -332,19 +389,106 @@ const ResumeForm = () => {
     ));
   };
 
+  // Certificate functions
+  const addCertificate = () => {
+    const newCertificate: Certificate = {
+      id: Date.now().toString(),
+      name: "",
+      issuingOrganization: "",
+      dateIssued: ""
+    };
+    setCertificates([...certificates, newCertificate]);
+  };
+
+  const removeCertificate = (id: string) => {
+    setCertificates(certificates.filter(cert => cert.id !== id));
+  };
+
+  const updateCertificate = (id: string, field: string, value: string) => {
+    setCertificates(certificates.map(cert => 
+      cert.id === id ? { ...cert, [field]: value } : cert
+    ));
+  };
+
+  // Form validation
+  const isFormValid = () => {
+    const hasRequiredPersonalInfo = 
+      personalInfo.firstName.trim() !== "" &&
+      personalInfo.lastName.trim() !== "" &&
+      personalInfo.email.trim() !== "" &&
+      personalInfo.phone.trim() !== "";
+    
+    const hasAtLeastOneSkill = skills.some(skill => skill.name.trim() !== "");
+    
+    return hasRequiredPersonalInfo && hasAtLeastOneSkill;
+  };
+
   const handleSubmit = () => {
+    if (!isFormValid()) {
+      return;
+    }
+    
     const formData = {
       type: selectedUserType,
       personalInfo,
       experiences,
       education,
       projects,
-      skills: skills.filter(skill => skill.name.trim() !== "")
+      skills: skills.filter(skill => skill.name.trim() !== ""),
+      certificates: certificates.filter(cert => cert.name.trim() !== "")
     };
     
-    // Navigate to plan selection
-    navigate("/plan-selection", { state: { formData } });
+    // Save to localStorage as backup
+    localStorage_.set('resumeFormData', formData);
+    
+    // Navigate to resume generated page
+    navigate("/resume-generated", { state: { formData } });
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader showBackButton={true} backTo="/form-selection" />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-slate-600 mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              Loading Resume Form...
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300">
+              Please wait while we prepare your customized form
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
+        <NavigationHeader showBackButton={true} backTo="/form-selection" />
+        <div className="container px-6 py-20 mx-auto max-w-4xl">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              Something went wrong
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              {error}
+            </p>
+            <Button onClick={() => navigate("/form-selection")}>
+              Back to Form Selection
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
@@ -355,7 +499,7 @@ const ResumeForm = () => {
         <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-full">
             <Star className="w-4 h-4" />
-            Step 2 of 3
+            {isEditMode ? "Editing Resume" : "Step 2 of 3"}
           </div>
           
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -366,10 +510,10 @@ const ResumeForm = () => {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-                {config.title}
+                {isEditMode ? `Edit ${config.title}` : config.title}
               </h1>
               <p className="text-slate-600 dark:text-slate-300">
-                {config.subtitle}
+                {isEditMode ? "Update your existing resume" : config.subtitle}
               </p>
             </div>
           </div>
@@ -777,6 +921,126 @@ const ResumeForm = () => {
             </Card>
           )}
 
+          {/* Certificates (Optional) - Available for all user types */}
+          <Card className="animate-fade-in-up delay-900 border-2 border-red-500 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-t-lg">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-600 dark:from-slate-200 dark:to-gray-300 bg-clip-text text-transparent">
+                    Professional Certifications
+                  </span>
+                  <span className="text-slate-500 text-sm ml-2">(Optional)</span>
+                </div>
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                Showcase your professional certifications, licenses, and specialized training to stand out from other candidates
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Popular:</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">AWS</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">Google Cloud</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">Microsoft</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">PMP</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">CPA</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">CISSP</span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {certificates.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center">
+                    <Award className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    No Certifications Added Yet
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    Add your professional certifications to showcase your expertise
+                  </p>
+                </div>
+              ) : (
+                certificates.map((certificate, index) => (
+                  <div key={certificate.id} className="group p-6 border-2 border-slate-200 dark:border-slate-700 rounded-xl mb-4 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">{index + 1}</span>
+                        </div>
+                        <h5 className="font-semibold text-slate-700 dark:text-slate-300 text-lg">
+                          Certification {index + 1}
+                        </h5>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCertificate(certificate.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Certification Name *
+                        </Label>
+                        <Input
+                          value={certificate.name}
+                          onChange={(e) => updateCertificate(certificate.id, "name", e.target.value)}
+                          placeholder="e.g., AWS Certified Solutions Architect"
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Issuing Organization *
+                        </Label>
+                        <Input
+                          value={certificate.issuingOrganization}
+                          onChange={(e) => updateCertificate(certificate.id, "issuingOrganization", e.target.value)}
+                          placeholder="e.g., Amazon Web Services"
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                      
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Date Issued
+                        </Label>
+                        <Input
+                          type="date"
+                          value={certificate.dateIssued}
+                          onChange={(e) => updateCertificate(certificate.id, "dateIssued", e.target.value)}
+                          className="border-2 border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-400 transition-colors bg-white dark:bg-slate-700"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              <Button
+                variant="outline"
+                onClick={addCertificate}
+                className="w-full border-2 border-dashed border-amber-300 dark:border-amber-600 hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all duration-300 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-medium text-amber-700 dark:text-amber-300">
+                    Add Professional Certification
+                  </span>
+                </div>
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Skills with Star Rating */}
           <Card className="animate-fade-in-up delay-1000">
             <CardHeader>
@@ -850,20 +1114,33 @@ const ResumeForm = () => {
           </Card>
 
           {/* Submit Button */}
-          <div className="text-center py-8 animate-fade-in-up delay-1200">
+          <div className="text-center py-8 px-4 sm:px-0 animate-fade-in-up delay-1200">
             <Button
               onClick={handleSubmit}
+              disabled={!isFormValid()}
               size="lg"
-              className="px-12 py-6 text-lg bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              className={`w-full sm:w-auto px-8 sm:px-12 py-6 text-lg shadow-xl hover:shadow-2xl transform transition-all duration-300 ${
+                isFormValid() 
+                  ? "bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 hover:scale-105" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Generate Your Resume
+              {isEditMode ? "Update Resume" : "Generate Your Resume"}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-3">
-              ✨ Your resume will be enhanced with AI optimization and industry insights
-            </p>
+            {!isFormValid() && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-3">
+                ⚠️ Please fill in all required fields (First Name, Last Name, Email, Phone, and at least one Skill)
+              </p>
+            )}
+            
+            {isFormValid() && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-3">
+                ✨ Your resume will be enhanced with AI optimization and industry insights
+              </p>
+            )}
           </div>
         </div>
       </div>

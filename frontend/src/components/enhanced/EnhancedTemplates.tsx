@@ -300,19 +300,7 @@ const EnhancedTemplates = ({ onTemplateSelect }: EnhancedTemplatesProps) => {
         </div>
       )}
 
-      {/* Plan Upgrade Prompt */}
-      {selectedCategory === "premium" && !userPlan.canUseAITemplates && (
-        <div className="text-center py-8 px-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-          <Crown className="h-12 w-12 mx-auto mb-4 text-purple-500" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Unlock Premium Templates</h3>
-          <p className="text-gray-600 mb-4">
-            Access our full collection of professionally designed templates with AI or Pro plans.
-          </p>
-          <Button asChild className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-            <a href="/pricing">View Plans</a>
-          </Button>
-        </div>
-      )}
+
     </div>
   );
 };

@@ -1,15 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import TemplatePreview from '@/components/TemplatePreview';
 import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates } from '@/lib/templatesRegistry';
 import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
-import PremiumFeatureWrapper from '@/components/premium/PremiumFeatureWrapper';
+
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
+import { useScrollManager } from '@/hooks/useScrollManager';
 import { cn } from '@/lib/utils';
 
 interface TemplateGalleryProps {
@@ -24,7 +25,36 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   const [open, setOpen] = useState(false);
   const [activeTemplateId, setActiveTemplateId] = useState(selectedTemplateId);
   const [activeColor, setActiveColor] = useState(selectedColor || 'indigo');
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const { downloadPdf, isDownloading } = useDownloadPdf();
+
+  // Debounced template selection to prevent flickering
+  const [debouncedTemplateId, setDebouncedTemplateId] = useState(selectedTemplateId);
+  const [debouncedColor, setDebouncedColor] = useState(selectedColor || 'indigo');
+
+  // Prevent background scrolling when dialog is open
+  useScrollManager(open);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTemplateId(activeTemplateId);
+      setDebouncedColor(activeColor);
+    }, 150); // 150ms debounce
+
+    return () => clearTimeout(timer);
+  }, [activeTemplateId, activeColor]);
+
+  // Handle template selection with loading state
+  const handleTemplateSelect = useCallback((templateId: string, color: string) => {
+    setIsPreviewLoading(true);
+    setActiveTemplateId(templateId);
+    setActiveColor(color);
+    
+    // Simulate loading time for smooth transition
+    setTimeout(() => {
+      setIsPreviewLoading(false);
+    }, 200);
+  }, []);
 
   const basicCount = basicTemplates().length;
   const premiumCount = premiumTemplates().length;
@@ -71,8 +101,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
     const idx = templates.findIndex(t => t.id === activeTemplateId);
     const nextIdx = (idx + dir + templates.length) % templates.length;
     const next = templates[nextIdx];
-    setActiveTemplateId(next.id);
-    setActiveColor(next.colors[0]?.id || 'indigo');
+    handleTemplateSelect(next.id, next.colors[0]?.id || 'indigo');
   };
 
   const handleExport = async () => {
@@ -193,46 +222,22 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
         </div>
       </div>
       
-      {/* Basic Templates Section */}
+      {/* All Templates Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-600" />
-          <h3 className="text-xl font-semibold">Free Templates</h3>
+          <h3 className="text-xl font-semibold">All Templates</h3>
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            Included in Basic Plan
+            Completely Free
           </Badge>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {basicTemplates().map((template) => (
+          {TEMPLATES_REGISTRY.map((template) => (
             <TemplateCard
               key={template.id}
               template={template}
               onPreview={handleOpenPreview}
               isSelected={selectedTemplateId === template.id}
-            />
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Premium Templates Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Crown className="w-5 h-5 text-purple-600" />
-          <h3 className="text-xl font-semibold">Premium Templates</h3>
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            Premium Plan Required
-          </Badge>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {premiumTemplates().map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onPreview={handleOpenPreview}
-              isSelected={selectedTemplateId === template.id}
-              isPremium={true}
             />
           ))}
         </div>
@@ -245,12 +250,6 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span>Preview: {findTemplateMeta(activeTemplateId)?.name}</span>
-                {findTemplateMeta(activeTemplateId)?.plan === 'premium' && (
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                    <Crown className="w-3 h-3 mr-1" />
-                    Premium
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={() => changeTemplate(-1)} aria-label="Previous template">
@@ -261,19 +260,28 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
                 </Button>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              Preview and customize your resume template. Use the navigation buttons to browse different templates and select colors on the right.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full overflow-hidden">
             <div className="lg:col-span-3">
               <ScrollArea className="h-full">
                 <div className="border rounded-lg p-6 bg-white">
-                  <TemplatePreview 
-                    resumeData={resumeData}
-                    userType={mode}
-                    templateId={activeTemplateId}
-                    colorVariant={activeColor}
-                    isPreview={false}
-                  />
+                  {isPreviewLoading ? (
+                    <div className="flex items-center justify-center h-96">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+                    </div>
+                  ) : (
+                    <TemplatePreview 
+                      resumeData={resumeData}
+                      userType={mode}
+                      templateId={debouncedTemplateId}
+                      colorVariant={debouncedColor}
+                      isPreview={false}
+                    />
+                  )}
                 </div>
               </ScrollArea>
             </div>
@@ -293,7 +301,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
                         "flex flex-col items-center gap-1 p-2 rounded-lg border transition-all",
                         activeColor === c.id ? 'ring-2 ring-primary border-primary bg-primary/5' : 'hover:border-muted-foreground'
                       )}
-                      onClick={() => setActiveColor(c.id)}
+                      onClick={() => handleTemplateSelect(activeTemplateId, c.id)}
                       aria-label={`Color ${c.label}`}
                     >
                       <div 

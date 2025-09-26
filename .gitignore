@@ -17,10 +17,16 @@ node_modules
 frontend/node_modules
 backend/node_modules
 
-# Environment files
+# Environment files - NEVER commit these!
 .env
+.env.*
 .env.local
 .env.production
+.env.development
+.env.test
+.env.staging
+.env.example.local
+.env.local.example
 
 # Editor directories and files
 .vscode/*
