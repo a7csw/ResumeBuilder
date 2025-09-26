@@ -18,6 +18,7 @@ const ResumeForm = lazy(() => import("./pages/ResumeFormSimple"));
 const AIGeneration = lazy(() => import("./pages/AIGeneration"));
 const ResumePreview = lazy(() => import("./pages/ResumePreview"));
 const ResumeGenerated = lazy(() => import("./pages/ResumeGenerated"));
+const PlanSelection = lazy(() => import("./pages/PlanSelection"));
 const Profile = lazy(() => import("./pages/Profile"));
 const MyResumes = lazy(() => import("./pages/MyResumes"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/form/:type" element={<RouteWrapper><ResumeForm /></RouteWrapper>} />
               <Route path="/ai-generation" element={<RouteWrapper><AIGeneration /></RouteWrapper>} />
               <Route path="/resume-preview" element={<RouteWrapper><ResumePreview /></RouteWrapper>} />
+              <Route path="/plan-selection" element={<RouteWrapper><PlanSelection /></RouteWrapper>} />
               <Route path="/resume-generated" element={<RouteWrapper><ResumeGenerated /></RouteWrapper>} />
               <Route path="/profile" element={<RouteWrapper><Profile /></RouteWrapper>} />
               <Route path="/my-resumes" element={<RouteWrapper><MyResumes /></RouteWrapper>} />

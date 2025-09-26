@@ -11,8 +11,7 @@ import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Pale
 
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
 import { useScrollManager } from '@/hooks/useScrollManager';
-import { useRevenueCat } from '@/hooks/useRevenueCat';
-import { PaywallModal } from '@/components/premium/PaywallModal';
+// Removed RevenueCat imports - no premium templates needed
 import { cn } from '@/lib/utils';
 
 interface TemplateGalleryProps {

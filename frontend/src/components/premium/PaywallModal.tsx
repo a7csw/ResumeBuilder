@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Sparkles, Zap, X } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, X, FileText } from 'lucide-react';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { PRICING_PLANS } from '@/lib/revenuecat';
 import { useToast } from '@/hooks/use-toast';
@@ -87,55 +87,55 @@ export const PaywallModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
-          {/* Free Plan */}
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          {/* Single Resume Plan */}
           <Card className="relative">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-gray-500" />
-                Free Plan
+                <FileText className="w-5 h-5 text-blue-500" />
+                Single Resume
               </CardTitle>
               <div className="text-3xl font-bold">
-                $0<span className="text-lg font-normal text-muted-foreground">/month</span>
+                $2<span className="text-lg font-normal text-muted-foreground">/once</span>
               </div>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {PRICING_PLANS.free.features.map((feature, index) => (
+                {PRICING_PLANS.single.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                     <span className="text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full mt-6" disabled>
-                Current Plan
+              <Button 
+                className="w-full mt-6" 
+                variant="outline"
+                onClick={handleUpgrade}
+                disabled={isUpgrading || isLoading}
+              >
+                Get Single Resume
               </Button>
             </CardContent>
           </Card>
 
-          {/* Premium Plan */}
+          {/* Basic Plan */}
           <Card className="relative border-primary shadow-lg">
-            {premiumPlan.isPopular && (
-              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                Most Popular
-              </Badge>
-            )}
+            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+              Most Popular
+            </Badge>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-yellow-500" />
-                Premium Plan
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                Basic Plan
               </CardTitle>
               <div className="text-3xl font-bold">
-                ${premiumPlan.price}
-                <span className="text-lg font-normal text-muted-foreground">
-                  /{premiumPlan.interval}
-                </span>
+                $5<span className="text-lg font-normal text-muted-foreground">/10 days</span>
               </div>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {premiumPlan.features.map((feature, index) => (
+                {PRICING_PLANS.basic.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                     <span className="text-sm">{feature}</span>
@@ -150,14 +150,46 @@ export const PaywallModal = ({
                 {isUpgrading ? (
                   <>
                     <Zap className="w-4 h-4 mr-2 animate-spin" />
-                    Upgrading...
+                    Processing...
                   </>
                 ) : (
                   <>
-                    <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Premium
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Get Basic Plan
                   </>
                 )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Professional Plan */}
+          <Card className="relative">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                Professional
+              </CardTitle>
+              <div className="text-3xl font-bold">
+                $11<span className="text-lg font-normal text-muted-foreground">/month</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {PRICING_PLANS.professional.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                className="w-full mt-6" 
+                variant="outline"
+                onClick={handleUpgrade}
+                disabled={isUpgrading || isLoading}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Get Professional
               </Button>
             </CardContent>
           </Card>

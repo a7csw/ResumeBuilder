@@ -13,32 +13,44 @@ interface PlanConfig {
 }
 
 export const PRICING_PLANS: Record<string, PlanConfig> = {
-  free: {
-    id: 'free',
-    name: 'Free',
-    price: 0,
+  single: {
+    id: 'single',
+    name: 'Single Resume',
+    price: 2,
     interval: null,
     features: [
-      'Basic resume templates',
-      'Word document export',
-      'Up to 3 resumes',
-      'Basic AI suggestions'
+      'AI-generated professional resume',
+      'ATS-optimized format',
+      'PDF & Word download',
+      'One-time access'
     ]
   },
-  premium: {
-    id: 'premium',
-    name: 'Premium',
-    price: 1,
-    interval: 'month',
+  basic: {
+    id: 'basic',
+    name: 'Basic Plan',
+    price: 5,
+    interval: null,
     features: [
-      'All premium templates',
-      'PDF & Word export',
-      'Unlimited resumes',
-      'Advanced AI enhancements',
-      'Priority support',
-      'No watermarks'
+      'Unlimited resume generation',
+      'AI-powered content optimization',
+      'PDF & Word downloads',
+      '10 days access',
+      'Professional ATS format'
     ],
     isPopular: true
+  },
+  professional: {
+    id: 'professional',
+    name: 'Professional Plan',
+    price: 11,
+    interval: 'month',
+    features: [
+      'Everything in Basic Plan',
+      'Monthly subscription',
+      'Unlimited access',
+      'Priority AI processing',
+      'Email support'
+    ]
   }
 };
 
@@ -59,27 +71,34 @@ class RevenueCatService {
       this.initialized = true;
       console.log('RevenueCat initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize RevenueCat:', error);
+      console.warn('RevenueCat not configured - running in free mode:', error);
+      // Don't throw error, just run in free mode
     }
   }
 
   async getCustomerInfo(): Promise<CustomerInfo | null> {
     try {
+      if (!REVENUECAT_PUBLIC_KEY) {
+        return null; // Return null for free mode
+      }
       await this.initialize();
       return await Purchases.getCustomerInfo();
     } catch (error) {
-      console.error('Failed to get customer info:', error);
+      console.warn('Failed to get customer info - running in free mode:', error);
       return null;
     }
   }
 
   async getOfferings(): Promise<PurchasesPackage[]> {
     try {
+      if (!REVENUECAT_PUBLIC_KEY) {
+        return []; // Return empty array for free mode
+      }
       await this.initialize();
       const offerings = await Purchases.getOfferings();
       return offerings.current?.availablePackages || [];
     } catch (error) {
-      console.error('Failed to get offerings:', error);
+      console.warn('Failed to get offerings - running in free mode:', error);
       return [];
     }
   }
@@ -127,6 +146,11 @@ class RevenueCatService {
   }
 
   isUserPremium(customerInfo: CustomerInfo | null): boolean {
+    // If RevenueCat is not configured, treat as free user
+    if (!REVENUECAT_PUBLIC_KEY) {
+      return false;
+    }
+    
     if (!customerInfo) return false;
     
     // Check for active premium entitlements
@@ -142,21 +166,25 @@ class RevenueCatService {
   }
 
   canAccessFeature(customerInfo: CustomerInfo | null, feature: string): boolean {
-    const plan = this.getActivePlan(customerInfo);
-    const features = this.getPlanFeatures(plan);
+    // If RevenueCat is not configured, block access (payment required)
+    if (!REVENUECAT_PUBLIC_KEY) {
+      return false;
+    }
     
-    // Map features to access rules
+    if (!customerInfo) return false;
+    
+    // Check for any active subscription
+    const hasActiveSubscription = Object.keys(customerInfo.entitlements.active).length > 0;
+    
+    // All features require payment
     switch (feature) {
+      case 'resume_generation':
       case 'pdf_export':
-        return plan === 'premium';
-      case 'premium_templates':
-        return plan === 'premium';
-      case 'unlimited_resumes':
-        return plan === 'premium';
-      case 'advanced_ai':
-        return plan === 'premium';
+      case 'word_export':
+      case 'ai_optimization':
+        return hasActiveSubscription;
       default:
-        return true; // Default allow for basic features
+        return hasActiveSubscription;
     }
   }
 }

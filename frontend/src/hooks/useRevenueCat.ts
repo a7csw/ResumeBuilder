@@ -103,22 +103,28 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
   useEffect(() => {
     const initializeRevenueCat = async () => {
       try {
-        await revenueCat.initialize();
+        // Initialize RevenueCat in the background without blocking UI
+        revenueCat.initialize().catch(console.error);
         
         if (user) {
           // Log in the user to RevenueCat
           await revenueCat.logIn(user.id);
         }
         
-        await refreshCustomerInfo();
-        await loadOfferings();
+        // Load data in parallel for better performance
+        await Promise.all([
+          refreshCustomerInfo(),
+          loadOfferings()
+        ]);
       } catch (error) {
         console.error('Failed to initialize RevenueCat:', error);
         setIsLoading(false);
       }
     };
 
-    initializeRevenueCat();
+    // Add a small delay to prevent blocking initial render
+    const timer = setTimeout(initializeRevenueCat, 100);
+    return () => clearTimeout(timer);
   }, [user, refreshCustomerInfo, loadOfferings]);
 
   // Handle user login/logout
