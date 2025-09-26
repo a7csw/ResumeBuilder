@@ -12,15 +12,21 @@ import {
   FileText,
   Eye,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Lock
 } from "lucide-react";
+import { useRevenueCat } from "@/hooks/useRevenueCat";
+import { PaywallModal } from "@/components/premium/PaywallModal";
+import { UpgradeBanner } from "@/components/premium/UpgradeBanner";
 
 const ResumePreview = () => {
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "word">("pdf");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const resumeRef = useRef<HTMLDivElement>(null);
+  const { canAccessFeature, isPremium } = useRevenueCat();
   
   let { resumeData, selectedPlan = "free" } = location.state || {};
 
@@ -61,10 +67,15 @@ const ResumePreview = () => {
   const { personalInfo, experiences, education, projects, skills, certificates = [], type } = resumeData;
 
   const handleDownload = async (format: "pdf" | "word") => {
+    // Check if user can access PDF export (premium feature)
+    if (format === "pdf" && !canAccessFeature("pdf_export")) {
+      setShowPaywall(true);
+      return;
+    }
+
     try {
       setIsDownloading(true);
       
-      // Since we're making everything free, we'll use a simple client-side PDF generation
       if (format === "pdf") {
         // Use html2canvas and jsPDF for client-side PDF generation
         const html2canvas = (await import('html2canvas')).default;
@@ -522,6 +533,17 @@ const ResumePreview = () => {
             </div>
           </div>
 
+          {/* Upgrade Banner for Free Users */}
+          {!isPremium && (
+            <div className="mb-6">
+              <UpgradeBanner 
+                feature="PDF exports and premium templates"
+                className="animate-fade-in-up delay-100"
+                dismissible={true}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Resume Preview */}
             <div className="lg:col-span-2">
@@ -541,7 +563,11 @@ const ResumePreview = () => {
                   </h3>
                   
                   <div className="space-y-3 mb-4">
-                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <label className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors relative ${
+                      canAccessFeature("pdf_export") 
+                        ? "hover:bg-slate-50 dark:hover:bg-slate-800" 
+                        : "opacity-75 cursor-not-allowed bg-gray-50 border-dashed"
+                    }`}>
                       <input
                         type="radio"
                         name="format"
@@ -549,12 +575,25 @@ const ResumePreview = () => {
                         checked={downloadFormat === "pdf"}
                         onChange={(e) => setDownloadFormat(e.target.value as "pdf")}
                         className="text-slate-600"
+                        disabled={!canAccessFeature("pdf_export")}
                       />
+                      {canAccessFeature("pdf_export") ? (
                       <FileText className="w-5 h-5 text-slate-500" />
-                      <div>
+                      ) : (
+                        <Lock className="w-5 h-5 text-gray-400" />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
                         <p className="font-medium">PDF Format</p>
+                          {!canAccessFeature("pdf_export") && (
+                            <Crown className="w-4 h-4 text-yellow-500" />
+                          )}
+                        </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Best for applying online
+                          {canAccessFeature("pdf_export") 
+                            ? "Best for applying online" 
+                            : "Premium feature - Upgrade to unlock"
+                          }
                         </p>
                       </div>
                     </label>
@@ -639,6 +678,15 @@ const ResumePreview = () => {
           </div>
         </div>
       </div>
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        feature="PDF export"
+        title="Upgrade to Export PDF"
+        description="PDF export is a premium feature. Upgrade to Premium to download your resume as a PDF."
+      />
     </div>
   );
 };
