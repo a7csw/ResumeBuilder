@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Sparkles, FileText, ArrowLeft } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { useRevenueCat } from '@/hooks/useRevenueCat';
-import { PRICING_PLANS } from '@/lib/revenuecat';
+import { lemonSqueezy, PRODUCTS } from '@/lib/lemonsqueezy';
 import { useToast } from '@/hooks/use-toast';
 
 const PlanSelection = () => {
@@ -14,7 +13,7 @@ const PlanSelection = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { purchasePackage, packages } = useRevenueCat();
+  const products = lemonSqueezy.getProducts();
 
   // Get form data from navigation state
   const { formData } = location.state || {};
@@ -29,10 +28,10 @@ const PlanSelection = () => {
     try {
       setIsProcessing(true);
 
-      // Find the corresponding package for the plan
-      const selectedPackage = packages.find(pkg => pkg.identifier === planId);
+      // Find the selected product
+      const selectedProduct = lemonSqueezy.getProduct(planId);
       
-      if (!selectedPackage) {
+      if (!selectedProduct) {
         toast({
           title: "Plan not available",
           description: "This plan is currently not available. Please try again later.",
@@ -41,28 +40,22 @@ const PlanSelection = () => {
         return;
       }
 
-      // Process payment with RevenueCat
-      const customerInfo = await purchasePackage(selectedPackage);
+      // Store form data and navigate to LemonSqueezy checkout
+      localStorage.setItem('resumeFormData', JSON.stringify(formData));
       
-      if (customerInfo) {
-        // Payment successful, navigate to resume generation
-        toast({
-          title: "Payment successful! 🎉",
-          description: "Your resume is being generated...",
-        });
-        
-        // Store the form data and navigate to resume generation
-        localStorage.setItem('resumeFormData', JSON.stringify(formData));
-        navigate('/resume-generated', { state: { formData, planId } });
-      } else {
-        toast({
-          title: "Payment failed",
-          description: "Please try again or contact support.",
-          variant: "destructive",
-        });
-      }
+      // Navigate to LemonSqueezy checkout page
+      navigate('/checkout/lemonsqueezy', { 
+        state: { formData },
+        replace: false
+      });
+      
+      // Update URL to include product selection
+      const url = new URL(window.location.origin + '/checkout/lemonsqueezy');
+      url.searchParams.set('product', planId);
+      window.history.replaceState({}, '', url.toString());
+
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Checkout error:', error);
       toast({
         title: "Something went wrong",
         description: "Please try again later.",
@@ -99,109 +92,56 @@ const PlanSelection = () => {
 
         {/* Pricing Plans */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {/* Single Resume Plan */}
-          <Card className="relative hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-500" />
-                Single Resume
-              </CardTitle>
-              <div className="text-3xl font-bold">
-                $2<span className="text-lg font-normal text-muted-foreground">/once</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Perfect for one-time use</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                {PRICING_PLANS.single.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => handlePlanSelection('single')}
-                disabled={isProcessing}
-              >
-                {isProcessing ? 'Processing...' : 'Get Single Resume'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Basic Plan */}
-          <Card className="relative border-primary shadow-lg">
-            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-              Most Popular
-            </Badge>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-500" />
-                Basic Plan
-              </CardTitle>
-              <div className="text-3xl font-bold">
-                $5<span className="text-lg font-normal text-muted-foreground">/10 days</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Best value for job seekers</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                {PRICING_PLANS.basic.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => handlePlanSelection('basic')}
-                disabled={isProcessing}
-              >
-                {isProcessing ? 'Processing...' : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Get Basic Plan
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Professional Plan */}
-          <Card className="relative hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-yellow-500" />
-                Professional
-              </CardTitle>
-              <div className="text-3xl font-bold">
-                $11<span className="text-lg font-normal text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-muted-foreground">For ongoing job search</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                {PRICING_PLANS.professional.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => handlePlanSelection('professional')}
-                disabled={isProcessing}
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Get Professional
-              </Button>
-            </CardContent>
-          </Card>
+          {products.map((product) => (
+            <Card key={product.id} className={`relative hover:shadow-lg transition-shadow ${product.isPopular ? 'border-primary shadow-lg' : ''}`}>
+              {product.isPopular && (
+                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+                  Most Popular
+                </Badge>
+              )}
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {product.id === 'single' && <FileText className="w-5 h-5 text-blue-500" />}
+                  {product.id === 'basic' && <Sparkles className="w-5 h-5 text-purple-500" />}
+                  {product.id === 'professional' && <Crown className="w-5 h-5 text-yellow-500" />}
+                  {product.name}
+                </CardTitle>
+                <div className="text-3xl font-bold">
+                  {lemonSqueezy.formatPrice(product.price)}
+                  {product.interval && (
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /{product.interval}
+                    </span>
+                  )}
+                  {!product.interval && product.id !== 'single' && (
+                    <span className="text-lg font-normal text-muted-foreground">/10 days</span>
+                  )}
+                  {product.id === 'single' && (
+                    <span className="text-lg font-normal text-muted-foreground">/once</span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">{product.description}</p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-6">
+                  {product.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button 
+                  className="w-full" 
+                  variant={product.isPopular ? "default" : "outline"}
+                  onClick={() => handlePlanSelection(product.id)}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Processing...' : `Get ${product.name}`}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Features Overview */}
