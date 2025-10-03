@@ -19,8 +19,7 @@ const AIGeneration = lazy(() => import("./pages/AIGeneration"));
 const ResumePreview = lazy(() => import("./pages/ResumePreview"));
 const ResumeGenerated = lazy(() => import("./pages/ResumeGenerated"));
 const PlanSelection = lazy(() => import("./pages/PlanSelection"));
-const LemonSqueezyCheckout = lazy(() => import("./pages/LemonSqueezyCheckout"));
-const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const GumroadSuccess = lazy(() => import("./pages/GumroadSuccess"));
 const Profile = lazy(() => import("./pages/Profile"));
 const MyResumes = lazy(() => import("./pages/MyResumes"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -69,8 +68,7 @@ const App = () => (
               <Route path="/ai-generation" element={<RouteWrapper><AIGeneration /></RouteWrapper>} />
               <Route path="/resume-preview" element={<RouteWrapper><ResumePreview /></RouteWrapper>} />
               <Route path="/plan-selection" element={<RouteWrapper><PlanSelection /></RouteWrapper>} />
-              <Route path="/checkout/lemonsqueezy" element={<RouteWrapper><LemonSqueezyCheckout /></RouteWrapper>} />
-              <Route path="/checkout/success" element={<RouteWrapper><CheckoutSuccess /></RouteWrapper>} />
+              <Route path="/gumroad/success" element={<RouteWrapper><GumroadSuccess /></RouteWrapper>} />
               <Route path="/resume-generated" element={<RouteWrapper><ResumeGenerated /></RouteWrapper>} />
               <Route path="/profile" element={<RouteWrapper><Profile /></RouteWrapper>} />
               <Route path="/my-resumes" element={<RouteWrapper><MyResumes /></RouteWrapper>} />

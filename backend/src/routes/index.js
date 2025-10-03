@@ -9,7 +9,6 @@ const router = express.Router();
 // Import route modules
 const userRoutes = require('./userRoutes');
 const paymentRoutes = require('./paymentRoutes');
-const lemonSqueezyRoutes = require('./lemonSqueezyRoutes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -55,6 +54,5 @@ router.get('/info', (req, res) => {
 // Mount route modules
 router.use('/users', userRoutes);
 router.use('/payments', paymentRoutes);
-router.use('/lemonsqueezy', lemonSqueezyRoutes);
 
 module.exports = router;

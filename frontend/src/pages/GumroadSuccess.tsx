@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Download, ArrowRight, Loader2 } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { lemonSqueezy, LemonProduct } from '@/lib/lemonsqueezy';
+import { gumroad, GumroadProduct } from '@/lib/gumroad';
 
-const CheckoutSuccess = () => {
+const GumroadSuccess = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [product, setProduct] = useState<LemonProduct | null>(null);
+  const [product, setProduct] = useState<GumroadProduct | null>(null);
   const [formData, setFormData] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const productId = searchParams.get('product');
-  const checkoutId = searchParams.get('checkout_id');
-  const orderId = searchParams.get('order_id');
+  // Get parameters from URL or session storage
+  const productId = searchParams.get('product') || sessionStorage.getItem('gumroad_product_id');
+  const purchaseId = searchParams.get('purchase_id');
+  const email = searchParams.get('email');
 
   useEffect(() => {
     // Simulate processing time and load stored data
@@ -23,22 +24,27 @@ const CheckoutSuccess = () => {
       try {
         // Get stored form data and product
         const storedFormData = localStorage.getItem('resumeFormData');
-        const storedProduct = localStorage.getItem('selectedProduct');
+        const storedProductId = localStorage.getItem('selectedProductId') || productId;
 
         if (storedFormData) {
           setFormData(JSON.parse(storedFormData));
         }
 
-        if (storedProduct) {
-          setProduct(JSON.parse(storedProduct));
-        } else if (productId) {
-          const prod = lemonSqueezy.getProduct(productId);
+        if (storedProductId) {
+          const prod = gumroad.getProduct(storedProductId);
           setProduct(prod);
+        }
+
+        // Mark purchase as successful in session
+        if (productId) {
+          sessionStorage.setItem('gumroad_success_callback', 'true');
+          sessionStorage.setItem('gumroad_product_id', productId);
+          sessionStorage.setItem('gumroad_checkout_time', Date.now().toString());
         }
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading checkout data:', error);
+        console.error('Error loading success data:', error);
         setIsLoading(false);
       }
     }, 2000);
@@ -57,7 +63,9 @@ const CheckoutSuccess = () => {
         state: { 
           formData, 
           planId: product?.id,
-          isPaid: true 
+          isPaid: true,
+          purchaseId,
+          email
         } 
       });
     } else {
@@ -74,7 +82,7 @@ const CheckoutSuccess = () => {
           <div className="text-center">
             <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6 text-primary" />
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-              Processing Your Order...
+              Processing Your Purchase...
             </h2>
             <p className="text-slate-600 dark:text-slate-300">
               Please wait while we confirm your payment and prepare your account.
@@ -100,14 +108,14 @@ const CheckoutSuccess = () => {
             Payment Successful! 🎉
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Thank you for your purchase. Your account has been activated and you can now generate your professional resume.
+            Thank you for your purchase! Your payment has been processed successfully through Gumroad.
           </p>
         </div>
 
-        {/* Order Details */}
+        {/* Purchase Details */}
         <Card className="mb-8 max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-center">Order Details</CardTitle>
+            <CardTitle className="text-center">Purchase Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {product && (
@@ -118,7 +126,7 @@ const CheckoutSuccess = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span className="font-medium">Price</span>
-                  <span className="font-bold">{lemonSqueezy.formatPrice(product.price)}</span>
+                  <span className="font-bold">{gumroad.formatPrice(product.price, product.currency)}</span>
                 </div>
                 {product.interval && (
                   <div className="flex justify-between items-center py-2 border-b">
@@ -126,16 +134,22 @@ const CheckoutSuccess = () => {
                     <span>Every {product.interval}</span>
                   </div>
                 )}
-                {checkoutId && (
+                {product.accessValidityDays && (
                   <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Checkout ID</span>
-                    <span className="text-sm text-muted-foreground">{checkoutId}</span>
+                    <span className="font-medium">Access Duration</span>
+                    <span>{product.accessValidityDays} days</span>
                   </div>
                 )}
-                {orderId && (
+                {purchaseId && (
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">Purchase ID</span>
+                    <span className="text-sm text-muted-foreground">{purchaseId}</span>
+                  </div>
+                )}
+                {email && (
                   <div className="flex justify-between items-center py-2">
-                    <span className="font-medium">Order ID</span>
-                    <span className="text-sm text-muted-foreground">{orderId}</span>
+                    <span className="font-medium">Email</span>
+                    <span className="text-sm text-muted-foreground">{email}</span>
                   </div>
                 )}
               </>
@@ -179,9 +193,9 @@ const CheckoutSuccess = () => {
                   <span className="text-primary font-bold text-sm">3</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Track Your Progress</h3>
+                  <h3 className="font-semibold">Track Your Success</h3>
                   <p className="text-sm text-muted-foreground">
-                    Access your account to create more resumes and track your job applications
+                    Keep track of your applications and career progress
                   </p>
                 </div>
               </div>
@@ -217,12 +231,15 @@ const CheckoutSuccess = () => {
         <div className="text-center mt-8 text-sm text-muted-foreground">
           <p>
             Need help? Contact our support team at{' '}
-            <a href="mailto:support@novaecv.com" className="text-primary hover:underline">
-              support@novaecv.com
+            <a href="mailto:support@resumebuilder.com" className="text-primary hover:underline">
+              support@resumebuilder.com
             </a>
           </p>
           <p className="mt-2">
-            You'll receive a confirmation email shortly with your receipt and account details.
+            You'll receive a confirmation email from Gumroad with your receipt and purchase details.
+          </p>
+          <p className="mt-2">
+            🔒 Secure payment processing by Gumroad • Your payment information is encrypted and secure
           </p>
         </div>
       </div>
@@ -230,4 +247,4 @@ const CheckoutSuccess = () => {
   );
 };
 
-export default CheckoutSuccess;
+export default GumroadSuccess;

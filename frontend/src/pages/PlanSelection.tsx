@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Sparkles, FileText, ArrowLeft } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { lemonSqueezy, PRODUCTS } from '@/lib/lemonsqueezy';
+import { gumroad, GUMROAD_PRODUCTS } from '@/lib/gumroad';
 import { useToast } from '@/hooks/use-toast';
 
 const PlanSelection = () => {
@@ -13,7 +13,7 @@ const PlanSelection = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const products = lemonSqueezy.getProducts();
+  const products = gumroad.getProducts();
 
   // Get form data from navigation state
   const { formData } = location.state || {};
@@ -29,7 +29,7 @@ const PlanSelection = () => {
       setIsProcessing(true);
 
       // Find the selected product
-      const selectedProduct = lemonSqueezy.getProduct(planId);
+      const selectedProduct = gumroad.getProduct(planId);
       
       if (!selectedProduct) {
         toast({
@@ -40,19 +40,55 @@ const PlanSelection = () => {
         return;
       }
 
-      // Store form data and navigate to LemonSqueezy checkout
+      // Validate product configuration
+      const validation = gumroad.validateProduct(selectedProduct);
+      if (!validation.isValid) {
+        toast({
+          title: "Configuration Error",
+          description: validation.errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Store form data for after purchase
       localStorage.setItem('resumeFormData', JSON.stringify(formData));
-      
-      // Navigate to LemonSqueezy checkout page
-      navigate('/checkout/lemonsqueezy', { 
-        state: { formData },
-        replace: false
+      localStorage.setItem('selectedProductId', planId);
+
+      // Show success message and open Gumroad checkout
+      toast({
+        title: "Opening checkout...",
+        description: `Redirecting to secure payment for ${selectedProduct.name}`,
       });
-      
-      // Update URL to include product selection
-      const url = new URL(window.location.origin + '/checkout/lemonsqueezy');
-      url.searchParams.set('product', planId);
-      window.history.replaceState({}, '', url.toString());
+
+      // Open Gumroad checkout with success callback
+      gumroad.openCheckout(planId, {
+        onSuccess: () => {
+          // This will be called if the overlay is used and purchase is successful
+          toast({
+            title: "Payment successful! 🎉",
+            description: "Redirecting to resume generation...",
+          });
+          
+          // Navigate to resume generation after successful payment
+          setTimeout(() => {
+            navigate('/resume-generated', { 
+              state: { 
+                formData, 
+                planId,
+                isPaid: true 
+              } 
+            });
+          }, 2000);
+        },
+        onError: (error) => {
+          toast({
+            title: "Payment failed",
+            description: error || "Please try again or contact support.",
+            variant: "destructive",
+          });
+        }
+      });
 
     } catch (error) {
       console.error('Checkout error:', error);
@@ -101,22 +137,24 @@ const PlanSelection = () => {
               )}
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {product.id === 'single' && <FileText className="w-5 h-5 text-blue-500" />}
-                  {product.id === 'basic' && <Sparkles className="w-5 h-5 text-purple-500" />}
-                  {product.id === 'professional' && <Crown className="w-5 h-5 text-yellow-500" />}
+                  {product.id === 'single_resume' && <FileText className="w-5 h-5 text-blue-500" />}
+                  {product.id === '10day_access' && <Sparkles className="w-5 h-5 text-purple-500" />}
+                  {product.id === 'monthly_subscription' && <Crown className="w-5 h-5 text-yellow-500" />}
                   {product.name}
                 </CardTitle>
                 <div className="text-3xl font-bold">
-                  {lemonSqueezy.formatPrice(product.price)}
+                  {gumroad.formatPrice(product.price, product.currency)}
                   {product.interval && (
                     <span className="text-lg font-normal text-muted-foreground">
                       /{product.interval}
                     </span>
                   )}
-                  {!product.interval && product.id !== 'single' && (
-                    <span className="text-lg font-normal text-muted-foreground">/10 days</span>
+                  {product.accessValidityDays && (
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /{product.accessValidityDays} days
+                    </span>
                   )}
-                  {product.id === 'single' && (
+                  {product.id === 'single_resume' && (
                     <span className="text-lg font-normal text-muted-foreground">/once</span>
                   )}
                 </div>
