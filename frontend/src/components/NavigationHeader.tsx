@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { FileText, ArrowLeft, Menu, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { FileText, ArrowLeft, Menu, X, User, LogOut, Crown, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { useUserPlan } from "@/hooks/useUserPlan";
-import ProfileDropdown from "@/components/ProfileDropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useScrollManager } from "@/hooks/useScrollManager";
 
 interface NavigationHeaderProps {
@@ -21,15 +23,40 @@ const NavigationHeader = ({
   showSaveButton = false, 
   onSave 
 }: NavigationHeaderProps) => {
-  const { user, isLoading } = useUserPlan();
+  const { user, signOut, loading } = useAuth();
+  const { subscriptionStatus } = useSubscription();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Prevent background scrolling when mobile menu is open
   useScrollManager(mobileMenuOpen);
 
   const navigationItems = [
+    { href: "/dashboard", label: "Dashboard", requireAuth: true },
+    { href: "/pricing", label: "Pricing", requireAuth: false },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getSubscriptionBadge = () => {
+    if (!subscriptionStatus?.has_access) return null;
+    
+    const planNames = {
+      single: 'Single',
+      '10days': '10 Days',
+      monthly: 'Monthly'
+    };
+    
+    return (
+      <Badge variant="outline" className="ml-2 text-xs">
+        {planNames[subscriptionStatus.plan_type as keyof typeof planNames] || subscriptionStatus.plan_type}
+      </Badge>
+    );
+  };
 
   const isActiveRoute = (href: string) => location.pathname === href;
 
@@ -66,22 +93,21 @@ const NavigationHeader = ({
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex ml-auto mr-6 space-x-6">
-          {navigationItems.map((item) => {
-            if (item.requiresAuth && !user) return null;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-foreground ${
-                  isActiveRoute(item.href) 
-                    ? "text-foreground border-b-2 border-primary" 
-                    : "text-muted-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+          {navigationItems
+            .filter(item => !item.requireAuth || user)
+            .map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={`text-sm font-medium transition-colors hover:text-foreground ${
+                isActiveRoute(item.href) 
+                  ? "text-foreground border-b-2 border-primary" 
+                  : "text-muted-foreground"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         {/* Action Buttons */}
@@ -136,15 +162,73 @@ const NavigationHeader = ({
           </Sheet>
 
           {/* User Section */}
-                  {isLoading ? (
-          <div className="w-8 h-8 bg-muted rounded animate-pulse" />
-        ) : user ? (
-          <ProfileDropdown user={user} />
-        ) : (
-          <Button asChild className="transition-smooth hover:scale-105 bg-gradient-to-r from-slate-700 to-gray-700 hover:from-slate-800 hover:to-gray-800 text-white">
-            <Link to="/auth">Sign In</Link>
-          </Button>
-        )}
+          {loading ? (
+            <div className="w-8 h-8 bg-muted rounded animate-pulse" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="hidden sm:inline text-sm">
+                    {user.email?.split('@')[0]}
+                  </span>
+                  {getSubscriptionBadge()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{user.email}</p>
+                  {subscriptionStatus?.has_access && (
+                    <p className="text-xs text-muted-foreground">
+                      {subscriptionStatus.plan_type === 'single' 
+                        ? `${subscriptionStatus.resumes_remaining} resume${subscriptionStatus.resumes_remaining !== 1 ? 's' : ''} left`
+                        : subscriptionStatus.plan_type === 'monthly' 
+                        ? 'Monthly subscription'
+                        : subscriptionStatus.expires_at
+                        ? `${Math.max(0, Math.ceil((new Date(subscriptionStatus.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left`
+                        : 'Active subscription'
+                      }
+                    </p>
+                  )}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                {!subscriptionStatus?.has_access && (
+                  <DropdownMenuItem onClick={() => navigate('/pricing')}>
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade Plan
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link to="/auth">
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/pricing">
+                <Button size="sm" className="bg-gradient-to-r from-slate-700 to-gray-700 hover:from-slate-800 hover:to-gray-800 text-white">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
