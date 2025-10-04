@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TestModeBanner from "@/components/TestModeBanner";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { lazy, Suspense } from "react";
 
 // Load main page immediately, lazy load others
@@ -13,6 +15,9 @@ import Index from "./pages/Index";
 
 // Lazy load all other pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FormSelection = lazy(() => import("./pages/FormSelection"));
 const ResumeForm = lazy(() => import("./pages/ResumeFormSimple"));
 const AIGeneration = lazy(() => import("./pages/AIGeneration"));
@@ -59,24 +64,87 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <TestModeBanner />
-            <Routes>
-              <Route path="/" element={<RouteWrapper><Index /></RouteWrapper>} />
-              <Route path="/auth" element={<RouteWrapper><Auth /></RouteWrapper>} />
-              <Route path="/form-selection" element={<RouteWrapper><FormSelection /></RouteWrapper>} />
-              <Route path="/form/:type" element={<RouteWrapper><ResumeForm /></RouteWrapper>} />
-              <Route path="/ai-generation" element={<RouteWrapper><AIGeneration /></RouteWrapper>} />
-              <Route path="/resume-preview" element={<RouteWrapper><ResumePreview /></RouteWrapper>} />
-              <Route path="/plan-selection" element={<RouteWrapper><PlanSelection /></RouteWrapper>} />
-              <Route path="/gumroad/success" element={<RouteWrapper><GumroadSuccess /></RouteWrapper>} />
-              <Route path="/resume-generated" element={<RouteWrapper><ResumeGenerated /></RouteWrapper>} />
-              <Route path="/profile" element={<RouteWrapper><Profile /></RouteWrapper>} />
-              <Route path="/my-resumes" element={<RouteWrapper><MyResumes /></RouteWrapper>} />
-              <Route path="/reset-password" element={<RouteWrapper><ResetPassword /></RouteWrapper>} />
-              <Route path="/status" element={<RouteWrapper><Status /></RouteWrapper>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<RouteWrapper><NotFound /></RouteWrapper>} />
-            </Routes>
+            <AuthProvider>
+              <TestModeBanner />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<RouteWrapper><Index /></RouteWrapper>} />
+                
+                {/* Auth routes - redirect to dashboard if already authenticated */}
+                <Route path="/auth" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <RouteWrapper><AuthPage /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/auth/legacy" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <RouteWrapper><Auth /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Pricing - accessible to all but shows different content based on auth */}
+                <Route path="/pricing" element={<RouteWrapper><PricingPage /></RouteWrapper>} />
+                
+                {/* Post-purchase success - requires auth */}
+                <Route path="/gumroad/success" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><GumroadSuccess /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Protected routes - require authentication */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><Dashboard /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/form-selection" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><FormSelection /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/form/:type" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><ResumeForm /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/ai-generation" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><AIGeneration /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/resume-preview" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><ResumePreview /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/plan-selection" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><PlanSelection /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/resume-generated" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><ResumeGenerated /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><Profile /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/my-resumes" element={
+                  <ProtectedRoute>
+                    <RouteWrapper><MyResumes /></RouteWrapper>
+                  </ProtectedRoute>
+                } />
+                <Route path="/reset-password" element={<RouteWrapper><ResetPassword /></RouteWrapper>} />
+                <Route path="/status" element={<RouteWrapper><Status /></RouteWrapper>} />
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<RouteWrapper><NotFound /></RouteWrapper>} />
+              </Routes>
+            </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
