@@ -9,6 +9,7 @@ const router = express.Router();
 // Import route modules
 const userRoutes = require('./userRoutes');
 const paymentRoutes = require('./paymentRoutes');
+const gumroadRoutes = require('./gumroadRoutes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -54,5 +55,6 @@ router.get('/info', (req, res) => {
 // Mount route modules
 router.use('/users', userRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/gumroad', gumroadRoutes);
 
 module.exports = router;

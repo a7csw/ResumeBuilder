@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import TemplatePreview from '@/components/TemplatePreview';
 import { TEMPLATES_REGISTRY, findTemplateMeta, basicTemplates, premiumTemplates } from '@/lib/templatesRegistry';
-import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Crown, CheckCircle, Sparkles, Palette, Star, Lock } from 'lucide-react';
 
 import { useDownloadPdf } from '@/lib/useDownloadPdf';
 import { useScrollManager } from '@/hooks/useScrollManager';
+// Removed RevenueCat imports - no premium templates needed
 import { cn } from '@/lib/utils';
 
 interface TemplateGalleryProps {
@@ -26,7 +27,9 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   const [activeTemplateId, setActiveTemplateId] = useState(selectedTemplateId);
   const [activeColor, setActiveColor] = useState(selectedColor || 'indigo');
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const { downloadPdf, isDownloading } = useDownloadPdf();
+  const { canAccessFeature, isPremium } = useRevenueCat();
 
   // Debounced template selection to prevent flickering
   const [debouncedTemplateId, setDebouncedTemplateId] = useState(selectedTemplateId);
@@ -90,8 +93,16 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
   };
 
   const handleOpenPreview = (id: string) => {
-    setActiveTemplateId(id);
     const meta = findTemplateMeta(id);
+    const isPremiumTemplate = premiumTemplates.includes(id);
+    
+    // Check if user can access premium templates
+    if (isPremiumTemplate && !canAccessFeature("premium_templates")) {
+      setShowPaywall(true);
+      return;
+    }
+    
+    setActiveTemplateId(id);
     setActiveColor(meta?.colors?.[0]?.id || 'indigo');
     setOpen(true);
   };
@@ -120,22 +131,35 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
     onPreview: (id: string) => void; 
     isSelected: boolean; 
     isPremium?: boolean;
-  }) => (
-    <Card className={cn(
-      "group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative",
-      isSelected && "ring-2 ring-primary ring-offset-2",
-      isPremium && "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
-    )}>
-      {isPremium && (
-        <div className="absolute top-3 right-3 z-10">
-          <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
-            <Crown className="w-3 h-3 mr-1" />
-            Pro
-          </Badge>
-        </div>
-      )}
-      
-      <CardHeader className="pb-3">
+  }) => {
+    const isLocked = isPremium && !canAccessFeature("premium_templates");
+    
+    return (
+      <Card className={cn(
+        "group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative",
+        isSelected && "ring-2 ring-primary ring-offset-2",
+        isPremium && "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white",
+        isLocked && "opacity-75"
+      )}>
+        {isPremium && (
+          <div className="absolute top-3 right-3 z-10">
+            <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+              <Crown className="w-3 h-3 mr-1" />
+              Pro
+            </Badge>
+          </div>
+        )}
+        
+        {isLocked && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-20">
+            <div className="bg-white/90 rounded-lg p-3 shadow-lg flex items-center gap-2">
+              <Lock className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Premium</span>
+            </div>
+          </div>
+        )}
+        
+        <CardHeader className="pb-3">
         <div className="aspect-[3/4] bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg flex items-center justify-center relative overflow-hidden">
           {/* Template Preview Mockup */}
           <div className="w-32 h-40 bg-white rounded border shadow-lg flex flex-col p-3 text-[6px] leading-tight transform group-hover:scale-105 transition-transform">
@@ -187,9 +211,10 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
         >
           {isSelected ? "Selected" : "Preview"}
         </Button>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -238,6 +263,7 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
               template={template}
               onPreview={handleOpenPreview}
               isSelected={selectedTemplateId === template.id}
+              isPremium={premiumTemplates.includes(template.id)}
             />
           ))}
         </div>
@@ -347,6 +373,15 @@ const TemplateGallery = ({ resumeData, mode, selectedTemplateId, selectedColor, 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        feature="premium templates"
+        title="Upgrade to Access Premium Templates"
+        description="Premium templates are available with our Premium plan. Upgrade now to unlock professional designs!"
+      />
     </div>
   );
 };

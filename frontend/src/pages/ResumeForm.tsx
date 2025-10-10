@@ -441,8 +441,8 @@ const ResumeForm = () => {
     // Save to localStorage as backup
     localStorage_.set('resumeFormData', formData);
     
-    // Navigate to resume generated page
-    navigate("/resume-generated", { state: { formData } });
+    // Navigate to pricing page for payment
+    navigate("/pricing", { state: { formData } });
   };
 
   // Show loading state

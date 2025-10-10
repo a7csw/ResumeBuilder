@@ -12,8 +12,10 @@ import {
   FileText,
   Eye,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Lock
 } from "lucide-react";
+// Removed RevenueCat imports - payment gate is now before this page
 
 const ResumePreview = () => {
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "word">("pdf");
@@ -64,7 +66,6 @@ const ResumePreview = () => {
     try {
       setIsDownloading(true);
       
-      // Since we're making everything free, we'll use a simple client-side PDF generation
       if (format === "pdf") {
         // Use html2canvas and jsPDF for client-side PDF generation
         const html2canvas = (await import('html2canvas')).default;
@@ -522,6 +523,8 @@ const ResumePreview = () => {
             </div>
           </div>
 
+          {/* User has already paid to access this page */}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Resume Preview */}
             <div className="lg:col-span-2">
@@ -551,7 +554,7 @@ const ResumePreview = () => {
                         className="text-slate-600"
                       />
                       <FileText className="w-5 h-5 text-slate-500" />
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">PDF Format</p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                           Best for applying online
@@ -639,6 +642,8 @@ const ResumePreview = () => {
           </div>
         </div>
       </div>
+
+      {/* No paywall needed - user has already paid */}
     </div>
   );
 };
