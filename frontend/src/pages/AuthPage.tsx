@@ -101,27 +101,24 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0a1525] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white mb-4">
-            <Sparkles className="w-8 h-8 text-primary" />
-            ResumeBuilder
+          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-white mb-6">
+            <ArrowRight className="w-5 h-5 rotate-180" />
+            <span className="tracking-tight">NOVA<span className="text-primary">ECV</span></span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-            Welcome back
+          <h1 className="text-3xl font-bold text-white mb-3">
+            Welcome to NovaCV
           </h1>
-          <p className="text-slate-600 dark:text-slate-300">
-            Sign in to your account or create a new one
+          <p className="text-slate-400 text-sm">
+            Join thousands of professionals who've transformed their careers with AI-powered resumes
           </p>
         </div>
 
-        <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-center text-lg">Authentication</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="shadow-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
+          <CardContent className="pt-6">
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
@@ -132,17 +129,17 @@ const AuthPage = () => {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="text-slate-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                       <Input
                         id="signin-email"
                         name="email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder="you@example.com"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="pl-10"
+                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -150,9 +147,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className="text-slate-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                       <Input
                         id="signin-password"
                         name="password"
@@ -160,14 +157,14 @@ const AuthPage = () => {
                         placeholder="Enter your password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                         disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -177,48 +174,39 @@ const AuthPage = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white" 
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
                         Signing in...
                       </>
                     ) : (
                       <>
+                        <Sparkles className="w-4 h-4 mr-2" />
                         Sign In
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
                   </Button>
                 </form>
-
-                <div className="text-center">
-                  <Link 
-                    to="/auth/reset-password" 
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
               </TabsContent>
 
               {/* Sign Up Tab */}
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-slate-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                       <Input
                         id="signup-email"
                         name="email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder="you@example.com"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="pl-10"
+                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -226,17 +214,17 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className="text-slate-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                       <Input
                         id="signup-password"
                         name="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
+                        placeholder="Create a strong password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                         minLength={6}
@@ -244,7 +232,7 @@ const AuthPage = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                         disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -253,9 +241,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password" className="text-slate-300">Confirm Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                       <Input
                         id="confirm-password"
                         name="confirmPassword"
@@ -263,7 +251,7 @@ const AuthPage = () => {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        className="pl-10"
+                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -272,46 +260,41 @@ const AuthPage = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white" 
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
                         Creating account...
                       </>
                     ) : (
                       <>
-                        <User className="w-4 h-4 mr-2" />
+                        <Sparkles className="w-4 h-4 mr-2" />
                         Create Account
                       </>
                     )}
                   </Button>
                 </form>
-
-                <div className="text-xs text-center text-slate-500 dark:text-slate-400">
-                  By signing up, you agree to our{' '}
-                  <Link to="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
-                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Need help?{' '}
-            <Link to="/support" className="text-primary hover:underline">
-              Contact Support
-            </Link>
-          </p>
+        <div className="flex items-center justify-center gap-8 mt-8 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <Lock className="w-3 h-3" />
+            <span>Secure & Private</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3 h-3" />
+            <span>Free to Start</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Mail className="w-3 h-3" />
+            <span>No Spam Ever</span>
+          </div>
         </div>
       </div>
     </div>
