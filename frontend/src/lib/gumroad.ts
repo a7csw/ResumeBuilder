@@ -23,7 +23,7 @@ export const GUMROAD_PRODUCTS: Record<string, GumroadProduct> = {
     price: 1,
     currency: 'EUR',
     interval: null,
-    gumroadUrl: import.meta.env.VITE_GUMROAD_SINGLE_RESUME_URL || 'https://gum.co/single-resume',
+    gumroadUrl: import.meta.env.VITE_GUMROAD_SINGLE_RESUME_URL || 'https://alfaiadiabood.gumroad.com/l/resume-single',
     features: [
       'AI-generated professional resume',
       'ATS-optimized format',
@@ -39,7 +39,7 @@ export const GUMROAD_PRODUCTS: Record<string, GumroadProduct> = {
     currency: 'EUR',
     interval: null,
     accessValidityDays: 10,
-    gumroadUrl: import.meta.env.VITE_GUMROAD_10DAY_ACCESS_URL || 'https://gum.co/10day-access',
+    gumroadUrl: import.meta.env.VITE_GUMROAD_10DAY_ACCESS_URL || 'https://alfaiadiabood.gumroad.com/l/10daypass',
     features: [
       'Unlimited resume generation',
       'AI-powered content optimization',
@@ -51,17 +51,19 @@ export const GUMROAD_PRODUCTS: Record<string, GumroadProduct> = {
   },
   monthly: {
     id: 'monthly_subscription',
-    name: 'Monthly Subscription',
-    description: 'Monthly recurring subscription with unlimited access',
+    name: '30-Day Pro Pass',
+    description: 'Unlimited resume creation for 30 days',
     price: 9,
     currency: 'EUR',
-    interval: 'month',
-    gumroadUrl: import.meta.env.VITE_GUMROAD_MONTHLY_ACCESS_URL || 'https://gum.co/monthly-access',
+    interval: null,
+    accessValidityDays: 30,
+    gumroadUrl: import.meta.env.VITE_GUMROAD_MONTHLY_ACCESS_URL || 'https://alfaiadiabood.gumroad.com/l/novaecv-monthly',
     features: [
       'Everything in 10 Days Access',
-      'Monthly subscription',
-      'Unlimited access',
+      '30 days full access',
+      'Unlimited resume creation',
       'Priority AI processing',
+      'Premium tools access',
       'Email support'
     ]
   }
@@ -129,9 +131,13 @@ class GumroadService {
         url.searchParams.set('name', options.name);
       }
 
-      // Add success callback URL if needed
+      // Add success redirect URL
+      const currentUrl = window.location.origin;
+      const successUrl = `${currentUrl}/gumroad/success?product=${productId}`;
+      url.searchParams.set('success_url', successUrl);
+      
+      // Store callback for later use
       if (options?.onSuccess) {
-        // Store callback for later use
         window.sessionStorage.setItem('gumroad_success_callback', 'true');
         window.sessionStorage.setItem('gumroad_product_id', productId);
       }
@@ -190,10 +196,17 @@ class GumroadService {
   }
 
   /**
-   * Get product by ID
+   * Get product by ID (supports both key and product ID)
    */
   getProduct(productId: string): GumroadProduct | null {
-    return GUMROAD_PRODUCTS[productId] || null;
+    // First try to find by key
+    if (GUMROAD_PRODUCTS[productId]) {
+      return GUMROAD_PRODUCTS[productId];
+    }
+    
+    // Then try to find by product ID
+    const product = Object.values(GUMROAD_PRODUCTS).find(p => p.id === productId);
+    return product || null;
   }
 
   /**
@@ -262,7 +275,7 @@ class GumroadService {
   validateProduct(product: GumroadProduct): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (!product.gumroadUrl || !product.gumroadUrl.startsWith('https://gum.co/')) {
+    if (!product.gumroadUrl || (!product.gumroadUrl.startsWith('https://gum.co/') && !product.gumroadUrl.startsWith('https://alfaiadiabood.gumroad.com/'))) {
       errors.push('Invalid Gumroad URL');
     }
 

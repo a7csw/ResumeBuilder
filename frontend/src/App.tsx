@@ -16,7 +16,7 @@ import Index from "./pages/Index";
 // Lazy load all other pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
-const PricingPage = lazy(() => import("./pages/PricingPage"));
+// Removed old PricingPage - using PlanSelection instead
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FormSelection = lazy(() => import("./pages/FormSelection"));
 const ResumeForm = lazy(() => import("./pages/ResumeFormSimple"));
@@ -25,6 +25,7 @@ const ResumePreview = lazy(() => import("./pages/ResumePreview"));
 const ResumeGenerated = lazy(() => import("./pages/ResumeGenerated"));
 const PlanSelection = lazy(() => import("./pages/PlanSelection"));
 const GumroadSuccess = lazy(() => import("./pages/GumroadSuccess"));
+const Success = lazy(() => import("./pages/Success"));
 const Profile = lazy(() => import("./pages/Profile"));
 const MyResumes = lazy(() => import("./pages/MyResumes"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -83,7 +84,7 @@ const App = () => (
                 } />
                 
                 {/* Pricing - accessible to all but shows different content based on auth */}
-                <Route path="/pricing" element={<RouteWrapper><PricingPage /></RouteWrapper>} />
+                <Route path="/pricing" element={<RouteWrapper><PlanSelection /></RouteWrapper>} />
                 
                 {/* Post-purchase success - requires auth */}
                 <Route path="/gumroad/success" element={
@@ -91,6 +92,9 @@ const App = () => (
                     <RouteWrapper><GumroadSuccess /></RouteWrapper>
                   </ProtectedRoute>
                 } />
+                
+                {/* New Gumroad success redirect */}
+                <Route path="/success" element={<RouteWrapper><Success /></RouteWrapper>} />
                 
                 {/* Protected routes - require authentication */}
                 <Route path="/dashboard" element={

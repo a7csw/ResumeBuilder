@@ -1,157 +1,133 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { CheckCircle, Sparkles, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Download, ArrowRight, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import NavigationHeader from '@/components/NavigationHeader';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
+import { getSubscriptionService } from '@/lib/supabase-subscriptions';
+import { GUMROAD_PRODUCTS } from '@/lib/gumroad';
+import { useAuth } from '@/contexts/AuthContext';
 
 const GumroadSuccess = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionCreated, setSubscriptionCreated] = useState(false);
+  const [productDetails, setProductDetails] = useState<any>(null);
   
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { createSubscription, refetch } = useSubscription();
   const { toast } = useToast();
 
-  // Get parameters from URL
-  const product = searchParams.get('product');
-  const userId = searchParams.get('user_id');
-  const orderId = searchParams.get('order_id');
+  // Get parameters from URL or location state
+  const productId = searchParams.get('product') || location.state?.planId;
+  const orderId = searchParams.get('order_id') || `gumroad_${Date.now()}`;
   const email = searchParams.get('email');
-
-  const planNames = {
-    single: 'Single Resume',
-    '10days': '10 Days Access',
-    monthly: 'Monthly Plan'
-  };
-
-  const planPrices = {
-    single: '€1',
-    '10days': '€4',
-    monthly: '€9'
-  };
+  const price = searchParams.get('price');
 
   useEffect(() => {
-    const processPurchase = async () => {
-      // Validate required parameters
-      if (!product || !userId) {
-        setError('Missing required parameters. Please contact support.');
-        setIsProcessing(false);
-        return;
-      }
-
-      // Validate product type
-      if (!['single', '10days', 'monthly'].includes(product)) {
-        setError('Invalid product type. Please contact support.');
-        setIsProcessing(false);
-        return;
-      }
-
-      // Check if user is authenticated and matches the purchase
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to complete your purchase activation.",
-          variant: "destructive",
-        });
-        navigate('/auth', { 
-          state: { 
-            from: `/gumroad/success?${searchParams.toString()}` 
-          } 
-        });
-        return;
-      }
-
-      if (user.id !== userId) {
-        setError('User mismatch. Please sign in with the account used for purchase.');
-        setIsProcessing(false);
-        return;
-      }
-
+    const processGumroadSuccess = async () => {
       try {
-        // Create subscription in database
-        await createSubscription(
-          product as 'single' | '10days' | 'monthly',
-          orderId || undefined
+        setIsProcessing(true);
+        setError(null);
+
+        // Check if user is authenticated
+        if (!user) {
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to complete your purchase activation.",
+            variant: "destructive",
+          });
+          navigate('/auth', { 
+            state: { 
+              from: location.pathname + location.search,
+              message: "Please sign in to activate your purchase"
+            }
+          });
+          return;
+        }
+
+        // Validate product ID
+        if (!productId) {
+          setError("Product information missing from purchase confirmation.");
+          return;
+        }
+
+        // Get product details
+        const product = Object.values(GUMROAD_PRODUCTS).find(p => 
+          p.id === productId || 
+          productId.includes(p.id) ||
+          (productId === 'single' && p.id === 'single_resume') ||
+          (productId === '10days' && p.id === '10day_access') ||
+          (productId === 'monthly' && p.id === 'monthly_subscription')
         );
 
-        setSubscriptionCreated(true);
-        
-        // Refresh subscription status
-        await refetch();
+        if (!product) {
+          setError(`Unknown product: ${productId}`);
+          return;
+        }
 
-        toast({
-          title: "Purchase activated! 🎉",
-          description: `Your ${planNames[product as keyof typeof planNames]} is now active.`,
-        });
+        setProductDetails(product);
 
-      } catch (err) {
-        console.error('Error processing purchase:', err);
-        setError('Failed to activate your purchase. Please contact support.');
-        toast({
-          title: "Activation failed",
-          description: "Please contact support with your order details.",
-          variant: "destructive",
-        });
+        // Create subscription in Supabase
+        const subscriptionService = getSubscriptionService(toast);
+        const pricePaid = price ? parseInt(price) * 100 : product.price * 100; // Convert to cents
+
+        const subscriptionId = await subscriptionService.createSubscription(
+          product.id,
+          orderId,
+          pricePaid
+        );
+
+        if (subscriptionId) {
+          setSubscriptionCreated(true);
+          
+          // Clear any stored form data since purchase is complete
+          localStorage.removeItem('resumeFormData');
+          localStorage.removeItem('selectedProductId');
+
+          toast({
+            title: "Purchase activated! 🎉",
+            description: `Your ${product.name} is now active and ready to use.`,
+            duration: 5000,
+          });
+        } else {
+          setError("Failed to activate your purchase. Please contact support.");
+        }
+
+      } catch (error) {
+        console.error('Error processing Gumroad success:', error);
+        setError("An error occurred while activating your purchase. Please contact support.");
       } finally {
         setIsProcessing(false);
       }
     };
 
-    // Add a small delay to make the process feel more natural
-    const timer = setTimeout(processPurchase, 2000);
-    return () => clearTimeout(timer);
-  }, [product, userId, orderId, user, createSubscription, refetch, toast, navigate, searchParams]);
+    processGumroadSuccess();
+  }, [user, productId, orderId, price, toast, navigate, location]);
 
-  const handleContinue = () => {
-    // Navigate to dashboard or resume builder
-    navigate('/dashboard');
+  const handleGenerateResume = () => {
+    navigate('/form-selection');
   };
 
-  const handleCreateResume = () => {
-    navigate('/form-selection');
+  const handleViewDashboard = () => {
+    navigate('/dashboard');
   };
 
   if (isProcessing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
         <NavigationHeader />
-        <div className="container px-6 py-20 mx-auto max-w-4xl">
-          <div className="text-center">
-            <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-              Activating Your Purchase...
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-lg">
-              Please wait while we set up your account and activate your subscription.
-            </p>
-            <div className="mt-8 max-w-md mx-auto">
-              <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 dark:text-slate-300">Product:</span>
-                  <span className="font-medium text-slate-900 dark:text-white">
-                    {product && planNames[product as keyof typeof planNames]}
-                  </span>
-                </div>
-                {orderId && (
-                  <div className="flex items-center justify-between text-sm mt-2">
-                    <span className="text-slate-600 dark:text-slate-300">Order ID:</span>
-                    <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
-                      {orderId}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        <div className="container py-16 text-center">
+          <Loader2 className="w-16 h-16 text-primary mx-auto mb-6 animate-spin" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+            Activating Your Purchase...
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+            Please wait while we set up your account and activate your subscription.
+          </p>
         </div>
       </div>
     );
@@ -161,38 +137,21 @@ const GumroadSuccess = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
         <NavigationHeader />
-        <div className="container px-6 py-20 mx-auto max-w-4xl">
-          <div className="text-center">
-            <div className="mx-auto w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
-              <AlertCircle className="w-12 h-12 text-red-500" />
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-              Activation Failed
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-lg mb-8">
-              {error}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => window.location.reload()} variant="outline">
-                Try Again
-              </Button>
-              <Button onClick={() => navigate('/dashboard')}>
-                Go to Dashboard
-              </Button>
-            </div>
-            <div className="mt-8 text-sm text-slate-500 dark:text-slate-400">
-              <p>
-                Need help? Contact support at{' '}
-                <a href="mailto:support@resumebuilder.com" className="text-primary hover:underline">
-                  support@resumebuilder.com
-                </a>
-              </p>
-              {orderId && (
-                <p className="mt-2">
-                  Reference Order ID: <span className="font-mono">{orderId}</span>
-                </p>
-              )}
-            </div>
+        <div className="container py-16 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+            Activation Error
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
+            {error}
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              Go to Dashboard
+            </Button>
           </div>
         </div>
       </div>
@@ -202,159 +161,80 @@ const GumroadSuccess = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900 dark:via-gray-900 dark:to-zinc-900">
       <NavigationHeader />
-      
-      <div className="container px-4 sm:px-6 py-12 mx-auto max-w-4xl">
-        {/* Success Message */}
-        <div className="text-center mb-12">
-          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
-            <CheckCircle className="w-14 h-14 text-green-500" />
-          </div>
+      <div className="container py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6 animate-bounce" />
           
-          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4">
-            Welcome to Premium! 🎉
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            Payment Successful!
           </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Your purchase has been successfully activated. You now have full access to create professional, 
-            ATS-optimized resumes with our AI-powered platform.
+          
+          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8">
+            Thank you for your purchase! Your {productDetails?.name} is now active.
           </p>
-        </div>
 
-        {/* Purchase Details */}
-        <Card className="mb-8 max-w-2xl mx-auto shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-center flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              Purchase Confirmed
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Plan</span>
-              <span className="font-bold text-slate-900 dark:text-white">
-                {product && planNames[product as keyof typeof planNames]}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Price</span>
-              <span className="font-bold text-primary text-lg">
-                {product && planPrices[product as keyof typeof planPrices]}
-              </span>
-            </div>
-            {product === '10days' && (
-              <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-                <span className="font-medium text-slate-700 dark:text-slate-300">Access Duration</span>
-                <span className="text-slate-900 dark:text-white">10 days</span>
-              </div>
-            )}
-            {product === 'monthly' && (
-              <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-                <span className="font-medium text-slate-700 dark:text-slate-300">Billing</span>
-                <span className="text-slate-900 dark:text-white">Monthly subscription</span>
-              </div>
-            )}
-            {product === 'single' && (
-              <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-                <span className="font-medium text-slate-700 dark:text-slate-300">Resumes Included</span>
-                <span className="text-slate-900 dark:text-white">1 resume</span>
-              </div>
-            )}
-            {email && (
-              <div className="flex justify-between items-center py-3 border-b border-slate-200 dark:border-slate-700">
-                <span className="font-medium text-slate-700 dark:text-slate-300">Email</span>
-                <span className="text-sm text-slate-600 dark:text-slate-400">{email}</span>
-              </div>
-            )}
-            {orderId && (
-              <div className="flex justify-between items-center py-3">
-                <span className="font-medium text-slate-700 dark:text-slate-300">Order ID</span>
-                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{orderId}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          {/* Purchase Summary Card */}
+          {productDetails && (
+            <Card className="mb-8 text-left">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Purchase Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 dark:text-slate-300">Plan:</span>
+                    <span className="font-semibold">{productDetails.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 dark:text-slate-300">Price:</span>
+                    <span className="font-semibold">€{productDetails.price}</span>
+                  </div>
+                  {productDetails.accessValidityDays && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 dark:text-slate-300">Access Duration:</span>
+                      <span className="font-semibold">{productDetails.accessValidityDays} days</span>
+                    </div>
+                  )}
+                  {orderId && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 dark:text-slate-300">Order ID:</span>
+                      <span className="font-mono text-sm">{orderId}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Next Steps */}
-        <Card className="max-w-2xl mx-auto shadow-xl border-0 bg-gradient-to-br from-white to-primary/5 dark:from-slate-800 dark:to-primary/10">
-          <CardHeader>
-            <CardTitle className="text-center">What's Next?</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-8">
-            <div className="grid gap-6">
-              <div className="flex items-start gap-4 text-left">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Create Your Resume</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Use our AI-powered builder to create a professional, ATS-optimized resume
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 text-left">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Download & Apply</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Export your resume in PDF or Word format and start applying to jobs
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 text-left">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Track Your Success</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Manage your resumes and track your job applications from your dashboard
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button size="lg" onClick={handleGenerateResume} className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Generate Your Resume
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            
+            <Button size="lg" variant="outline" onClick={handleViewDashboard}>
+              View Dashboard
+            </Button>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-6">
-              <Button 
-                size="lg" 
-                className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white"
-                onClick={handleCreateResume}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Create My Resume
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="flex-1"
-                onClick={handleContinue}
-              >
-                Go to Dashboard
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Support Information */}
-        <div className="text-center mt-12 space-y-4">
-          <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-slate-200 dark:border-slate-700 max-w-2xl mx-auto">
-            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
-              🔒 Secure Payment Confirmation
+          {/* Features List */}
+          <div className="mt-12 text-left">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 text-center">
+              What's included in your plan:
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
-              Your payment was processed securely through Gumroad. You'll receive a confirmation email shortly.
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Need help? Contact us at{' '}
-              <a href="mailto:support@resumebuilder.com" className="text-primary hover:underline">
-                support@resumebuilder.com
-              </a>
-            </p>
+            <div className="grid gap-3">
+              {productDetails?.features?.map((feature: string, index: number) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-slate-600 dark:text-slate-300">{feature}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

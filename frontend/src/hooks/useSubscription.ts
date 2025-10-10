@@ -71,10 +71,14 @@ export const useSubscription = () => {
     } catch (err) {
       console.error('Error checking subscription status:', err);
       setError(err instanceof Error ? err.message : 'Failed to check subscription status');
-      toast({
-        title: "Error",
-        description: "Failed to check subscription status",
-        variant: "destructive",
+      // Don't show error toast - silently handle it
+      // This prevents annoying errors when user is not logged in or RPC function doesn't exist
+      setSubscriptionStatus({
+        has_access: false,
+        plan_type: null,
+        resumes_remaining: 0,
+        expires_at: null,
+        status: 'none'
       });
     } finally {
       setLoading(false);

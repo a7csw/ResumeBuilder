@@ -20,9 +20,10 @@ import {
 } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import useSubscriptionAccess from '@/hooks/useSubscriptionAccess';
+import { getSubscriptionService } from '@/lib/supabase-subscriptions';
 
 interface Resume {
   id: string;
@@ -42,7 +43,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   
   const { user } = useAuth();
-  const { subscriptionStatus, isExpiringSoon, getDaysUntilExpiry, getRemainingResumes } = useSubscription();
+  const { accessStatus, canGenerateResume, subscriptionDisplay, refreshAccess } = useSubscriptionAccess();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,16 +53,10 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
-          .from('user_resumes')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false });
-
-        if (error) throw error;
-
-        setResumes(data || []);
-        setFilteredResumes(data || []);
+        const subscriptionService = getSubscriptionService(toast);
+        const userResumes = await subscriptionService.getUserResumes();
+        setResumes(userResumes);
+        setFilteredResumes(userResumes);
       } catch (error) {
         console.error('Error fetching resumes:', error);
         toast({
@@ -90,7 +85,7 @@ const Dashboard = () => {
   }, [searchTerm, resumes]);
 
   const handleCreateResume = () => {
-    if (!subscriptionStatus?.has_access) {
+    if (!canGenerateResume) {
       toast({
         title: "Subscription required",
         description: "Please purchase a plan to create resumes",
@@ -143,9 +138,9 @@ const Dashboard = () => {
   };
 
   const getSubscriptionStatusBadge = () => {
-    if (!subscriptionStatus) return null;
+    if (!accessStatus) return null;
 
-    const { status, plan_type } = subscriptionStatus;
+    const { status, product_name } = accessStatus;
 
     if (status === 'none') {
       return (
@@ -164,20 +159,14 @@ const Dashboard = () => {
     }
 
     const planColors = {
-      single: 'border-blue-200 text-blue-700 bg-blue-50',
-      '10days': 'border-purple-200 text-purple-700 bg-purple-50',
-      monthly: 'border-yellow-200 text-yellow-700 bg-yellow-50'
-    };
-
-    const planNames = {
-      single: 'Single Resume',
-      '10days': '10 Days Access',
-      monthly: 'Monthly Plan'
+      single_resume: 'border-blue-200 text-blue-700 bg-blue-50',
+      '10day_access': 'border-purple-200 text-purple-700 bg-purple-50',
+      monthly_subscription: 'border-yellow-200 text-yellow-700 bg-yellow-50'
     };
 
     return (
-      <Badge variant="outline" className={planColors[plan_type as keyof typeof planColors] || ''}>
-        {planNames[plan_type as keyof typeof planNames] || plan_type}
+      <Badge variant="outline" className={planColors[accessStatus.product_id as keyof typeof planColors] || 'border-green-200 text-green-700 bg-green-50'}>
+        {product_name || 'Active Plan'}
       </Badge>
     );
   };
@@ -214,52 +203,117 @@ const Dashboard = () => {
         {/* Subscription Status Card */}
         <Card className="mb-8 border-0 bg-gradient-to-r from-white to-primary/5 dark:from-slate-800 dark:to-primary/10 shadow-lg">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  {subscriptionStatus?.status === 'active' ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-500" />
-                  ) : subscriptionStatus?.status === 'expired' ? (
-                    <AlertTriangle className="w-6 h-6 text-red-500" />
-                  ) : (
-                    <Clock className="w-6 h-6 text-slate-500" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-slate-900 dark:text-white">
-                      Subscription Status
-                    </h3>
-                    {getSubscriptionStatusBadge()}
-                  </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-300">
-                    {subscriptionStatus?.has_access ? (
-                      <>
-                        {subscriptionStatus.plan_type === 'single' ? (
-                          `${getRemainingResumes()} resume${getRemainingResumes() !== 1 ? 's' : ''} remaining`
-                        ) : isExpiringSoon() ? (
-                          `Expires in ${getDaysUntilExpiry()} day${getDaysUntilExpiry() !== 1 ? 's' : ''}`
-                        ) : subscriptionStatus.plan_type === 'monthly' ? (
-                          'Active monthly subscription'
-                        ) : (
-                          `Active for ${getDaysUntilExpiry()} more day${getDaysUntilExpiry() !== 1 ? 's' : ''}`
-                        )}
-                      </>
+            <div className="flex flex-col gap-6">
+              {/* Status Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-primary/10">
+                    {accessStatus?.has_access ? (
+                      <CheckCircle2 className="w-6 h-6 text-green-500" />
+                    ) : accessStatus?.status === 'expired' ? (
+                      <AlertTriangle className="w-6 h-6 text-red-500" />
                     ) : (
-                      'No active subscription'
+                      <Clock className="w-6 h-6 text-slate-500" />
                     )}
                   </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">
+                        Current Plan
+                      </h3>
+                      {getSubscriptionStatusBadge()}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">
+                      {subscriptionDisplay.message}
+                    </div>
+                  </div>
                 </div>
+                
+                {subscriptionDisplay.showUpgrade && (
+                  <Button 
+                    onClick={() => navigate('/pricing')}
+                    className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    {accessStatus?.has_access ? 'Upgrade Plan' : 'Get Access'}
+                  </Button>
+                )}
               </div>
-              
-              {(!subscriptionStatus?.has_access || isExpiringSoon()) && (
-                <Button 
-                  onClick={() => navigate('/pricing')}
-                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
-                >
-                  <Crown className="w-4 h-4 mr-2" />
-                  {subscriptionStatus?.has_access ? 'Renew Plan' : 'Get Access'}
-                </Button>
+
+              {/* Detailed Status Info */}
+              {accessStatus && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  {/* Credits/Usage */}
+                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                      {accessStatus.resumes_remaining === -1 ? '∞' : accessStatus.resumes_remaining || 0}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">
+                      {accessStatus.resumes_remaining === -1 ? 'Unlimited' : 'Credits Left'}
+                    </div>
+                  </div>
+
+                  {/* Expiry */}
+                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                      {accessStatus.expires_at ? (
+                        Math.max(0, Math.ceil((new Date(accessStatus.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+                      ) : '∞'}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">
+                      {accessStatus.expires_at ? 'Days Left' : 'No Expiry'}
+                    </div>
+                  </div>
+
+                  {/* Resumes Created */}
+                  <div className="text-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                      {resumes.length}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">
+                      Resumes Created
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Upsell Message for Limited Plans */}
+              {!accessStatus?.has_access && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                        Unlock Premium Features
+                      </h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-200">
+                        Generate unlimited professional resumes with AI optimization. Starting from just €1!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Expiry Warning */}
+              {accessStatus?.has_access && accessStatus.expires_at && (
+                (() => {
+                  const daysLeft = Math.ceil((new Date(accessStatus.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                  return daysLeft <= 3 && daysLeft > 0 ? (
+                    <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                        <div>
+                          <h4 className="font-semibold text-yellow-900 dark:text-yellow-100">
+                            Plan Expiring Soon
+                          </h4>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-200">
+                            Your plan expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}. Renew now to continue creating resumes!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null;
+                })()
               )}
             </div>
           </CardContent>
@@ -280,10 +334,15 @@ const Dashboard = () => {
           </div>
           <Button 
             onClick={handleCreateResume}
-            className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+            disabled={!canGenerateResume}
+            className={`${
+              canGenerateResume 
+                ? "bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90" 
+                : "bg-gray-300 dark:bg-gray-600 cursor-not-allowed"
+            }`}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create New Resume
+            {canGenerateResume ? 'Create New Resume' : 'Upgrade to Create'}
           </Button>
         </div>
 

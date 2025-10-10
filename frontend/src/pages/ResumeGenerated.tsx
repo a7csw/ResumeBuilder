@@ -11,41 +11,107 @@ import {
   Sparkles,
   Star,
   FileText,
-  Share2
+  Share2,
+  Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { localStorage_, validateResumeData, safeNavigate } from "@/lib/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { getSubscriptionService } from "@/lib/supabase-subscriptions";
+import useSubscriptionAccess from "@/hooks/useSubscriptionAccess";
 
 const ResumeGenerated = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { canGenerateResume, accessStatus, isLoading: accessLoading, refreshAccess } = useSubscriptionAccess();
+  
   const [formData, setFormData] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [resumeCreated, setResumeCreated] = useState(false);
 
   useEffect(() => {
-    // Get form data from navigation state or localStorage
-    let data = location.state?.formData;
-    
-    if (!data) {
-      data = localStorage_.get('resumeFormData');
-    }
-    
-    if (data && validateResumeData(data)) {
-      setFormData(data);
-    } else {
-      // If no valid form data is available, redirect to form selection
-      safeNavigate(navigate, "/form-selection", { replace: true });
-      return;
-    }
-    
-    // Simulate generation process
-    const timer = setTimeout(() => {
-      setIsGenerating(false);
-    }, 2000);
+    const initializeResumeGeneration = async () => {
+      // Check authentication first
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to generate resumes.",
+          variant: "destructive",
+        });
+        navigate('/auth', { state: { from: '/resume-generated' } });
+        return;
+      }
 
-    return () => clearTimeout(timer);
-  }, [location.state, navigate]);
+      // Get form data from navigation state or localStorage
+      let data = location.state?.formData;
+      
+      if (!data) {
+        data = localStorage_.get('resumeFormData');
+      }
+      
+      if (!data || !validateResumeData(data)) {
+        // If no valid form data is available, redirect to form selection
+        safeNavigate(navigate, "/form-selection", { replace: true });
+        return;
+      }
+
+      setFormData(data);
+
+      // Wait for access status to load
+      if (accessLoading) {
+        return;
+      }
+
+      // Check if user has access to generate resumes
+      if (!canGenerateResume) {
+        toast({
+          title: "Subscription required",
+          description: "You need an active subscription to generate resumes.",
+          variant: "destructive",
+        });
+        navigate('/pricing');
+        return;
+      }
+
+      // Create the resume in Supabase
+      try {
+        const subscriptionService = getSubscriptionService(toast);
+        const resumeId = await subscriptionService.createResume(
+          `${data.personalInfo?.firstName || 'My'} ${data.personalInfo?.lastName || 'Resume'}`,
+          data,
+          data.type || 'professional'
+        );
+
+        if (resumeId) {
+          setResumeCreated(true);
+          // Refresh access status to update usage counts
+          await refreshAccess();
+        } else {
+          throw new Error('Failed to create resume');
+        }
+      } catch (error) {
+        console.error('Error creating resume:', error);
+        toast({
+          title: "Resume generation failed",
+          description: "Could not generate your resume. Please try again.",
+          variant: "destructive",
+        });
+        navigate('/form-selection');
+        return;
+      }
+      
+      // Simulate generation process for UI
+      const timer = setTimeout(() => {
+        setIsGenerating(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    };
+
+    initializeResumeGeneration();
+  }, [user, location.state, navigate, canGenerateResume, accessLoading]);
 
   const handleDownload = () => {
     // Redirect to preview page for download
