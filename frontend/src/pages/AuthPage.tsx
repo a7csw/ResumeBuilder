@@ -108,7 +108,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a1525]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-[#0a1525] dark:via-[#0f1c2e] dark:to-[#0a1525]">
       {/* Navigation Header */}
       <NavigationHeader showBackButton={false} />
       
@@ -116,15 +116,15 @@ const AuthPage = () => {
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-3">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
               Welcome to NovaCV
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
               Join thousands of professionals who've transformed their careers with AI-powered resumes
             </p>
           </div>
 
-        <Card className="shadow-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
+        <Card className="shadow-2xl border border-slate-200 dark:border-slate-700/50 bg-white/90 dark:bg-slate-800/50 backdrop-blur-sm">
           <CardContent className="pt-6">
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -136,9 +136,9 @@ const AuthPage = () => {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="text-slate-300">Email</Label>
+                    <Label htmlFor="signin-email" className="text-slate-700 dark:text-slate-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="signin-email"
                         name="email"
@@ -146,7 +146,7 @@ const AuthPage = () => {
                         placeholder="you@example.com"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                        className="pl-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -154,9 +154,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-slate-300">Password</Label>
+                    <Label htmlFor="signin-password" className="text-slate-700 dark:text-slate-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="signin-password"
                         name="password"
@@ -164,14 +164,14 @@ const AuthPage = () => {
                         placeholder="Enter your password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="pl-10 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                        className="pl-10 pr-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
                         disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -181,7 +181,7 @@ const AuthPage = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white" 
+                    className="w-full" 
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -204,9 +204,9 @@ const AuthPage = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-slate-300">First Name</Label>
+                      <Label htmlFor="firstName" className="text-slate-700 dark:text-slate-300">First Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                         <Input
                           id="firstName"
                           name="firstName"
@@ -214,7 +214,7 @@ const AuthPage = () => {
                           placeholder="John"
                           value={formData.firstName}
                           onChange={handleInputChange}
-                          className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                          className="pl-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                           disabled={isLoading}
                           required
                         />
@@ -222,9 +222,9 @@ const AuthPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-slate-300">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-slate-700 dark:text-slate-300">Last Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                         <Input
                           id="lastName"
                           name="lastName"
@@ -232,7 +232,7 @@ const AuthPage = () => {
                           placeholder="Doe"
                           value={formData.lastName}
                           onChange={handleInputChange}
-                          className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                          className="pl-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                           disabled={isLoading}
                           required
                         />
@@ -241,9 +241,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-slate-300">Email</Label>
+                    <Label htmlFor="signup-email" className="text-slate-700 dark:text-slate-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="signup-email"
                         name="email"
@@ -251,7 +251,7 @@ const AuthPage = () => {
                         placeholder="you@example.com"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                        className="pl-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -259,9 +259,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-slate-300">Password</Label>
+                    <Label htmlFor="signup-password" className="text-slate-700 dark:text-slate-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="signup-password"
                         name="password"
@@ -269,7 +269,7 @@ const AuthPage = () => {
                         placeholder="Create a strong password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="pl-10 pr-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                        className="pl-10 pr-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                         minLength={6}
@@ -277,7 +277,7 @@ const AuthPage = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
                         disabled={isLoading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -286,9 +286,9 @@ const AuthPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-slate-300">Confirm Password</Label>
+                    <Label htmlFor="confirm-password" className="text-slate-700 dark:text-slate-300">Confirm Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="confirm-password"
                         name="confirmPassword"
@@ -296,7 +296,7 @@ const AuthPage = () => {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                        className="pl-10 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         disabled={isLoading}
                         required
                       />
@@ -305,7 +305,7 @@ const AuthPage = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white" 
+                    className="w-full" 
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -327,7 +327,7 @@ const AuthPage = () => {
         </Card>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-8 mt-8 text-xs text-slate-500">
+        <div className="flex items-center justify-center gap-8 mt-8 text-xs text-slate-500 dark:text-slate-500">
           <div className="flex items-center gap-2">
             <Lock className="w-3 h-3" />
             <span>Secure & Private</span>
