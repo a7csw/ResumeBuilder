@@ -9,11 +9,14 @@ import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import NavigationHeader from '@/components/NavigationHeader';
 
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -59,7 +62,7 @@ const AuthPage = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
       toast({
         title: "Missing information",
         description: "Please fill in all fields",
@@ -91,7 +94,11 @@ const AuthPage = () => {
       const { error } = await signUp(formData.email, formData.password);
       if (!error) {
         // Don't navigate immediately after signup, user needs to verify email
-        setFormData({ email: '', password: '', confirmPassword: '' });
+        setFormData({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
+        toast({
+          title: "Account created!",
+          description: `Welcome ${formData.firstName}! Please check your email to verify your account.`,
+        });
       }
     } catch (error) {
       console.error('Sign up error:', error);
@@ -101,21 +108,21 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a1525] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-white mb-6">
-            <ArrowRight className="w-5 h-5 rotate-180" />
-            <span className="tracking-tight">NOVA<span className="text-primary">ECV</span></span>
-          </Link>
-          <h1 className="text-3xl font-bold text-white mb-3">
-            Welcome to NovaCV
-          </h1>
-          <p className="text-slate-400 text-sm">
-            Join thousands of professionals who've transformed their careers with AI-powered resumes
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#0a1525]">
+      {/* Navigation Header */}
+      <NavigationHeader showBackButton={false} />
+      
+      <div className="flex items-center justify-center p-4 pt-24">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-3">
+              Welcome to NovaCV
+            </h1>
+            <p className="text-slate-400 text-sm">
+              Join thousands of professionals who've transformed their careers with AI-powered resumes
+            </p>
+          </div>
 
         <Card className="shadow-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
           <CardContent className="pt-6">
@@ -195,6 +202,44 @@ const AuthPage = () => {
               {/* Sign Up Tab */}
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-slate-300">First Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          type="text"
+                          placeholder="John"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-slate-300">Last Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          type="text"
+                          placeholder="Doe"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          className="pl-10 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="text-slate-300">Email</Label>
                     <div className="relative">
@@ -294,6 +339,7 @@ const AuthPage = () => {
           <div className="flex items-center gap-2">
             <Mail className="w-3 h-3" />
             <span>No Spam Ever</span>
+          </div>
           </div>
         </div>
       </div>
