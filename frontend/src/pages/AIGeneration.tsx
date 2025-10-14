@@ -76,11 +76,28 @@ const AIGeneration = () => {
     progressThroughSteps();
   }, [formData, navigate, steps]);
 
+  // Auto-redirect to resume preview when processing is complete
+  useEffect(() => {
+    if (isComplete) {
+      // Small delay to show completion state, then auto-redirect
+      const timer = setTimeout(() => {
+        navigate("/resume-preview", { 
+          state: { 
+            resumeData: formData,
+            selectedPlan: "free" 
+          } 
+        });
+      }, 1500); // 1.5 second delay to show completion
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, navigate, formData]);
+
   const handleViewResume = () => {
-    // Navigate to resume generated page
-    navigate("/resume-generated", { 
+    // Navigate directly to resume preview/download page
+    navigate("/resume-preview", { 
       state: { 
-        formData: formData,
+        resumeData: formData,
         selectedPlan: "free" 
       } 
     });
@@ -246,7 +263,7 @@ const AIGeneration = () => {
                   <p className="text-slate-600 dark:text-slate-300">
                     {selectedPlan === "pro" 
                       ? "Your resume has been optimized with AI-powered content suggestions, industry keywords, and professional formatting."
-                      : "Your resume has been created with our basic template. Upgrade to Professional anytime for AI enhancements and premium templates."
+                      : "Your resume has been created successfully! Redirecting to preview and download page..."
                     }
                   </p>
                 </div>
