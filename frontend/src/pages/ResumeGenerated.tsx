@@ -59,47 +59,30 @@ const ResumeGenerated = () => {
 
       setFormData(data);
 
-      // Wait for access status to load
-      if (accessLoading) {
-        return;
-      }
+      // Free version - no subscription checks needed
+      // Optionally save to Supabase if user is logged in
+      if (user) {
+        try {
+          const subscriptionService = getSubscriptionService(toast);
+          const resumeId = await subscriptionService.createResume(
+            `${data.personalInfo?.firstName || 'My'} ${data.personalInfo?.lastName || 'Resume'}`,
+            data,
+            data.type || 'professional'
+          );
 
-      // Check if user has access to generate resumes
-      if (!canGenerateResume) {
-        toast({
-          title: "Subscription required",
-          description: "You need an active subscription to generate resumes.",
-          variant: "destructive",
-        });
-        navigate('/pricing');
-        return;
-      }
-
-      // Create the resume in Supabase
-      try {
-        const subscriptionService = getSubscriptionService(toast);
-        const resumeId = await subscriptionService.createResume(
-          `${data.personalInfo?.firstName || 'My'} ${data.personalInfo?.lastName || 'Resume'}`,
-          data,
-          data.type || 'professional'
-        );
-
-        if (resumeId) {
+          if (resumeId) {
+            setResumeCreated(true);
+            // Refresh access status to update usage counts
+            await refreshAccess();
+          }
+        } catch (error) {
+          console.error('Error saving resume:', error);
+          // Continue anyway - the resume is already displayed
           setResumeCreated(true);
-          // Refresh access status to update usage counts
-          await refreshAccess();
-        } else {
-          throw new Error('Failed to create resume');
         }
-      } catch (error) {
-        console.error('Error creating resume:', error);
-        toast({
-          title: "Resume generation failed",
-          description: "Could not generate your resume. Please try again.",
-          variant: "destructive",
-        });
-        navigate('/form-selection');
-        return;
+      } else {
+        // Not logged in - still allow resume generation
+        setResumeCreated(true);
       }
       
       // Simulate generation process for UI

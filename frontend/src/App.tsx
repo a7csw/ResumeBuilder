@@ -96,42 +96,16 @@ const App = () => (
                 {/* New Gumroad success redirect */}
                 <Route path="/success" element={<RouteWrapper><Success /></RouteWrapper>} />
                 
-                {/* Protected routes - require authentication */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><Dashboard /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/form-selection" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><FormSelection /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/form/:type" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><ResumeForm /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/ai-generation" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><AIGeneration /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/resume-preview" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><ResumePreview /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/plan-selection" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><PlanSelection /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
-                <Route path="/resume-generated" element={
-                  <ProtectedRoute>
-                    <RouteWrapper><ResumeGenerated /></RouteWrapper>
-                  </ProtectedRoute>
-                } />
+                {/* Free access routes - no authentication required */}
+                <Route path="/dashboard" element={<RouteWrapper><Dashboard /></RouteWrapper>} />
+                <Route path="/form-selection" element={<RouteWrapper><FormSelection /></RouteWrapper>} />
+                <Route path="/form/:type" element={<RouteWrapper><ResumeForm /></RouteWrapper>} />
+                <Route path="/ai-generation" element={<RouteWrapper><AIGeneration /></RouteWrapper>} />
+                <Route path="/resume-preview" element={<RouteWrapper><ResumePreview /></RouteWrapper>} />
+                <Route path="/plan-selection" element={<RouteWrapper><PlanSelection /></RouteWrapper>} />
+                <Route path="/resume-generated" element={<RouteWrapper><ResumeGenerated /></RouteWrapper>} />
+                
+                {/* Optional auth routes for users who want to save */}
                 <Route path="/profile" element={
                   <ProtectedRoute>
                     <RouteWrapper><Profile /></RouteWrapper>

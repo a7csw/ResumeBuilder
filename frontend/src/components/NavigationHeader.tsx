@@ -33,8 +33,7 @@ const NavigationHeader = ({
   useScrollManager(mobileMenuOpen);
 
   const navigationItems = [
-    { href: "/dashboard", label: "Dashboard", requireAuth: true },
-    { href: "/pricing", label: "Pricing", requireAuth: false },
+    { href: "/form-selection", label: "Create Resume", requireAuth: false },
   ];
 
   const handleSignOut = async () => {
@@ -161,74 +160,7 @@ const NavigationHeader = ({
             </SheetContent>
           </Sheet>
 
-          {/* User Section */}
-          {loading ? (
-            <div className="w-8 h-8 bg-muted rounded animate-pulse" />
-          ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="hidden sm:inline text-sm">
-                    {user.email?.split('@')[0]}
-                  </span>
-                  {getSubscriptionBadge()}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user.email}</p>
-                  {subscriptionStatus?.has_access && (
-                    <p className="text-xs text-muted-foreground">
-                      {subscriptionStatus.plan_type === 'single' 
-                        ? `${subscriptionStatus.resumes_remaining} resume${subscriptionStatus.resumes_remaining !== 1 ? 's' : ''} left`
-                        : subscriptionStatus.plan_type === 'monthly' 
-                        ? 'Monthly subscription'
-                        : subscriptionStatus.expires_at
-                        ? `${Math.max(0, Math.ceil((new Date(subscriptionStatus.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left`
-                        : 'Active subscription'
-                      }
-                    </p>
-                  )}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Dashboard
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                {!subscriptionStatus?.has_access && (
-                  <DropdownMenuItem onClick={() => navigate('/pricing')}>
-                    <Crown className="w-4 h-4 mr-2" />
-                    Upgrade Plan
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Link to="/auth">
-                <Button variant="ghost" size="sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/pricing">
-                <Button size="sm" className="bg-gradient-to-r from-slate-700 to-gray-700 hover:from-slate-800 hover:to-gray-800 text-white">
-                  Get Started
-                </Button>
-              </Link>
-            </div>
-          )}
+          {/* Hidden user section - free version doesn't need auth */}
         </div>
       </div>
     </header>
