@@ -1,21 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import NavigationHeader from "@/components/NavigationHeader";
 import { 
   Sparkles, 
-  FileText, 
   CheckCircle2, 
   Loader2,
   Brain,
   Zap,
-  Star,
-  ArrowRight
+  Star
 } from "lucide-react";
 
 const AIGeneration = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { formData, selectedPlan } = location.state || {};
@@ -67,7 +63,13 @@ const AIGeneration = () => {
           if (stepIndex < steps.length) {
             progressThroughSteps();
           } else {
-            setIsComplete(true);
+            // Last step completed - redirect immediately without showing completion state
+            navigate("/resume-preview", { 
+              state: { 
+                resumeData: formData,
+                selectedPlan: "free" 
+              } 
+            });
           }
         }, steps[stepIndex].duration);
       }
@@ -76,32 +78,7 @@ const AIGeneration = () => {
     progressThroughSteps();
   }, [formData, navigate, steps]);
 
-  // Auto-redirect to resume preview when processing is complete
-  useEffect(() => {
-    if (isComplete) {
-      // Small delay to show completion state, then auto-redirect
-      const timer = setTimeout(() => {
-        navigate("/resume-preview", { 
-          state: { 
-            resumeData: formData,
-            selectedPlan: "free" 
-          } 
-        });
-      }, 1500); // 1.5 second delay to show completion
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isComplete, navigate, formData]);
-
-  const handleViewResume = () => {
-    // Navigate directly to resume preview/download page
-    navigate("/resume-preview", { 
-      state: { 
-        resumeData: formData,
-        selectedPlan: "free" 
-      } 
-    });
-  };
+  // No longer needed - redirect happens immediately after last step
 
   const getStepStatus = (stepIndex: number) => {
     if (stepIndex < currentStep) return "completed";
@@ -131,20 +108,16 @@ const AIGeneration = () => {
               </div>
               
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 dark:from-slate-400 dark:via-slate-300 dark:to-slate-200 bg-clip-text text-transparent">
-                {isComplete ? "Your Resume is Ready!" : "Building Your Perfect Resume"}
+                Building Your Perfect Resume
               </h1>
               
               <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                {isComplete 
-                  ? "Our AI has crafted a professional resume tailored to your experience and goals."
-                  : "Our AI is analyzing your information and creating a professional, ATS-optimized resume just for you."
-                }
+                Our AI is analyzing your information and creating a professional, ATS-optimized resume just for you.
               </p>
             </div>
 
             {/* AI Processing Steps */}
-            {!isComplete && (
-              <div className="space-y-8 mb-16">
+            <div className="space-y-8 mb-16">
                 {steps.map((step, index) => {
                   const status = getStepStatus(index);
                   
@@ -223,67 +196,7 @@ const AIGeneration = () => {
                     </div>
                   );
                 })}
-              </div>
-            )}
-
-            {/* Completion State */}
-            {isComplete && (
-              <div className="text-center space-y-8 animate-fade-in-up">
-                {/* Success Animation */}
-                <div className="relative">
-                  <div className="w-32 h-32 bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800/50 dark:to-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-8 animate-scale-in">
-                    <div className="w-24 h-24 bg-gradient-to-r from-slate-600 to-gray-600 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-12 h-12 text-white" />
-                    </div>
-                  </div>
-                  
-                  {/* Floating icons */}
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
-                    <Star className="w-6 h-6 text-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  </div>
-                  <div className="absolute top-8 right-1/4">
-                    <Sparkles className="w-5 h-5 text-slate-400 animate-bounce" style={{ animationDelay: "200ms" }} />
-                  </div>
-                  <div className="absolute top-8 left-1/4">
-                    <Zap className="w-5 h-5 text-slate-400 animate-bounce" style={{ animationDelay: "400ms" }} />
-                  </div>
-                </div>
-
-                {/* Plan-specific message */}
-                <div className={`
-                  p-6 rounded-2xl border-2 border-dashed
-                  ${selectedPlan === "pro" 
-                    ? "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20" 
-                    : "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
-                  }
-                `}>
-                  <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white">
-                    {selectedPlan === "pro" ? "AI-Enhanced Resume Ready!" : "Basic Resume Created!"}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-300">
-                    {selectedPlan === "pro" 
-                      ? "Your resume has been optimized with AI-powered content suggestions, industry keywords, and professional formatting."
-                      : "Your resume has been created successfully! Redirecting to preview and download page..."
-                    }
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    onClick={handleViewResume}
-                    size="lg"
-                    className="px-12 py-6 text-lg bg-gradient-to-r from-slate-700 via-gray-600 to-slate-600 hover:from-slate-800 hover:via-gray-700 hover:to-slate-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-                  >
-                    <FileText className="w-5 h-5 mr-2" />
-                    View Your Resume
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                  
-
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
