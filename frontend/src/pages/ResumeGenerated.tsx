@@ -33,17 +33,7 @@ const ResumeGenerated = () => {
 
   useEffect(() => {
     const initializeResumeGeneration = async () => {
-      // Check authentication first
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to generate resumes.",
-          variant: "destructive",
-        });
-        navigate('/auth', { state: { from: '/resume-generated' } });
-        return;
-      }
-
+      // Free version - no authentication required
       // Get form data from navigation state or localStorage
       let data = location.state?.formData;
       
@@ -94,7 +84,7 @@ const ResumeGenerated = () => {
     };
 
     initializeResumeGeneration();
-  }, [user, location.state, navigate, canGenerateResume, accessLoading]);
+  }, [location.state, navigate]);
 
   const handleDownload = () => {
     // Redirect to preview page for download
