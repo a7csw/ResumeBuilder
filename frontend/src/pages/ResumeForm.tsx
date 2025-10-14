@@ -442,7 +442,7 @@ const ResumeForm = () => {
     localStorage_.set('resumeFormData', formData);
     
     // Navigate to pricing page for payment
-    navigate("/pricing", { state: { formData } });
+    navigate("/ai-generation", { state: { formData } });
   };
 
   // Show loading state

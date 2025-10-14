@@ -12,10 +12,15 @@ export const VALID_ROUTES = [
   '/ai-generation',
   '/resume-preview',
   '/resume-generated',
+  '/pricing',
+  '/plan-selection',
+  '/dashboard',
   '/profile',
   '/my-resumes',
   '/reset-password',
-  '/status'
+  '/status',
+  '/success',
+  '/gumroad/success'
 ] as const;
 
 export type ValidRoute = typeof VALID_ROUTES[number];
