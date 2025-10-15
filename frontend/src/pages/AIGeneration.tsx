@@ -7,7 +7,8 @@ import {
   Loader2,
   Brain,
   Zap,
-  Star
+  Star,
+  FileText
 } from "lucide-react";
 
 const AIGeneration = () => {
