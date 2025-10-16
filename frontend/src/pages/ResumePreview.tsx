@@ -77,28 +77,40 @@ const ResumePreview = () => {
         }
 
         // Capture the resume as canvas
+        // Optimized canvas settings for smaller file size
         const canvas = await html2canvas(resumeElement, {
-          scale: 2,
+          scale: 1.5, // Reduced from 2 to 1.5 for smaller file size
           useCORS: true,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          allowTaint: false,
+          foreignObjectRendering: false,
+          imageTimeout: 15000,
+          removeContainer: true,
         });
 
-        // Create PDF
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        // Create PDF with JPEG compression for much smaller file size
+        const imgData = canvas.toDataURL('image/jpeg', 0.85); // 85% quality JPEG
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: true, // Enable PDF compression
+        });
+        
         const imgWidth = 210;
         const pageHeight = 295;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        // Use JPEG format with medium compression
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'MEDIUM');
         heightLeft -= pageHeight;
 
         while (heightLeft >= 0) {
           position = heightLeft - imgHeight;
           pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'MEDIUM');
           heightLeft -= pageHeight;
         }
 
@@ -110,10 +122,32 @@ const ResumePreview = () => {
         // Generate Word document
         const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, Table, TableRow, TableCell } = await import('docx');
 
-        // Create Word document
+        // Create Word document with optimized settings
         const doc = new Document({
+          creator: "NovaECV Resume Builder",
+          title: `${personalInfo.firstName || ''} ${personalInfo.lastName || ''} Resume`,
+          description: "Professional Resume",
+          styles: {
+            default: {
+              document: {
+                run: {
+                  size: 22, // 11pt font size for smaller file
+                  font: "Calibri", // Use system font for smaller size
+                },
+              },
+            },
+          },
           sections: [{
-            properties: {},
+            properties: {
+              page: {
+                margin: {
+                  top: 720,    // 0.5 inch margins for more content per page
+                  right: 720,
+                  bottom: 720,
+                  left: 720,
+                },
+              },
+            },
             children: [
               // Header
               new Paragraph({
@@ -238,8 +272,13 @@ const ResumePreview = () => {
           }]
         });
 
-        // Generate and download Word document
-        const blob = await Packer.toBlob(doc);
+        // Generate and download Word document with compression
+        const blob = await Packer.toBlob(doc, {
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          // Enable compression for smaller file size
+        });
+        
+        // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -557,7 +596,7 @@ const ResumePreview = () => {
                       <div className="flex-1">
                         <p className="font-medium">PDF Format</p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Best for applying online
+                          Best for applying online • ~200-500 KB
                         </p>
                       </div>
                     </label>
@@ -572,10 +611,10 @@ const ResumePreview = () => {
                         className="text-slate-600"
                       />
                       <FileText className="w-5 h-5 text-slate-500" />
-                      <div>
-                          <p className="font-medium">Word Format</p>
+                      <div className="flex-1">
+                        <p className="font-medium">Word Format</p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Easy to edit
+                          Easy to edit • ~50-150 KB
                         </p>
                       </div>
                     </label>

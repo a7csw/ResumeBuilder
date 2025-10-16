@@ -89,15 +89,28 @@ export const useDownloadPdf = () => {
       throw new Error('Preview element not found');
     }
 
+    // Optimized canvas settings for smaller file size
     const canvas = await html2canvas(previewElement as HTMLElement, {
-      scale: 2,
+      scale: 1.5, // Reduced from 2 to 1.5 for smaller file size while maintaining quality
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
+      allowTaint: false,
+      foreignObjectRendering: false, // Disable for better compatibility and smaller size
+      imageTimeout: 15000,
+      removeContainer: true,
     });
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    // Use JPEG format with compression for much smaller file sizes
+    const imgData = canvas.toDataURL('image/jpeg', 0.85); // 85% quality JPEG instead of PNG
+    
+    // Create PDF with optimized settings
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true, // Enable PDF compression
+    });
     
     const imgWidth = 210; // A4 width in mm
     const pageHeight = 295; // A4 height in mm
@@ -105,20 +118,20 @@ export const useDownloadPdf = () => {
     let heightLeft = imgHeight;
     let position = 0;
 
-    // Add first page
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    // Add first page with optimized image settings
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'MEDIUM'); // Use MEDIUM compression
     heightLeft -= pageHeight;
 
-    // Add additional pages if needed
+    // Add additional pages if needed (for multi-page resumes)
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'MEDIUM');
       heightLeft -= pageHeight;
     }
 
-    // Download the PDF
-    const fileName = `${resumeData.personalInfo?.firstName || 'resume'}-${Date.now()}.pdf`;
+    // Download the PDF with optimized filename
+    const fileName = `${resumeData.personalInfo?.firstName || 'resume'}_${resumeData.personalInfo?.lastName || 'NOVAECV'}.pdf`;
     pdf.save(fileName);
   };
 
